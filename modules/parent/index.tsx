@@ -7,6 +7,11 @@ import {
 import { ParentReport } from "../../core/types";
 import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../core/events";
 
+// Define uma nova interface estendida para eventos com ID único
+interface ObservabilityEventWithId extends ObservabilityEvent {
+  id: string;
+}
+
 interface ParentZoneViewProps {
   reports: ParentReport[];
   children?: React.ReactNode;
@@ -20,7 +25,7 @@ const TabButton = ({ active, onClick, icon: Icon, label }: any) => (
 );
 
 // Fix: Explicitly define as React.FC to allow reserved props like 'key' and resolve TS error at usage site
-const ActivityRow: React.FC<{ event: ObservabilityEvent }> = ({ event }) => {
+const ActivityRow: React.FC<{ event: ObservabilityEventWithId }> = ({ event }) => {
   const getModuleIcon = () => {
     switch(event.module) {
       case 'chat': return <MessageSquare size={16} className="text-indigo-500" />;
@@ -81,13 +86,18 @@ export const ParentZoneView = ({ reports, children }: ParentZoneViewProps) => {
   const [filter, setFilter] = useState("");
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   
-  // Memória Volátil de Observabilidade (POL Stream)
-  const [activityStream, setActivityStream] = useState<ObservabilityEvent[]>([]);
+  // Memória Volátil de Observabilidade (POL Stream) - Usando a nova interface
+  const [activityStream, setActivityStream] = useState<ObservabilityEventWithId[]>([]);
 
   useEffect(() => {
     // Subscreve ao fluxo de observabilidade transversal
     const unsub = mimiEvents.on(MIMI_EVENT_TYPES.OBSERVABILITY_ACTIVITY, (event: ObservabilityEvent) => {
-      setActivityStream(prev => [event, ...prev].slice(0, 100)); // Mantém as últimas 100 atividades em memória
+      // Cria um ID único para cada evento ao ser recebido
+      const eventWithId: ObservabilityEventWithId = {
+        ...event,
+        id: crypto.randomUUID() // Gera um UUID único
+      };
+      setActivityStream(prev => [eventWithId, ...prev].slice(0, 100)); // Mantém as últimas 100 atividades em memória
     });
     return unsub;
   }, []);
@@ -146,8 +156,8 @@ export const ParentZoneView = ({ reports, children }: ParentZoneViewProps) => {
               </div>
 
               <div className="space-y-4">
-                {activityStream.map((event, i) => (
-                  <ActivityRow key={`${event.timestamp}-${i}`} event={event} />
+                {activityStream.map((event) => (
+                  <ActivityRow key={event.id} event={event} />
                 ))}
                 {activityStream.length === 0 && (
                   <div className="h-64 flex flex-col items-center justify-center text-center opacity-20 border-2 border-dashed border-slate-200 rounded-[3rem]">

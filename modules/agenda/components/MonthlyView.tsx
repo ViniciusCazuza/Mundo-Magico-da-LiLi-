@@ -77,8 +77,8 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
 
       <div className="flex-1 p-6 md:p-8 flex flex-col justify-center">
         <div className="grid grid-cols-7 mb-4 text-center">
-          {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-            <div key={d} className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] py-2">{d}</div>
+          {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, index) => (
+            <div key={index} className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] py-2">{d}</div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-2">

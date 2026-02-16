@@ -71,17 +71,17 @@ export const StudioModule: React.FC = () => {
   if (!activeToolId) {
     return (
       <div className="flex-1 flex flex-col bg-transparent overflow-y-auto no-scrollbar animate-fade-in font-sans p-8 md:p-16 lg:p-24 relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-400/10 blur-[100px] rounded-full animate-aurora pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-400/10 blur-[100px] rounded-full animate-aurora pointer-events-none" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--accent)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none" style={{ animationDelay: '2s' }}></div>
 
         <div className="max-w-6xl mx-auto w-full space-y-20 relative z-10">
           <header className="text-center space-y-6">
-             <div className="inline-flex items-center gap-3 px-8 py-3 bg-white border-2 border-indigo-100 rounded-full text-indigo-500 shadow-sm animate-mimi-float">
+             <div className="inline-flex items-center gap-3 px-8 py-3 bg-[var(--surface)] border-2 border-[var(--border-color)] rounded-full text-[var(--primary)] shadow-sm animate-mimi-float">
                 <PaletteIcon size={20} />
                 <span className="text-[11px] font-black uppercase tracking-[0.4em]">Ateliê de Descobertas</span>
              </div>
              <h1 className="font-hand text-7xl md:text-9xl text-slate-800 leading-none">
-               O que vamos <span className="text-indigo-500">criar</span> agora?
+               O que vamos <span className="text-[var(--primary)]">criar</span> agora?
              </h1>
              <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">
                Escolha uma ferramenta mágica para começar sua próxima aventura artística.
@@ -104,11 +104,11 @@ export const StudioModule: React.FC = () => {
 
                 <div className="p-12 space-y-6 relative">
                   <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-3xl bg-indigo-500 text-white flex items-center justify-center shadow-xl transition-all duration-500 group-hover:rotate-[-10deg]" style={{ backgroundColor: tool.color }}>
+                    <div className="w-20 h-20 rounded-3xl bg-indigo-500 text-[var(--text-on-primary)] flex items-center justify-center shadow-xl transition-all duration-500 group-hover:rotate-[-10deg]" style={{ backgroundColor: tool.color }}>
                       <tool.icon size={36} />
                     </div>
                     <div>
-                      <h3 className="font-hand text-5xl text-slate-800 transition-colors group-hover:text-indigo-500">
+                      <h3 className="font-hand text-5xl text-slate-800 transition-colors group-hover:text-[var(--primary)]">
                         {tool.name}
                       </h3>
                       <p className="text-[11px] font-black uppercase tracking-widest text-slate-300">Portal Criativo</p>
@@ -119,11 +119,10 @@ export const StudioModule: React.FC = () => {
                     {tool.description}
                   </p>
 
-                  <div className="pt-6 flex items-center justify-between">
-                     <div className="flex items-center gap-3 px-8 py-4 bg-slate-50 rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-lg transition-all">
-                        Começar <ArrowLeft size={16} className="rotate-180" />
-                     </div>
-                     <Star size={32} className="text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+                                       <div className="pt-6 flex items-center justify-between">
+                                          <div className="flex items-center gap-3 px-8 py-4 bg-slate-50 rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:bg-[var(--primary)] group-hover:text-[var(--text-on-primary)] group-hover:shadow-lg transition-all">
+                                             Começar <ArrowLeft size={16} className="rotate-180" />
+                                          </div>                     <Star size={32} className="text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
                   </div>
                 </div>
               </button>
@@ -145,7 +144,7 @@ export const StudioModule: React.FC = () => {
       <header className="shrink-0 h-20 bg-white/80 backdrop-blur-xl border-b-2 border-dashed border-indigo-100 px-8 flex items-center justify-between z-[100] animate-fade-in shadow-sm">
         <button 
           onClick={() => setActiveToolId(null)}
-          className="flex items-center gap-3 px-6 py-3 bg-indigo-50 text-indigo-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all active:scale-95 shadow-sm"
+          className="flex items-center gap-3 px-6 py-3 bg-[var(--primary)]/10 text-[var(--primary)] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--primary)] hover:text-[var(--text-on-primary)] transition-all active:scale-95 shadow-sm"
         >
           <ChevronLeft size={20} strokeWidth={3} />
           <span>Voltar</span>
@@ -160,7 +159,7 @@ export const StudioModule: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 animate-breathing shadow-inner border border-indigo-100">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] animate-breathing shadow-inner border border-[var(--primary)]/20">
           {activeTool && <activeTool.icon size={24} />}
         </div>
       </header>

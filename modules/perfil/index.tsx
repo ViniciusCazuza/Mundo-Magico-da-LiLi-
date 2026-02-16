@@ -113,7 +113,7 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
           {activeTab === 'family' && isAdmin && (
             <FamilyContextSettings family={familyContext} updateFamily={ctx => { setFamilyContext(prev => ({...prev, ...ctx})); IdentityManager.updateFamilyContext(ctx); }} />
           )}
-          {activeTab === 'security' && isAdmin && <SecuritySettings />}
+          {activeTab === 'security' && isAdmin && <SecuritySettings activeProfile={activeProfile} />}
         </div>
       </main>
     </div>
@@ -123,25 +123,25 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
 const ProfilesManagement = ({ activeProfile, isAdmin, profiles }: { activeProfile: AliceProfile, isAdmin: boolean, profiles: AliceProfile[] }) => (
   <section className="space-y-12 animate-fade-in">
     <header>
-      <h2 className="font-hand text-6xl text-slate-800">Gestão de Perfis</h2>
-      <p className="text-sm text-slate-500 font-medium">Visualize e gerencie quem acessa o ecossistema.</p>
+      <h2 className="font-hand text-6xl text-[var(--text-primary)]">Gestão de Perfis</h2>
+      <p className="text-sm text-[var(--text-secondary)] font-medium">Visualize e gerencie quem acessa o ecossistema.</p>
     </header>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {profiles.map(p => (
-        <div key={p.id} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 flex items-center justify-between group">
+        <div key={p.id} className="bg-[var(--surface)] p-6 rounded-[2.5rem] shadow-sm border border-[var(--border-color)] flex items-center justify-between group">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center text-indigo-500 font-black text-xl">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--surface-elevated)] overflow-hidden flex items-center justify-center text-[var(--primary)] font-black text-xl">
               {p.profileImage?.data ? <img src={p.profileImage.data} className="w-full h-full object-cover" /> : p.nickname[0]}
             </div>
             <div>
-              <h4 className="font-bold text-slate-800">{p.nickname}</h4>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{p.role === 'child' ? 'Criança' : 'Administrador'}</p>
+              <h4 className="font-bold text-[var(--text-primary)]">{p.nickname}</h4>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{p.role === 'child' ? 'Criança' : 'Administrador'}</p>
             </div>
           </div>
           {isAdmin && p.id !== activeProfile.id && (
             <button 
               onClick={() => { if(confirm(`Excluir perfil ${p.nickname}?`)) IdentityManager.deleteProfile(p.id); }}
-              className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              className="p-3 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
             >
               <Trash2 size={20} />
             </button>
@@ -154,7 +154,7 @@ const ProfilesManagement = ({ activeProfile, isAdmin, profiles }: { activeProfil
              const name = prompt("Nome do novo perfil?");
              if(name) IdentityManager.addProfile(name);
            }}
-           className="border-4 border-dashed border-slate-200 rounded-[2.5rem] p-6 flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-indigo-500 hover:border-indigo-200 transition-all"
+           className="border-4 border-dashed border-[var(--border-color)] rounded-[2.5rem] p-6 flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-all"
          >
            <Plus size={32} />
            <span className="text-[10px] font-black uppercase tracking-widest">Novo Perfil</span>
@@ -415,15 +415,103 @@ const FamilyContextSettings = ({ family, updateFamily }: any) => (
   </section>
 );
 
-const SecuritySettings = () => (
-  <section className="space-y-8 animate-fade-in text-center">
-    <header><h2 className="font-hand text-5xl text-slate-800">Segurança do Painel</h2></header>
-    <div className="bg-white p-16 rounded-[4rem] shadow-sm border border-slate-200 inline-block w-full">
-       <div className="p-8 bg-slate-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-8"><Key size={48} className="text-slate-400"/></div>
-       <button onClick={() => { const p = prompt("Novo PIN?"); if(p && p.length === 4) IdentityManager.setPin(p); }} className="px-12 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-sm uppercase shadow-2xl hover:bg-black transition-all">Alterar PIN de Acesso</button>
-    </div>
-  </section>
-);
+const SecuritySettings: React.FC<{ activeProfile: AliceProfile }> = ({ activeProfile }) => {
+  const [pinInput, setPinInput] = useState("");
+  const [confirmPinInput, setConfirmPinInput] = useState("");
+  const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | 'info' } | null>(null);
+  const [currentPinStatus, setCurrentPinStatus] = useState<'not_set' | 'set' | 'unknown'>('unknown');
+
+  useEffect(() => {
+    // Determine if a PIN is currently set (IdentityManager.ensureInstance().parentPinHash should be used for this, but direct access is private)
+    // A simpler way for the UI is to assume if IdentityManager.init() was called, parentPinHash is not null if a PIN is set.
+    // Given the IdentityManager.ts structure, we can check for the existence of parentPinHash after init.
+    // For now, we will rely on the message.
+    // If the user logs in without a PIN, it means it's 'not_set'.
+    // If the user logs in with a PIN, it means it's 'set'.
+    // However, the UI itself cannot directly query IdentityManager.parentPinHash, as it's private.
+    // A pragmatic approach for the UI is to display a "Set PIN" or "Change PIN" based on context.
+    // For this implementation, we will assume if the user is here, they want to manage PIN.
+    const ecosystemData = IdentityManager['ensureInstance'](); // Accessing private for quick check
+    if (ecosystemData.parentPinHash) {
+      setCurrentPinStatus('set');
+    } else {
+      setCurrentPinStatus('not_set');
+    }
+
+  }, [activeProfile]);
+
+
+  const handleSetPin = () => {
+    setMessage(null);
+    if (pinInput.length !== 4 || confirmPinInput.length !== 4) {
+      setMessage({ text: "O PIN deve ter 4 dígitos.", type: 'error' });
+      return;
+    }
+    if (pinInput !== confirmPinInput) {
+      setMessage({ text: "Os PINs não coincidem.", type: 'error' });
+      return;
+    }
+
+    try {
+      IdentityManager.setPin(pinInput);
+      setMessage({ text: "PIN configurado com sucesso!", type: 'success' });
+      setCurrentPinStatus('set');
+      setPinInput("");
+      setConfirmPinInput("");
+    } catch (error) {
+      setMessage({ text: "Erro ao configurar o PIN. Tente novamente.", type: 'error' });
+      console.error("Erro ao configurar PIN:", error);
+    }
+  };
+
+  return (
+    <section className="space-y-8 animate-fade-in text-center">
+      <header>
+        <h2 className="font-hand text-5xl text-slate-800">Segurança do Painel</h2>
+        <p className="text-sm text-slate-500 font-medium mt-2">
+          {currentPinStatus === 'not_set' ? "Configure um PIN de 4 dígitos para proteger o acesso parental." : "Altere o PIN de 4 dígitos para o acesso parental."}
+        </p>
+      </header>
+      <div className="bg-white p-16 rounded-[4rem] shadow-sm border border-slate-200 inline-block w-full max-w-lg">
+        <div className="p-8 bg-slate-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-8">
+          <Key size={48} className="text-slate-400"/>
+        </div>
+        
+        <div className="space-y-4 mb-8">
+          <input
+            type="password"
+            maxLength={4}
+            placeholder="Novo PIN (4 dígitos)"
+            value={pinInput}
+            onChange={(e) => setPinInput(e.target.value)}
+            className="w-full text-center text-xl p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+          />
+          <input
+            type="password"
+            maxLength={4}
+            placeholder="Confirmar PIN (4 dígitos)"
+            value={confirmPinInput}
+            onChange={(e) => setConfirmPinInput(e.target.value)}
+            className="w-full text-center text-xl p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+          />
+        </div>
+
+        <button
+          onClick={handleSetPin}
+          className="px-12 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-sm uppercase shadow-2xl hover:bg-black transition-all w-full"
+        >
+          {currentPinStatus === 'not_set' ? "Definir PIN" : "Alterar PIN"}
+        </button>
+
+        {message && (
+          <div className={`mt-4 p-3 rounded-xl ${message.type === 'error' ? 'bg-red-100 text-red-700' : message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+            {message.text}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
 
 const TrainingRange = ({ label, value, onChange, color }: any) => (
   <div className="space-y-3">
@@ -458,5 +546,5 @@ const InputGroup = ({ label, value, onChange }: { label: string, value: string, 
 );
 
 const Switch = ({ active, onToggle }: { active: boolean, onToggle: () => void }) => (
-  <button onClick={onToggle} className={`w-14 h-8 rounded-full relative transition-colors ${active ? 'bg-indigo-500' : 'bg-slate-200'}`}><div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} /></button>
+  <button onClick={onToggle} className={`w-14 h-8 rounded-full relative transition-colors ${active ? 'bg-[var(--primary)]' : 'bg-[var(--border-color)]'}`}><div className={`absolute top-1 w-6 h-6 bg-[var(--surface)] rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} /></button>
 );

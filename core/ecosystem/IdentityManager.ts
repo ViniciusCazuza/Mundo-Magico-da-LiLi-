@@ -45,7 +45,7 @@ export class IdentityManager {
       version: "2.8.0",
       activeProfileId: childId,
       ecosystemId: `eco_${Math.random().toString(36).substr(2, 9)}`,
-      parentPinHash: this.hashPin("0000"),
+      parentPinHash: null,
       familyContext: {
         pets: [],
         familyValues: ""
@@ -131,7 +131,14 @@ export class IdentityManager {
     if (!target) return false;
 
     if (target.role === "parent_admin") {
-      if (!pin || !this.verifyPin(pin)) return false;
+      // Se nenhum PIN estiver definido (parentPinHash é null ou vazio), permite o login sem PIN.
+      // Caso contrário, o PIN está definido e precisa ser verificado.
+      if (!inst.parentPinHash) {
+        // Nenhuma verificação de PIN necessária
+      } else {
+        // PIN está definido, verifica o PIN fornecido
+        if (!pin || !this.verifyPin(pin)) return false;
+      }
     }
 
     this.session = {
@@ -154,12 +161,19 @@ export class IdentityManager {
       sessionStartedAt: null
     };
     localStorage.removeItem(SESSION_STORAGE_KEY);
+    this.instance = null; // Clear the in-memory instance to force reload from localStorage on next init
     mimiEvents.dispatch(ECOSYSTEM_EVENTS.SESSION_ENDED, null);
     console.debug("[IdentityManager] Sessão encerrada e estado limpo.");
   }
 
   static verifyPin(pin: string): boolean {
-    return this.hashPin(pin) === this.ensureInstance().parentPinHash;
+    const hashedInputPin = this.hashPin(pin);
+    const storedPinHash = this.ensureInstance().parentPinHash;
+    console.log("[IdentityManager] Verifying PIN:");
+    console.log("[IdentityManager]   Hashed Input PIN:", hashedInputPin);
+    console.log("[IdentityManager]   Stored PIN Hash:", storedPinHash);
+    console.log("[IdentityManager]   Match:", hashedInputPin === storedPinHash);
+    return hashedInputPin === storedPinHash;
   }
 
   private static hashPin(pin: string): string {
@@ -220,7 +234,15 @@ export class IdentityManager {
   }
 
   private static save() {
-    if (!this.instance) return;
-    safeLocalStorageSetItem(ECOSYSTEM_STORAGE_KEY, JSON.stringify(this.instance));
+    if (!this.instance) {
+      console.warn("[IdentityManager] save() called but instance is null. Nothing to save.");
+      return;
+    }
+    const dataToSave = JSON.stringify(this.instance);
+    console.log("[IdentityManager] Attempting to save to localStorage:", dataToSave);
+    safeLocalStorageSetItem(ECOSYSTEM_STORAGE_KEY, dataToSave);
+    console.log("[IdentityManager] Data successfully passed to safeLocalStorageSetItem for key:", ECOSYSTEM_STORAGE_KEY);
+    const savedData = localStorage.getItem(ECOSYSTEM_STORAGE_KEY);
+    console.log("[IdentityManager] Data read back from localStorage for key '" + ECOSYSTEM_STORAGE_KEY + "':", savedData);
   }
 }
