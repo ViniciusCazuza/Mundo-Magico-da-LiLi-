@@ -1,0 +1,104 @@
+
+import React, { useState, useEffect } from "react";
+import { Plus, Trash2, BrainCircuit, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { MimiCustomTrainingEntry } from "../types";
+
+interface KnowledgeTrainerProps {
+  knowledge: MimiCustomTrainingEntry[];
+  onChange: (knowledge: MimiCustomTrainingEntry[]) => void;
+  isParentView?: boolean;
+}
+
+export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, onChange, isParentView = true }) => {
+  const [input, setInput] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const add = () => {
+    if (!input.trim()) return;
+    
+    const newEntry: MimiCustomTrainingEntry = {
+      id: `tr_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: Date.now(),
+      content: input.trim()
+    };
+
+    onChange([newEntry, ...knowledge]);
+    setInput("");
+    
+    // Feedback AAA
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const remove = (id: string) => {
+    onChange(knowledge.filter(item => item.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Barra de Entrada de Treinamento */}
+      <div className="relative">
+        <div className="flex gap-3">
+          <input 
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={isParentView ? "Adicione um fato ou instrução..." : "Ex: Eu amo morangos!"}
+            onKeyDown={e => e.key === 'Enter' && add()}
+            className="flex-1 p-5 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-indigo-400 outline-none text-sm font-medium transition-all shadow-inner"
+          />
+          <button 
+            onClick={add}
+            disabled={!input.trim()}
+            className="w-16 h-16 bg-indigo-600 text-white rounded-[1.75rem] flex items-center justify-center hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:scale-100"
+          >
+            <Plus size={24} />
+          </button>
+        </div>
+
+        {/* Toast de Sucesso Integrado */}
+        {showSuccess && (
+          <div className="absolute -top-12 left-0 right-0 flex justify-center animate-fade-in">
+             <div className="bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl">
+                <CheckCircle2 size={14} /> Treinamento Salvo com Sucesso! ✨
+             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Listagem de Governança */}
+      <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
+        {knowledge.map((item) => (
+          <div 
+            key={item.id} 
+            className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-[1.5rem] group animate-fade-in shadow-sm hover:shadow-md transition-all border-l-4 border-l-indigo-500"
+          >
+            <div className="flex-1 flex flex-col gap-1 pr-4">
+              <div className="flex items-center gap-2">
+                <Sparkles size={12} className="text-indigo-400" />
+                <span className="text-sm font-bold text-slate-700">{item.content}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                <Clock size={10} />
+                {new Date(item.createdAt).toLocaleDateString('pt-BR')} às {new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+            <button 
+              onClick={() => remove(item.id)}
+              className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              title="Excluir Treinamento"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        ))}
+
+        {knowledge.length === 0 && (
+          <div className="text-center py-10 opacity-30 flex flex-col items-center gap-3">
+             <BrainCircuit size={48} className="text-slate-400" />
+             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mimi ainda não tem treinamentos personalizados.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

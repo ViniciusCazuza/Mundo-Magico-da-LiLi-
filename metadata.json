@@ -1,0 +1,8 @@
+{
+  "description": "O Mágico Mundo da Lili - Um estúdio completo de desenho, chat e narração de histórias visuais para Alice.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "name": "Lili Magic Studio 2.2"
+}
