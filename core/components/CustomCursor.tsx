@@ -192,6 +192,8 @@ const MAX_PARTICLES = 50;
 const PARTICLE_LIFETIME_MS = 1000;
 const SPAWN_DISTANCE_THRESHOLD = 40; // px between footprints, increased from 30
 
+const NEON_CURSOR_BASE_COLOR = '#FFEDF2'; // A subtle pinkish-white for the neon base
+
 // Interactive tag names (uppercase for comparison)
 const INTERACTIVE_TAGS = new Set([
   'BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL', 'SUMMARY',
@@ -325,31 +327,35 @@ const CustomCursor: React.FC = () => {
             ${PegadasSVG_Content}
           </div>
         `;
-        // Attach animationend listener if newly created
-        el.addEventListener('animationend', () => {
-          el.style.display = 'none'; // Hide when animation ends
-          el.style.opacity = '0';   // Reset opacity
-          particlePool.current.push(el); // Return to pool
-          particleCount.current--;
-        }, { once: true });
         container.appendChild(el);
       }
-      
+
+      // Cleanup listener (re-attached every spawn to handle recycling)
+      const onAnimationEnd = () => {
+        if (!el) return;
+        el.style.display = 'none'; // Hide when animation ends
+        el.style.opacity = '0';   // Reset opacity
+        particlePool.current.push(el); // Return to pool
+        particleCount.current--;
+      };
+
+      el.addEventListener('animationend', onAnimationEnd, { once: true });
+
       el.style.display = 'block'; // Make visible
       el.style.color = color;
       el.style.opacity = '0.8';
       el.style.filter = `drop-shadow(0 0 3px ${color})`;
       el.style.transform = `rotate(${rotation}deg)`; // Apply rotation to the outer div
-      
+
       // Update position
       el.style.left = `${x - PARTICLE_SIZE / 2}px`; // Particles should be centered around the passed X,Y
       el.style.top = `${y - PARTICLE_SIZE / 2}px`; // Particles should be centered around the passed X,Y
-      
+
       // Restart animation (reset animation state)
       const innerDiv = el.children[0] as HTMLElement;
-      if (!innerDiv) { // Added explicit check and return if innerDiv is null unexpectedly
-          console.error("Particle element has no first child!", el);
-          return;
+      if (!innerDiv) {
+        console.error("Particle element has no first child!", el);
+        return;
       }
       innerDiv.style.animation = 'none';
       innerDiv.offsetHeight; // Trigger reflow to reset animation
@@ -401,7 +407,7 @@ const CustomCursor: React.FC = () => {
       if (cursor) {
         cursor.innerHTML = desiredSVG;
         currentCursorSVG.current = desiredSVG;
-        cursor.style.color = themeColors.primary; // Use cached themeColors
+        cursor.style.color = NEON_CURSOR_BASE_COLOR; // Use the neon base color
         cursor.style.filter = `drop-shadow(0 0 8px ${themeColors.primary}) drop-shadow(0 0 18px ${themeColors.accent})`; // Use cached themeColors
       }
     }
@@ -445,7 +451,7 @@ const CustomCursor: React.FC = () => {
     if (cursor) {
       cursor.innerHTML = PawRetractedSVG;
       currentCursorSVG.current = PawRetractedSVG; // Initialize the ref
-      cursor.style.color = themeColors.primary; // Use cached themeColors
+      cursor.style.color = NEON_CURSOR_BASE_COLOR; // Use the neon base color
       cursor.style.filter =
         `drop-shadow(0 0 8px ${themeColors.primary}) drop-shadow(0 0 18px ${themeColors.accent})`; // Use cached themeColors
     }
@@ -477,7 +483,7 @@ const CustomCursor: React.FC = () => {
         particlePool.current.push(el); // Add to pool
       }
     }
-    
+
     // 3. Start event listener + render loop
     document.addEventListener('mousemove', onMouseMove, { passive: true });
     rafId.current = requestAnimationFrame(renderLoop);

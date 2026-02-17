@@ -40,7 +40,7 @@ export class IdentityManager {
 
     const parentId = `p_admin_${Date.now()}`;
     const childId = `p_child_${Date.now()}`;
-    
+
     this.instance = {
       version: "2.8.0",
       activeProfileId: childId,
@@ -233,16 +233,21 @@ export class IdentityManager {
     mimiEvents.dispatch(ECOSYSTEM_EVENTS.PROFILE_UPDATED, this.getActiveProfile());
   }
 
+  /**
+   * Verifica se existe um PIN parental configurado
+   * (Método público seguro para UI)
+   */
+  public static hasStoredPin(): boolean {
+    const instance = this.ensureInstance();
+    return !!instance.parentPinHash;
+  }
+
   private static save() {
     if (!this.instance) {
       console.warn("[IdentityManager] save() called but instance is null. Nothing to save.");
       return;
     }
     const dataToSave = JSON.stringify(this.instance);
-    console.log("[IdentityManager] Attempting to save to localStorage:", dataToSave);
     safeLocalStorageSetItem(ECOSYSTEM_STORAGE_KEY, dataToSave);
-    console.log("[IdentityManager] Data successfully passed to safeLocalStorageSetItem for key:", ECOSYSTEM_STORAGE_KEY);
-    const savedData = localStorage.getItem(ECOSYSTEM_STORAGE_KEY);
-    console.log("[IdentityManager] Data read back from localStorage for key '" + ECOSYSTEM_STORAGE_KEY + "':", savedData);
   }
 }

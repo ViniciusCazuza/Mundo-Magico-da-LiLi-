@@ -1,177 +1,141 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="siamese">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>O Mágico Mundo da Lili</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700;800&family=Patrick+Hand&family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['var(--font-family)', 'sans-serif'],
-              hand: ['Patrick Hand', 'cursive'],
-            },
-            colors: {
-              mimi: {
-                primary: 'var(--primary)',
-                secondary: 'var(--secondary)',
-                accent: 'var(--accent)',
-                surface: 'var(--surface)',
-                elevated: 'var(--surface-elevated)',
-                app: 'var(--bg-app)',
-                'text-primary': 'var(--text-primary)',
-                'text-secondary': 'var(--text-secondary)',
-                'text-muted': 'var(--text-muted)',
-                'text-on-primary': 'var(--text-on-primary)',
-                'text-on-accent': 'var(--text-on-accent)',
-              }
-            },
-            borderRadius: {
-              'mimi': 'var(--radius-base)',
-            },
-            animation: {
-              'aurora': 'aurora 15s ease infinite',
-              'shimmer': 'shimmer 2s infinite',
-              'breathing': 'breathing 4s ease-in-out infinite',
-              'spin-slow': 'spin 12s linear infinite',
-              'jelly': 'jelly 0.5s ease-in-out',
-              'float-slow': 'float-slow 6s ease-in-out infinite',
-            },
-            keyframes: {
-              aurora: {
-                '0%, 100%': { backgroundPosition: '0% 50%' },
-                '50%': { backgroundPosition: '100% 50%' },
-              },
-              shimmer: {
-                '0%': { transform: 'translateX(-100%)' },
-                '100%': { transform: 'translateX(100%)' },
-              },
-              breathing: {
-                '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
-                '50%': { transform: 'scale(1.05)', opacity: '1' },
-              },
-              jelly: {
-                '0%': { transform: 'scale(1, 1)' },
-                '30%': { transform: 'scale(1.25, 0.75)' },
-                '40%': { transform: 'scale(0.75, 1.25)' },
-                '50%': { transform: 'scale(1.15, 0.85)' },
-                '65%': { transform: 'scale(0.95, 1.05)' },
-                '75%': { transform: 'scale(1.05, 0.95)' },
-                '100%': { transform: 'scale(1, 1)' },
-              },
-              'float-slow': {
-                '0%, 100%': { transform: 'translateY(0px)' },
-                '50%': { transform: 'translateY(-20px)' },
-              }
-            }
-          }
-        }
-      }
-    </script>
-    <style>
-      :root {
-        --transition-speed: 0.4s;
-        --ease-standard: cubic-bezier(0.34, 1.56, 0.64, 1);
-        --magic-glow: 0 0 20px rgba(255, 255, 255, 0.5);
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'; script-src 'self' * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' * data: blob: 'unsafe-inline'; img-src 'self' * data: blob: 'unsafe-inline'; frame-src 'self' * data: blob: 'unsafe-inline'; style-src 'self' * data: blob: 'unsafe-inline'; font-src 'self' * data: blob: 'unsafe-inline';">
+  <title>O Mágico Mundo da Lili</title>
+  <!-- Tailwind CDN removed in favor of local build -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700;800&family=Patrick+Hand&family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;900&display=swap"
+    rel="stylesheet">
+  <script>
+    // Config moved to tailwind.config.js
+  </script>
+  <style>
+    :root {
+      --transition-speed: 0.4s;
+      --ease-standard: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --magic-glow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      cursor: none;
+      /* ADDED THIS LINE */
+      /* cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>'), auto; */
+    }
+
+    /* Rastro de Estrelas Global */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 80%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Optimized Transitions - Removing Wildcard */
+    body,
+    button,
+    input,
+    textarea,
+    .mimi-card,
+    .mimi-bubble,
+    .mimi-button {
+      transition: background-color var(--transition-speed) var(--ease-standard),
+        border-color var(--transition-speed) var(--ease-standard),
+        color var(--transition-speed) var(--ease-standard),
+        box-shadow var(--transition-speed) var(--ease-standard),
+        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter var(--transition-speed) var(--ease-standard),
+        opacity var(--transition-speed) var(--ease-standard);
+    }
+
+    .mimi-button {
+      background: var(--primary);
+      color: var(--text-on-primary);
+      border-radius: var(--radius-base);
+      font-weight: var(--font-weight-bold);
+      box-shadow: 0 10px 20px -5px var(--primary);
+      padding: 0.75rem 1.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mimi-button:hover {
+      transform: scale(1.1) translateY(-2px);
+      box-shadow: 0 15px 30px -5px var(--primary);
+    }
+
+    .mimi-card {
+      background: var(--surface);
+      border-radius: var(--radius-base);
+      border: var(--border-width) solid var(--border-color);
+      box-shadow: var(--shadow-base);
+      backdrop-filter: blur(var(--blur-base));
+      color: var(--text-primary);
+    }
+
+    .mimi-bubble {
+      animation: float-slow 6s ease-in-out infinite;
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
       }
 
-      body {
-        margin: 0;
-        padding: 0;
-        background: var(--bg-app);
-        color: var(--text-primary);
-        font-family: var(--font-family);
-        overflow: hidden;
-        -webkit-font-smoothing: antialiased;
-        cursor: none; /* ADDED THIS LINE */
-        /* cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>'), auto; */
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
+    }
 
-      /* Rastro de Estrelas Global */
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 80%);
-        pointer-events: none;
-        z-index: 1;
-      }
+    .animate-fade-in {
+      animation: fadeIn 0.6s var(--ease-standard) forwards;
+    }
 
-      * {
-        transition: background-color var(--transition-speed) var(--ease-standard),
-                    border-color var(--transition-speed) var(--ease-standard),
-                    color var(--transition-speed) var(--ease-standard),
-                    box-shadow var(--transition-speed) var(--ease-standard),
-                    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    filter var(--transition-speed) var(--ease-standard),
-                    opacity var(--transition-speed) var(--ease-standard);
-      }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
 
-      .mimi-button {
-        background: var(--primary) !important;
-        color: var(--text-on-primary) !important;
-        border-radius: var(--radius-base);
-        font-weight: var(--font-weight-bold);
-        box-shadow: 0 10px 20px -5px var(--primary);
-        padding: 0.75rem 1.75rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.6rem;
-        cursor: pointer;
-        user-select: none;
-        border: none;
-        position: relative;
-        overflow: hidden;
-      }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+    }
 
-      .mimi-button:hover {
-        transform: scale(1.1) translateY(-2px);
-        box-shadow: 0 15px 30px -5px var(--primary);
-      }
-
-      .mimi-card {
-        background: var(--surface) !important;
-        border-radius: var(--radius-base);
-        border: var(--border-width) solid var(--border-color);
-        box-shadow: var(--shadow-base);
-        backdrop-filter: blur(var(--blur-base));
-        color: var(--text-primary);
-      }
-
-      .mimi-bubble {
-        animation: float-slow 6s ease-in-out infinite;
-        border-radius: 50%;
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255,255,255,0.2);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1), inset 0 0 20px rgba(255,255,255,0.2);
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-      }
-
-      .animate-fade-in {
-        animation: fadeIn 0.6s var(--ease-standard) forwards;
-      }
-
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
-      ::-webkit-scrollbar-thumb { 
-        background: var(--primary) !important; 
-        border-radius: 10px;
-        border: 2px solid transparent;
-        background-clip: content-box;
-      }
-    </style>
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary) !important;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -185,8 +149,10 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
