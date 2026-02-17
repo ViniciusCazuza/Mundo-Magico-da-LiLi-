@@ -1,0 +1,146 @@
+import React, { useState } from 'react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react'; // Icons for error/success feedback
+
+interface ModernInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+  error?: boolean;
+  errorMessage?: string;
+  success?: boolean;
+  disabled?: boolean;
+  id?: string; // For accessibility
+  multiline?: boolean; // New prop for textarea
+  rows?: number;       // New prop for textarea rows
+  maxLength?: number;  // New prop for validation
+  mask?: string;       // New prop for input masking
+}
+
+export const ModernInput: React.FC<ModernInputProps> = ({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  error = false,
+  errorMessage,
+  success = false,
+  disabled = false,
+  id = label.replace(/\s+/g, '-').toLowerCase(), // Generate a basic ID if not provided
+  multiline = false, // Default to false
+  rows = 3,          // Default rows for textarea
+  maxLength,
+  mask, // Destructure the new mask prop
+}) => {
+
+  // Function to apply the mask to the input value
+  const applyMask = (value: string, mask: string) => {
+    let maskedValue = '';
+    let valueIndex = 0;
+    for (let maskIndex = 0; maskIndex < mask.length; maskIndex++) {
+      if (valueIndex >= value.length) {
+        break;
+      }
+      if (mask[maskIndex] === '9') {
+        if (/\d/.test(value[valueIndex])) {
+          maskedValue += value[valueIndex];
+          valueIndex++;
+        } else {
+          // If the current character in value is not a digit, stop
+          break;
+        }
+      } else {
+        maskedValue += mask[maskIndex];
+        if (value[valueIndex] === mask[maskIndex]) {
+            valueIndex++;
+        }
+      }
+    }
+    return maskedValue;
+  };
+
+  const [isFocused, setIsFocused] = useState(false);
+  const hasValue = value.length > 0;
+
+  const showFloatingLabel = isFocused || hasValue;
+  const isErrorOrSuccess = error || success;
+
+  // Determine border color based on state
+  const borderColor = error ? 'var(--red-500)' : success ? 'var(--green-500)' : (isFocused ? 'var(--primary)' : 'var(--border-color)');
+  const labelColor = error ? 'var(--red-500)' : success ? 'var(--green-500)' : (isFocused ? 'var(--primary)' : 'var(--text-muted)');
+
+  return (
+    <div className="relative w-full group">
+      <label
+        htmlFor={id}
+        className={`absolute left-4 transition-all duration-300 ease-out pointer-events-none
+          ${showFloatingLabel
+            ? '-top-3 text-xs px-1 bg-[var(--surface-elevated)] rounded-md left-3'
+            : 'top-1/2 -translate-y-1/2 left-4'}
+          ${error ? 'text-red-500' : success ? 'text-green-500' : (isFocused ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]')}
+        `}
+        style={{ color: labelColor }}
+      >
+        {label}
+      </label>
+      {multiline ? (
+        <textarea
+          id={id}
+          value={value}
+          onChange={(e) => {
+            const newValue = mask ? applyMask(e.target.value, mask) : e.target.value;
+            onChange(newValue);
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={isFocused && !hasValue ? placeholder : ''}
+          disabled={disabled}
+          rows={rows}
+          maxLength={maxLength}
+          className={`w-full p-4 rounded-[var(--radius-base)] border-[var(--border-width)] outline-none transition-all duration-300 ease-out resize-y
+            bg-[var(--surface-elevated)] text-[var(--text-primary)]
+            focus:ring-2 focus:ring-[var(--primary)]/30
+            ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
+            ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
+            shadow-[var(--shadow-base)] focus:shadow-[0_0_20px_-5px_var(--primary)]
+          `}
+          style={{ borderColor: borderColor }}
+        />
+      ) : (
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => {
+            const newValue = mask ? applyMask(e.target.value, mask) : e.target.value;
+            onChange(newValue);
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={isFocused && !hasValue ? placeholder : ''} // Updated placeholder logic
+          disabled={disabled}
+          maxLength={maxLength}
+          className={`w-full h-14 p-4 rounded-[var(--radius-base)] border-[var(--border-width)] outline-none transition-all duration-300 ease-out
+            bg-[var(--surface-elevated)] text-[var(--text-primary)]
+            focus:ring-2 focus:ring-[var(--primary)]/30
+            ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
+            ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
+            shadow-[var(--shadow-base)] focus:shadow-[0_0_20px_-5px_var(--primary)]
+          `}
+          style={{ borderColor: borderColor }}
+        />
+      )}
+      {(error || success) && (
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+          {error && <AlertCircle size={18} className="text-red-500" />}
+          {success && <CheckCircle2 size={18} className="text-green-500" />}
+        </div>
+      )}
+      {error && errorMessage && (
+        <p className="text-red-500 text-xs mt-1 ml-4">{errorMessage}</p>
+      )}
+    </div>
+  );
+};

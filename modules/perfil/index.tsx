@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  User, Sparkles, ShieldCheck, Heart, Settings, Lock, 
-  BrainCircuit, Activity, Volume2, ChevronRight, Star, 
-  Palette, Pizza, Camera, Upload, Smile, Glasses, Scissors, 
+import {
+  User, Sparkles, ShieldCheck, Heart, Settings, Lock,
+  BrainCircuit, Activity, Volume2, ChevronRight, Star,
+  Palette, Pizza, Camera, Upload, Smile, Glasses, Scissors,
   Users, Plus, Trash2, CheckCircle2, Home, Key, LogOut, Info, BookOpen, Brain,
   Music, MapPin, Sun, Moon, Zap, Briefcase, Award, GraduationCap, CloudRain,
   Eye, Droplet, Ghost, MessageSquare, VolumeX, ShieldAlert, Sliders, Ear,
   Target, Bell, Shield
-} from "lucide-react"; 
+} from "lucide-react";
 import { PerfilState, MimiTemperament, LanguageComplexity, ProtocolGovernance } from "./types";
 import { perfilStorage } from "./services/perfilStorage";
 import { mimiEvents } from "../../core/events";
@@ -19,20 +19,22 @@ import { AliceProfile, ECOSYSTEM_EVENTS, FamilyContext } from "../../core/ecosys
 // Internal Components
 import { ThemeCustomizer } from "./components/ThemeCustomizer";
 import { KnowledgeTrainer } from "./components/KnowledgeTrainer";
+import { ModernInput } from "../../core/components/ModernInput";
 
 type AppTab = 'profiles' | 'child' | 'mimi' | 'app' | 'family' | 'security';
 
 export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpenParentZone }) => {
   const activeProfile = IdentityManager.getActiveProfile();
   const isAdmin = activeProfile?.role === "parent_admin";
-  
+
   const [state, setState] = useState<PerfilState>(() => perfilStorage.getInitialState());
   const [activeTab, setActiveTab] = useState<AppTab>(isAdmin ? 'profiles' : 'child');
   const [ecosystemProfiles, setEcosystemProfiles] = useState<AliceProfile[]>(() => IdentityManager.getProfiles());
   const [familyContext, setFamilyContext] = useState<FamilyContext>(() => IdentityManager.getFamilyContext());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!activeProfile) return null;
+  // Removed early return here to fix Hook Rule violation
+  // if (!activeProfile) return null;
 
   useEffect(() => {
     perfilStorage.saveState(state);
@@ -50,7 +52,7 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
 
   const updateAppState = useCallback((app: Partial<PerfilState['app']>) => {
     setState(prev => ({ ...prev, app: { ...prev.app, ...app } }));
-    
+
     if (app.autoVoiceEnabled !== undefined) {
       IdentityManager.updateProfile(activeProfile.id, { autoAudio: app.autoVoiceEnabled });
     }
@@ -63,18 +65,20 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
       reader.onloadend = async () => {
         const base64 = reader.result as string;
         const smallBase64 = await resizeImage(base64, 400, 400);
-        updateChildState({ 
-          profileImage: { 
-            data: smallBase64, 
-            mimeType: 'image/jpeg', 
-            version: "1.1", 
-            updatedAt: Date.now() 
-          } 
+        updateChildState({
+          profileImage: {
+            data: smallBase64,
+            mimeType: 'image/jpeg',
+            version: "1.1",
+            updatedAt: Date.now()
+          }
         });
       };
       reader.readAsDataURL(file);
     }
   };
+
+  if (!activeProfile) return null;
 
   return (
     <div className={`flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden animate-fade-in ${isAdmin ? 'bg-slate-50' : 'bg-transparent'}`}>
@@ -100,7 +104,7 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
             <AboutMeView state={state.child} updateChild={updateChildState} fileRef={fileInputRef} handlePhoto={handlePhotoUpload} />
           )}
           {activeTab === 'mimi' && (
-            isAdmin 
+            isAdmin
               ? <ParentMimiTraining mimi={state.mimi} updateMimi={updateMimiState} />
               : <ChildMimiSettings app={state.app} updateApp={updateAppState} child={state.child} updateChild={updateChildState} />
           )}
@@ -111,7 +115,7 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
             </section>
           )}
           {activeTab === 'family' && isAdmin && (
-            <FamilyContextSettings family={familyContext} updateFamily={ctx => { setFamilyContext(prev => ({...prev, ...ctx})); IdentityManager.updateFamilyContext(ctx); }} />
+            <FamilyContextSettings family={familyContext} updateFamily={ctx => { setFamilyContext(prev => ({ ...prev, ...ctx })); IdentityManager.updateFamilyContext(ctx); }} />
           )}
           {activeTab === 'security' && isAdmin && <SecuritySettings activeProfile={activeProfile} />}
         </div>
@@ -139,8 +143,8 @@ const ProfilesManagement = ({ activeProfile, isAdmin, profiles }: { activeProfil
             </div>
           </div>
           {isAdmin && p.id !== activeProfile.id && (
-            <button 
-              onClick={() => { if(confirm(`Excluir perfil ${p.nickname}?`)) IdentityManager.deleteProfile(p.id); }}
+            <button
+              onClick={() => { if (confirm(`Excluir perfil ${p.nickname}?`)) IdentityManager.deleteProfile(p.id); }}
               className="p-3 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
             >
               <Trash2 size={20} />
@@ -149,16 +153,16 @@ const ProfilesManagement = ({ activeProfile, isAdmin, profiles }: { activeProfil
         </div>
       ))}
       {isAdmin && (
-         <button 
-           onClick={() => {
-             const name = prompt("Nome do novo perfil?");
-             if(name) IdentityManager.addProfile(name);
-           }}
-           className="border-4 border-dashed border-[var(--border-color)] rounded-[2.5rem] p-6 flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-all"
-         >
-           <Plus size={32} />
-           <span className="text-[10px] font-black uppercase tracking-widest">Novo Perfil</span>
-         </button>
+        <button
+          onClick={() => {
+            const name = prompt("Nome do novo perfil?");
+            if (name) IdentityManager.addProfile(name);
+          }}
+          className="border-4 border-dashed border-[var(--border-color)] rounded-[2.5rem] p-6 flex flex-col items-center justify-center gap-2 text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-all"
+        >
+          <Plus size={32} />
+          <span className="text-[10px] font-black uppercase tracking-widest">Novo Perfil</span>
+        </button>
       )}
     </div>
   </section>
@@ -173,41 +177,41 @@ const ChildMimiSettings = ({ app, updateApp, child, updateChild }: any) => (
 
     <div className="mimi-card p-10 space-y-10">
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <div className="p-4 bg-[var(--primary)] text-[var(--text-on-primary)] rounded-3xl shadow-lg">
-                {app.autoVoiceEnabled ? <Volume2 /> : <VolumeX />}
-             </div>
-             <div><h4 className="font-bold">Mimi pode falar?</h4><p className="text-xs opacity-60">Ativar voz automática da Mimi.</p></div>
-           </div>
-           <Switch active={app.autoVoiceEnabled} onToggle={() => updateApp({ autoVoiceEnabled: !app.autoVoiceEnabled })} />
-         </div>
-         
-         {app.autoVoiceEnabled && (
-           <div className="space-y-4 animate-fade-in">
-             <div className="flex justify-between items-center text-[10px] font-black uppercase text-[var(--text-muted)] ml-2">
-                <span>Volume do Miado</span>
-                <span>{Math.round(app.voiceVolume * 100)}%</span>
-             </div>
-             <input type="range" min="0" max="1" step="0.1" value={app.voiceVolume} onChange={e => updateApp({ voiceVolume: parseFloat(e.target.value) })} className="w-full accent-[var(--primary)] h-2 rounded-full" />
-           </div>
-         )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-[var(--primary)] text-[var(--text-on-primary)] rounded-3xl shadow-lg">
+              {app.autoVoiceEnabled ? <Volume2 /> : <VolumeX />}
+            </div>
+            <div><h4 className="font-bold">Mimi pode falar?</h4><p className="text-xs opacity-60">Ativar voz automática da Mimi.</p></div>
+          </div>
+          <Switch active={app.autoVoiceEnabled} onToggle={() => updateApp({ autoVoiceEnabled: !app.autoVoiceEnabled })} />
+        </div>
+
+        {app.autoVoiceEnabled && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase text-[var(--text-muted)] ml-2">
+              <span>Volume do Miado</span>
+              <span>{Math.round(app.voiceVolume * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.1" value={app.voiceVolume} onChange={e => updateApp({ voiceVolume: parseFloat(e.target.value) })} className="w-full accent-[var(--primary)] h-2 rounded-full" />
+          </div>
+        )}
       </div>
       <div className="h-px bg-[var(--border-color)] opacity-50" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-2 flex items-center gap-2"><Ear size={14}/> Como ela me chama?</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-2 flex items-center gap-2"><Ear size={14} /> Como ela me chama?</label>
           <div className="flex bg-[var(--bg-app)]/50 p-1.5 rounded-2xl border border-[var(--border-color)]">
-             <button onClick={() => updateApp({ callAliceBy: 'name' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${app.callAliceBy === 'name' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:bg-black/5'}`}>Nome</button>
-             <button onClick={() => updateApp({ callAliceBy: 'nickname' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${app.callAliceBy === 'nickname' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:bg-black/5'}`}>Apelido</button>
+            <button onClick={() => updateApp({ callAliceBy: 'name' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${app.callAliceBy === 'name' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:bg-black/5'}`}>Nome</button>
+            <button onClick={() => updateApp({ callAliceBy: 'nickname' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${app.callAliceBy === 'nickname' ? 'bg-[var(--primary)] text-white shadow-md' : 'text-[var(--text-muted)] hover:bg-black/5'}`}>Apelido</button>
           </div>
         </div>
         <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-2 flex items-center gap-2"><Sparkles size={14}/> Intensidade Mágica</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-2 flex items-center gap-2"><Sparkles size={14} /> Intensidade Mágica</label>
           <div className="flex bg-[var(--bg-app)]/50 p-1.5 rounded-2xl border border-[var(--border-color)]">
-             <button onClick={() => updateApp({ animationIntensity: 'low' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'low' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-muted)] opacity-40'}`}>Leve</button>
-             <button onClick={() => updateApp({ animationIntensity: 'medium' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'medium' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-muted)] opacity-40'}`}>Média</button>
-             <button onClick={() => updateApp({ animationIntensity: 'magical' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'magical' ? 'bg-[var(--primary)] text-white shadow-lg' : 'text-[var(--text-muted)] opacity-40'}`}>Mágica!</button>
+            <button onClick={() => updateApp({ animationIntensity: 'low' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'low' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-muted)] opacity-40'}`}>Leve</button>
+            <button onClick={() => updateApp({ animationIntensity: 'medium' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'medium' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-muted)] opacity-40'}`}>Média</button>
+            <button onClick={() => updateApp({ animationIntensity: 'magical' })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${app.animationIntensity === 'magical' ? 'bg-[var(--primary)] text-white shadow-lg' : 'text-[var(--text-muted)] opacity-40'}`}>Mágica!</button>
           </div>
         </div>
       </div>
@@ -222,110 +226,110 @@ const ParentMimiTraining = ({ mimi, updateMimi }: any) => (
       <p className="text-sm text-slate-500 font-medium">Ajuste o temperamento e a inteligência da gatinha digital.</p>
     </header>
     <div className="bg-white p-10 rounded-[3.5rem] shadow-sm border border-slate-200 space-y-8">
-       <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Sliders className="text-indigo-500" /> Temperamento Afetivo</h3>
-       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {(['affectionate', 'playful', 'calm', 'protective', 'balanced'] as MimiTemperament[]).map(t => (
-            <button key={t} onClick={() => updateMimi({ preferredTone: t })} className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${mimi.preferredTone === t ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-transparent bg-slate-50 opacity-60 hover:opacity-100'}`}>
-               <span className="text-[9px] font-black uppercase tracking-tight">{t === 'affectionate' ? 'Carinhosa' : t === 'playful' ? 'Brincalhona' : t === 'calm' ? 'Calma' : t === 'protective' ? 'Protetora' : 'Equilibrada'}</span>
-            </button>
-          ))}
-       </div>
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-          <TrainingRange label="Intensidade de Empatia" value={mimi.empathyIntensity} onChange={(val: number) => updateMimi({ empathyIntensity: val })} />
-          <TrainingRange label="Frequência de Elogios" value={mimi.praiseFrequency} onChange={(val: number) => updateMimi({ praiseFrequency: val })} />
-          <TrainingRange label="Sensibilidade Emocional" value={mimi.emotionalSensitivity} onChange={(val: number) => updateMimi({ emotionalSensitivity: val })} />
-          <TrainingRange label="Monitoramento de Risco" value={mimi.riskMonitoringSensitivity} onChange={(val: number) => updateMimi({ riskMonitoringSensitivity: val })} color="#EF4444" />
-       </div>
+      <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Sliders className="text-indigo-500" /> Temperamento Afetivo</h3>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {(['affectionate', 'playful', 'calm', 'protective', 'balanced'] as MimiTemperament[]).map(t => (
+          <button key={t} onClick={() => updateMimi({ preferredTone: t })} className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${mimi.preferredTone === t ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-transparent bg-slate-50 opacity-60 hover:opacity-100'}`}>
+            <span className="text-[9px] font-black uppercase tracking-tight">{t === 'affectionate' ? 'Carinhosa' : t === 'playful' ? 'Brincalhona' : t === 'calm' ? 'Calma' : t === 'protective' ? 'Protetora' : 'Equilibrada'}</span>
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+        <TrainingRange label="Intensidade de Empatia" value={mimi.empathyIntensity} onChange={(val: number) => updateMimi({ empathyIntensity: val })} />
+        <TrainingRange label="Frequência de Elogios" value={mimi.praiseFrequency} onChange={(val: number) => updateMimi({ praiseFrequency: val })} />
+        <TrainingRange label="Sensibilidade Emocional" value={mimi.emotionalSensitivity} onChange={(val: number) => updateMimi({ emotionalSensitivity: val })} />
+        <TrainingRange label="Monitoramento de Risco" value={mimi.riskMonitoringSensitivity} onChange={(val: number) => updateMimi({ riskMonitoringSensitivity: val })} color="#EF4444" />
+      </div>
     </div>
 
     <div className="bg-white p-10 rounded-[3.5rem] shadow-sm border border-slate-200 space-y-8">
-       <div className="flex items-center justify-between">
-          <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Shield className="text-emerald-500" /> Governança de Protocolos</h3>
-          <Switch 
-            active={mimi.protocolGovernance.enabled} 
-            onToggle={() => updateMimi({ 
-              protocolGovernance: { ...mimi.protocolGovernance, enabled: !mimi.protocolGovernance.enabled } 
-            })} 
-          />
-       </div>
-       <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-         Configure como a Mimi monitora a segurança emocional da criança e gera relatórios de protocolo. 
-         Esta camada é persistente e independente das conversas voláteis.
-       </p>
-       
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-          <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2"><Target size={14}/> Sensibilidade de Detecção</label>
-            <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-               {[1, 2, 3, 4, 5].map(lv => (
-                 <button 
-                  key={lv} 
-                  onClick={() => updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, sensitivityLevel: lv } })}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${mimi.protocolGovernance.sensitivityLevel === lv ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
-                 >
-                   {lv}
-                 </button>
-               ))}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2"><Bell size={14}/> Estratégia de Notificação</label>
-            <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-               {(['immediate', 'daily_summary', 'critical_only'] as const).map(st => (
-                 <button 
-                  key={st} 
-                  onClick={() => updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, notificationStrategy: st } })}
-                  className={`flex-1 py-3 rounded-xl text-[8px] font-black uppercase transition-all ${mimi.protocolGovernance.notificationStrategy === st ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
-                 >
-                   {st === 'immediate' ? 'Imediato' : st === 'daily_summary' ? 'Diário' : 'Crítico'}
-                 </button>
-               ))}
-            </div>
-          </div>
-       </div>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Shield className="text-emerald-500" /> Governança de Protocolos</h3>
+        <Switch
+          active={mimi.protocolGovernance.enabled}
+          onToggle={() => updateMimi({
+            protocolGovernance: { ...mimi.protocolGovernance, enabled: !mimi.protocolGovernance.enabled }
+          })}
+        />
+      </div>
+      <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+        Configure como a Mimi monitora a segurança emocional da criança e gera relatórios de protocolo.
+        Esta camada é persistente e independente das conversas voláteis.
+      </p>
 
-       <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Categorias Monitoradas</label>
-          <div className="flex flex-wrap gap-2">
-            {['emoção', 'segurança', 'linguagem', 'saúde', 'amigos', 'família'].map(cat => {
-              const isActive = mimi.protocolGovernance.monitoredCategories.includes(cat);
-              return (
-                <button 
-                  key={cat}
-                  onClick={() => {
-                    const next = isActive 
-                      ? mimi.protocolGovernance.monitoredCategories.filter((c: string) => c !== cat)
-                      : [...mimi.protocolGovernance.monitoredCategories, cat];
-                    updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, monitoredCategories: next } });
-                  }}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border-2 ${isActive ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-slate-50 border-transparent text-slate-400 opacity-60'}`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+        <div className="space-y-4">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2"><Target size={14} /> Sensibilidade de Detecção</label>
+          <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+            {[1, 2, 3, 4, 5].map(lv => (
+              <button
+                key={lv}
+                onClick={() => updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, sensitivityLevel: lv } })}
+                className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${mimi.protocolGovernance.sensitivityLevel === lv ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
+              >
+                {lv}
+              </button>
+            ))}
           </div>
-       </div>
+        </div>
+        <div className="space-y-4">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2 flex items-center gap-2"><Bell size={14} /> Estratégia de Notificação</label>
+          <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+            {(['immediate', 'daily_summary', 'critical_only'] as const).map(st => (
+              <button
+                key={st}
+                onClick={() => updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, notificationStrategy: st } })}
+                className={`flex-1 py-3 rounded-xl text-[8px] font-black uppercase transition-all ${mimi.protocolGovernance.notificationStrategy === st ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}
+              >
+                {st === 'immediate' ? 'Imediato' : st === 'daily_summary' ? 'Diário' : 'Crítico'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Categorias Monitoradas</label>
+        <div className="flex flex-wrap gap-2">
+          {['emoção', 'segurança', 'linguagem', 'saúde', 'amigos', 'família'].map(cat => {
+            const isActive = mimi.protocolGovernance.monitoredCategories.includes(cat);
+            return (
+              <button
+                key={cat}
+                onClick={() => {
+                  const next = isActive
+                    ? mimi.protocolGovernance.monitoredCategories.filter((c: string) => c !== cat)
+                    : [...mimi.protocolGovernance.monitoredCategories, cat];
+                  updateMimi({ protocolGovernance: { ...mimi.protocolGovernance, monitoredCategories: next } });
+                }}
+                className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all border-2 ${isActive ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-slate-50 border-transparent text-slate-400 opacity-60'}`}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-       <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 space-y-6">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2"><BookOpen size={16}/> Nível de Linguagem</h3>
-          <div className="flex bg-slate-50 p-1.5 rounded-2xl">
-             {(['simple', 'intermediate', 'rich'] as LanguageComplexity[]).map(l => (
-               <button key={l} onClick={() => updateMimi({ languageComplexity: l })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${mimi.languageComplexity === l ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}>{l === 'simple' ? 'Simples' : l === 'intermediate' ? 'Média' : 'Rica'}</button>
-             ))}
-          </div>
-       </div>
-       <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 space-y-4">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2"><Smile size={16}/> Frases Incentivadas</h3>
-          <KnowledgeTrainer knowledge={mimi.encouragedPhrases} onChange={(val: any) => updateMimi({ encouragedPhrases: val })} />
-       </div>
+      <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 space-y-6">
+        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2"><BookOpen size={16} /> Nível de Linguagem</h3>
+        <div className="flex bg-slate-50 p-1.5 rounded-2xl">
+          {(['simple', 'intermediate', 'rich'] as LanguageComplexity[]).map(l => (
+            <button key={l} onClick={() => updateMimi({ languageComplexity: l })} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${mimi.languageComplexity === l ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 opacity-60'}`}>{l === 'simple' ? 'Simples' : l === 'intermediate' ? 'Média' : 'Rica'}</button>
+          ))}
+        </div>
+      </div>
+      <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 space-y-4">
+        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2"><Smile size={16} /> Frases Incentivadas</h3>
+        <KnowledgeTrainer knowledge={mimi.encouragedPhrases} onChange={(val: any) => updateMimi({ encouragedPhrases: val })} />
+      </div>
     </div>
     <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200 space-y-6">
-       <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Brain className="text-indigo-500" /> Memória de Valores e Segredos</h3>
-       <p className="text-xs text-slate-500">Adicione fatos que a Mimi deve usar para criar conexões reais com a criança.</p>
-       <KnowledgeTrainer knowledge={mimi.additionalKnowledge} onChange={(val: any) => updateMimi({ additionalKnowledge: val })} />
+      <h3 className="text-lg font-black text-slate-800 flex items-center gap-3"><Brain className="text-indigo-500" /> Memória de Valores e Segredos</h3>
+      <p className="text-xs text-slate-500">Adicione fatos que a Mimi deve usar para criar conexões reais com a criança.</p>
+      <KnowledgeTrainer knowledge={mimi.additionalKnowledge} onChange={(val: any) => updateMimi({ additionalKnowledge: val })} />
     </div>
   </section>
 );
@@ -335,71 +339,81 @@ const AboutMeView = ({ state, updateChild, fileRef, handlePhoto }: any) => (
     <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div><h2 className="font-hand text-7xl text-[var(--primary)]">Meu Diário Mágico</h2><p className="text-[var(--text-muted)] font-medium text-lg">Conte seu segredos para a Mimi conhecer você!</p></div>
       <div onClick={() => fileRef.current?.click()} className="w-40 h-40 rounded-[3rem] bg-[var(--surface-elevated)] border-8 border-white shadow-2xl cursor-pointer hover:scale-105 transition-all overflow-hidden relative group shrink-0">
-        {state.profileImage?.data ? <img src={state.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center text-[var(--primary)] gap-2"><Camera size={32}/><span className="text-[10px] font-black uppercase">Foto</span></div>}
+        {state.profileImage?.data ? <img src={state.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center text-[var(--primary)] gap-2"><Camera size={32} /><span className="text-[10px] font-black uppercase">Foto</span></div>}
         <input type="file" ref={fileRef} onChange={handlePhoto} className="hidden" accept="image/*" />
       </div>
     </header>
     <MagicSection icon={User} title="Minha Identidade" color="var(--primary)">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputGroup label="Meu Nome Completo" value={state.name} onChange={(val: string) => updateChild({ name: val })} />
-        <InputGroup label="Apelido Favorito" value={state.nickname} onChange={(val: string) => updateChild({ nickname: val })} />
-        <InputGroup label="Quantos Anos Eu Tenho?" value={state.age.toString()} onChange={(val: string) => updateChild({ age: parseInt(val) || 0 })} />
-        <InputGroup label="O Que Significa Meu Nome?" value={state.nameMeaning || ""} onChange={(val: string) => updateChild({ nameMeaning: val })} />
-        <InputGroup label="Como Quero Ser Chamada Hoje?" value={state.calledHow || ""} onChange={(val: string) => updateChild({ calledHow: val })} />
-        <InputGroup label="Meu Aniversário" value={state.birthday} onChange={(val: string) => updateChild({ birthday: val })} />
-      </div>
+        <ModernInput label="Meu Nome Completo" value={state.name} onChange={(val: string) => updateChild({ name: val })} />
+        <ModernInput label="Apelido Favorito" value={state.nickname} onChange={(val: string) => updateChild({ nickname: val })} />
+        <ModernInput label="Quantos Anos Eu Tenho?" type="number" value={state.age.toString()} onChange={(val: string) => updateChild({ age: parseInt(val) || 0 })} />
+        <ModernInput label="O Que Significa Meu Nome?" value={state.nameMeaning || ""} onChange={(val: string) => updateChild({ nameMeaning: val })} />
+        <ModernInput label="Como Quero Ser Chamada Hoje?" value={state.calledHow || ""} onChange={(val: string) => updateChild({ calledHow: val })} />
+                  <ModernInput
+                    label="Meu Aniversário"
+                    value={state.birthday}
+                    onChange={(val: string) => updateChild({ birthday: val })}
+                    mask="99/99/9999"
+                  />      </div>
     </MagicSection>
     <MagicSection icon={Heart} title="Meus Gostos Favoritos" color="#F472B6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <InputGroup label="Personagem Favorito" value={state.favoriteCharacter || ""} onChange={(val: string) => updateChild({ favoriteCharacter: val })} />
-        <InputGroup label="Desenho ou Filme" value={state.favoriteDrawing || ""} onChange={(val: string) => updateChild({ favoriteDrawing: val })} />
-        <InputGroup label="Música que eu Amo" value={state.favoriteMusic || ""} onChange={(val: string) => updateChild({ favoriteMusic: val })} />
-        <InputGroup label="Lugar mais Legal" value={state.favoritePlace || ""} onChange={(val: string) => updateChild({ favoritePlace: val })} />
-        <InputGroup label="Minha Brincadeira" value={state.favoritePlay || ""} onChange={(val: string) => updateChild({ favoritePlay: val })} />
-        <InputGroup label="Estação do Ano" value={state.favoriteSeason || ""} onChange={(val: string) => updateChild({ favoriteSeason: val })} />
-        <InputGroup label="Cor do Coração" value={state.favoriteColor} onChange={(val: string) => updateChild({ favoriteColor: val })} />
-        <InputGroup label="Animal Amigo" value={state.favoriteAnimal} onChange={(val: string) => updateChild({ favoriteAnimal: val })} />
-        <InputGroup label="Emoji do Dia" value={state.favoriteEmoji} onChange={(val: string) => updateChild({ favoriteEmoji: val })} />
+        <ModernInput label="Personagem Favorito" value={state.favoriteCharacter || ""} onChange={(val: string) => updateChild({ favoriteCharacter: val })} />
+        <ModernInput label="Desenho ou Filme" value={state.favoriteDrawing || ""} onChange={(val: string) => updateChild({ favoriteDrawing: val })} />
+        <ModernInput label="Música que eu Amo" value={state.favoriteMusic || ""} onChange={(val: string) => updateChild({ favoriteMusic: val })} />
+        <ModernInput label="Lugar mais Legal" value={state.favoritePlace || ""} onChange={(val: string) => updateChild({ favoritePlace: val })} />
+        <ModernInput label="Minha Brincadeira" value={state.favoritePlay || ""} onChange={(val: string) => updateChild({ favoritePlay: val })} />
+        <ModernInput label="Estação do Ano" value={state.favoriteSeason || ""} onChange={(val: string) => updateChild({ favoriteSeason: val })} />
+        <ModernInput label="Cor do Coração" value={state.favoriteColor} onChange={(val: string) => updateChild({ favoriteColor: val })} />
+        <ModernInput label="Animal Amigo" value={state.favoriteAnimal} onChange={(val: string) => updateChild({ favoriteAnimal: val })} />
+        <ModernInput label="Emoji do Dia" value={state.favoriteEmoji} onChange={(val: string) => updateChild({ favoriteEmoji: val })} />
       </div>
     </MagicSection>
     <MagicSection icon={Sparkles} title="Sonhos & Imaginação" color="#C084FC">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputGroup label="Meu Maior Sonho" value={state.biggestDream || ""} onChange={(val: string) => updateChild({ biggestDream: val })} />
-        <InputGroup label="Meu Superpoder" value={state.dreamPower} onChange={(val: string) => updateChild({ dreamPower: val })} />
-        <InputGroup label="O que quero ser?" value={state.dreamJob} onChange={(val: string) => updateChild({ dreamJob: val })} />
-        <InputGroup label="Um lugar imaginário" value={state.dreamPlace} onChange={(val: string) => updateChild({ dreamPlace: val })} />
-        <div className="md:col-span-2 space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">O que me deixa radiante?</label>
-          <textarea value={state.happyWhen} onChange={e => updateChild({ happyWhen: e.target.value })} className="mimi-input w-full h-24 resize-none" placeholder="Ex: Ganhar um abraço da vovó..." />
+        <ModernInput label="Meu Maior Sonho" value={state.biggestDream || ""} onChange={(val: string) => updateChild({ biggestDream: val })} />
+        <ModernInput label="Meu Superpoder" value={state.dreamPower} onChange={(val: string) => updateChild({ dreamPower: val })} />
+        <ModernInput label="O que quero ser?" value={state.dreamJob} onChange={(val: string) => updateChild({ dreamJob: val })} />
+        <ModernInput label="Um lugar imaginário" value={state.dreamPlace} onChange={(val: string) => updateChild({ dreamPlace: val })} />
+        <div className="md:col-span-2">
+          <ModernInput
+            label="O que me deixa radiante?"
+            value={state.happyWhen}
+            onChange={(val: string) => updateChild({ happyWhen: val })}
+            multiline
+            rows={4}
+            placeholder="Ex: Ganhar um abraço da vovó..."
+          />
         </div>
       </div>
     </MagicSection>
     <MagicSection icon={Award} title="Meu Brilho Pessoal" color="#FB923C">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputGroup label="Eu sou muito boa em..." value={state.goodAt || ""} onChange={(val: string) => updateChild({ goodAt: val })} />
-        <InputGroup label="Estou aprendendo agora..." value={state.learningNow || ""} onChange={(val: string) => updateChild({ learningNow: val })} />
-        <InputGroup label="O que me dá orgulho?" value={state.proudOf || ""} onChange={(val: string) => updateChild({ proudOf: val })} />
-        <InputGroup label="Com meus amigos eu sou..." value={state.howIAmWithFriends || ""} onChange={(val: string) => updateChild({ howIAmWithFriends: val })} />
+        <ModernInput label="Eu sou muito boa em..." value={state.goodAt || ""} onChange={(val: string) => updateChild({ goodAt: val })} />
+        <ModernInput label="Estou aprendendo agora..." value={state.learningNow || ""} onChange={(val: string) => updateChild({ learningNow: val })} />
+        <ModernInput label="O que me dá orgulho?" value={state.proudOf || ""} onChange={(val: string) => updateChild({ proudOf: val })} />
+        <ModernInput label="Com meus amigos eu sou..." value={state.howIAmWithFriends || ""} onChange={(val: string) => updateChild({ howIAmWithFriends: val })} />
       </div>
     </MagicSection>
     <MagicSection icon={Scissors} title="Como Eu Sou" color="#94A3B8">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <InputGroup label="Tipo de Cabelo" value={state.hairType} onChange={(val: string) => updateChild({ hairType: val })} />
-        <InputGroup label="Cor do Cabelo" value={state.hairColor} onChange={(val: string) => updateChild({ hairColor: val })} />
-        <InputGroup label="Cor dos Olhos" value={state.eyeColor || ""} onChange={(val: string) => updateChild({ eyeColor: val })} />
-        <InputGroup label="Tom de Pele" value={state.skinTone || ""} onChange={(val: string) => updateChild({ skinTone: val })} />
+        <ModernInput label="Tipo de Cabelo" value={state.hairType} onChange={(val: string) => updateChild({ hairType: val })} />
+        <ModernInput label="Cor do Cabelo" value={state.hairColor} onChange={(val: string) => updateChild({ hairColor: val })} />
+        <ModernInput label="Cor dos Olhos" value={state.eyeColor || ""} onChange={(val: string) => updateChild({ eyeColor: val })} />
+        <ModernInput label="Tom de Pele" value={state.skinTone || ""} onChange={(val: string) => updateChild({ skinTone: val })} />
         <div className="flex items-center gap-3 bg-[var(--surface-elevated)] p-4 rounded-2xl"><span className="text-[10px] font-black uppercase opacity-40">Óculos?</span><Switch active={state.hasGlasses} onToggle={() => updateChild({ hasGlasses: !state.hasGlasses })} /></div>
         <div className="flex items-center gap-3 bg-[var(--surface-elevated)] p-4 rounded-2xl"><span className="text-[10px] font-black uppercase opacity-40">Aparelho?</span><Switch active={state.hasBraces} onToggle={() => updateChild({ hasBraces: !state.hasBraces })} /></div>
       </div>
     </MagicSection>
     <MagicSection icon={Smile} title="Meu Jeitinho Especial" color="#10B981">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputGroup label="O que me acalma?" value={state.calmsMe || ""} onChange={(val: string) => updateChild({ calmsMe: val })} />
-        <InputGroup label="O que me anima?" value={state.cheersMeUp || ""} onChange={(val: string) => updateChild({ cheersMeUp: val })} />
-        <InputGroup label="Gosto quando falam assim..." value={state.likesBeingSpokenToHow || ""} onChange={(val: string) => updateChild({ likesBeingSpokenToHow: val })} />
-        <InputGroup label="Eu não gosto quando..." value={state.dislikesWhen || ""} onChange={(val: string) => updateChild({ dislikesWhen: val })} />
-        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Quando fico triste, eu gosto de...</label><textarea value={state.whenSadILike} onChange={e => updateChild({ whenSadILike: e.target.value })} className="mimi-input w-full h-24 resize-none" /></div>
-        <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">Meu momento favorito do dia</label><textarea value={state.bestMomentOfDay} onChange={e => updateChild({ bestMomentOfDay: e.target.value })} className="mimi-input w-full h-24 resize-none" /></div>
+        <ModernInput label="O que me acalma?" value={state.calmsMe || ""} onChange={(val: string) => updateChild({ calmsMe: val })} />
+        <ModernInput label="O que me anima?" value={state.cheersMeUp || ""} onChange={(val: string) => updateChild({ cheersMeUp: val })} />
+        <ModernInput label="Gosto quando falam assim..." value={state.likesBeingSpokenToHow || ""} onChange={(val: string) => updateChild({ likesBeingSpokenToHow: val })} />
+        <ModernInput label="Eu não gosto quando..." value={state.dislikesWhen || ""} onChange={(val: string) => updateChild({ dislikesWhen: val })} />
+        <div><ModernInput label="Quando fico triste, eu gosto de..." value={state.whenSadILike} onChange={(val: string) => updateChild({ whenSadILike: val })} multiline rows={4} /></div>
+        <div><ModernInput label="Meu momento favorito do dia" value={state.bestMomentOfDay} onChange={(val: string) => updateChild({ bestMomentOfDay: val })} multiline rows={4} /></div>
       </div>
     </MagicSection>
   </section>
@@ -409,8 +423,8 @@ const FamilyContextSettings = ({ family, updateFamily }: any) => (
   <section className="space-y-8 animate-fade-in">
     <header><h2 className="font-hand text-5xl text-slate-800">Coração da Família</h2></header>
     <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
-       <InputGroup label="Mãe" value={family.motherName || ""} onChange={(val: string) => updateFamily({ motherName: val })} />
-       <InputGroup label="Pai" value={family.fatherName || ""} onChange={(val: string) => updateFamily({ fatherName: val })} />
+      <ModernInput label="Mãe" value={family.motherName || ""} onChange={(val: string) => updateFamily({ motherName: val })} />
+      <ModernInput label="Pai" value={family.fatherName || ""} onChange={(val: string) => updateFamily({ fatherName: val })} />
     </div>
   </section>
 );
@@ -431,8 +445,8 @@ const SecuritySettings: React.FC<{ activeProfile: AliceProfile }> = ({ activePro
     // However, the UI itself cannot directly query IdentityManager.parentPinHash, as it's private.
     // A pragmatic approach for the UI is to display a "Set PIN" or "Change PIN" based on context.
     // For this implementation, we will assume if the user is here, they want to manage PIN.
-    const ecosystemData = IdentityManager['ensureInstance'](); // Accessing private for quick check
-    if (ecosystemData.parentPinHash) {
+    // Use public method to check for PIN existence
+    if (IdentityManager.hasStoredPin()) {
       setCurrentPinStatus('set');
     } else {
       setCurrentPinStatus('not_set');
@@ -474,25 +488,23 @@ const SecuritySettings: React.FC<{ activeProfile: AliceProfile }> = ({ activePro
       </header>
       <div className="bg-white p-16 rounded-[4rem] shadow-sm border border-slate-200 inline-block w-full max-w-lg">
         <div className="p-8 bg-slate-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-8">
-          <Key size={48} className="text-slate-400"/>
+          <Key size={48} className="text-slate-400" />
         </div>
-        
+
         <div className="space-y-4 mb-8">
-          <input
+          <ModernInput
+            label="Novo PIN (4 dígitos)"
             type="password"
-            maxLength={4}
-            placeholder="Novo PIN (4 dígitos)"
             value={pinInput}
-            onChange={(e) => setPinInput(e.target.value)}
-            className="w-full text-center text-xl p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
-          />
-          <input
-            type="password"
+            onChange={(val: string) => setPinInput(val)}
             maxLength={4}
-            placeholder="Confirmar PIN (4 dígitos)"
+          />
+          <ModernInput
+            label="Confirmar PIN (4 dígitos)"
+            type="password"
             value={confirmPinInput}
-            onChange={(e) => setConfirmPinInput(e.target.value)}
-            className="w-full text-center text-xl p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+            onChange={(val: string) => setConfirmPinInput(val)}
+            maxLength={4}
           />
         </div>
 
@@ -515,17 +527,17 @@ const SecuritySettings: React.FC<{ activeProfile: AliceProfile }> = ({ activePro
 
 const TrainingRange = ({ label, value, onChange, color }: any) => (
   <div className="space-y-3">
-     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-        <span>{label}</span>
-        <span>{value}/5</span>
-     </div>
-     <input type="range" min="1" max="5" value={value} onChange={e => onChange(parseInt(e.target.value))} className="w-full h-1.5 rounded-full accent-indigo-500" style={{ accentColor: color }} />
+    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+      <span>{label}</span>
+      <span>{value}/5</span>
+    </div>
+    <input type="range" min="1" max="5" value={value} onChange={e => onChange(parseInt(e.target.value))} className="w-full h-1.5 rounded-full accent-indigo-500" style={{ accentColor: color }} />
   </div>
 );
 
 const MagicSection = ({ icon: Icon, title, color, children }: { icon: any, title: string, color: string, children?: React.ReactNode }) => (
   <div className="mimi-card p-10 space-y-8 relative overflow-hidden group">
-    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><Icon size={120} style={{ color }} /></div>
+    <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity"><Icon size={120} style={{ color }} /></div>
     <div className="flex items-center gap-4 relative z-10">
       <div className="p-4 rounded-3xl shadow-lg text-white" style={{ backgroundColor: color }}><Icon size={24} /></div>
       <h3 className="font-hand text-4xl" style={{ color }}>{title}</h3>
@@ -541,9 +553,7 @@ const SidebarTab = ({ active, onClick, icon: Icon, label, isAdmin }: { active: b
   </button>
 );
 
-const InputGroup = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
-  <div className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest opacity-40 ml-2">{label}</label><input value={value} onChange={e => onChange(e.target.value)} className="mimi-input w-full h-14" /></div>
-);
+
 
 const Switch = ({ active, onToggle }: { active: boolean, onToggle: () => void }) => (
   <button onClick={onToggle} className={`w-14 h-8 rounded-full relative transition-colors ${active ? 'bg-[var(--primary)]' : 'bg-[var(--border-color)]'}`}><div className={`absolute top-1 w-6 h-6 bg-[var(--surface)] rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} /></button>

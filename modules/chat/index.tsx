@@ -156,11 +156,10 @@ export const ChatModule = ({
               onKeyDown={e => {
                 if(e.key === 'Enter') handleMimiFlow(inputValue);
               }} 
-              placeholder={`Diga algo para a Mimi, ${profile.nickname}...`} 
-              className="flex-1 bg-transparent px-4 py-4 outline-none font-hand text-3xl placeholder:opacity-30 text-[var(--text-primary)]" 
-              disabled={internalProcessing}
-            />
-            <div className="flex gap-2">
+                            placeholder={`Diga algo para a Mimi, ${profile.nickname}...`}
+                            className="flex-1 bg-transparent px-4 py-4 outline-none font-hand text-3xl placeholder:opacity-70 text-[var(--text-primary)]"
+                            disabled={internalProcessing}
+                          />            <div className="flex gap-2">
               <button 
                 className="w-16 h-16 bg-[var(--primary)]/10 rounded-full flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors active:scale-95"
                 disabled={internalProcessing}

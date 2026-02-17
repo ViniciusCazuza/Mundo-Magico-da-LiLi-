@@ -15,7 +15,7 @@ export const STORAGE_KEYS = {
 export const DAILY_LIMITS = {
   CHAT_TOKENS: 100000,
   TTS_CHARS: 50000,
-  TOTAL_COST: 1.0 
+  TOTAL_COST: 1.0
 };
 
 export const INITIAL_GREETINGS = [
@@ -25,9 +25,9 @@ export const INITIAL_GREETINGS = [
 ];
 
 export const THEMES: AppTheme[] = [
-  { 
-    id: 'siamese', 
-    name: 'Siamês', 
+  {
+    id: 'siamese',
+    name: 'Siamês',
     breed: 'Siamês',
     description: 'Elegância Mágica e Noite Estrelada.',
     tokens: {
@@ -44,14 +44,14 @@ export const THEMES: AppTheme[] = [
         textOnPrimary: '#FFFFFF',
         textOnAccent: '#FFFFFF',
         border: 'rgba(129, 140, 248, 0.3)',
-        shadow: '0 10px 30px -10px rgba(0,0,0,0.5)',
-        shadowElevated: '0 20px 40px -12px rgba(0,0,0,0.6)'
+        shadow: '0 0 20px -5px rgba(129, 140, 248, 0.4)',
+        shadowElevated: '0 0 30px -5px rgba(129, 140, 248, 0.5)'
       },
       layout: {
         cardStyle: 'glass',
         spacingScale: 'comfortable',
         borderRadius: '24px',
-        borderWidth: '1px',
+        borderWidth: '0px',
         shadowIntensity: 'medium',
         blurIntensity: '20px'
       },
@@ -75,9 +75,9 @@ export const THEMES: AppTheme[] = [
       }
     }
   },
-  { 
-    id: 'persian', 
-    name: 'Persa', 
+  {
+    id: 'persian',
+    name: 'Persa',
     breed: 'Persa',
     description: 'Mundo Doce e Macio de Algodão.',
     tokens: {
@@ -87,21 +87,21 @@ export const THEMES: AppTheme[] = [
         accent: '#FB923C',
         background: 'linear-gradient(135deg, #FFF1F2 0%, #FCE7F3 100%)',
         surface: '#FFFFFF',
-        surfaceElevated: '#FFF5F7',
+        surfaceElevated: '#ffeaf6',
         text: '#831843',
         textSecondary: '#9D174D',
         textMuted: '#BE185D',
         textOnPrimary: '#FFFFFF',
         textOnAccent: '#FFFFFF',
-        border: 'rgba(244, 114, 182, 0.2)',
-        shadow: '0 15px 35px -10px rgba(244, 114, 182, 0.2)',
+        border: 'rgba(244, 114, 182, 0.5)',
+        shadow: '0 15px 35px -10px rgba(244, 114, 182, 0.4)',
         shadowElevated: '0 25px 50px -12px rgba(244, 114, 182, 0.3)'
       },
       layout: {
         cardStyle: 'pillow',
         spacingScale: 'spacious',
         borderRadius: '40px',
-        borderWidth: '0px',
+        borderWidth: '1px',
         shadowIntensity: 'strong',
         blurIntensity: '0px'
       },
@@ -125,9 +125,9 @@ export const THEMES: AppTheme[] = [
       }
     }
   },
-  { 
-    id: 'bengal', 
-    name: 'Bengal', 
+  {
+    id: 'bengal',
+    name: 'Bengal',
     breed: 'Bengal',
     description: 'Aventura Selvagem e Energética.',
     tokens: {
@@ -175,9 +175,9 @@ export const THEMES: AppTheme[] = [
       }
     }
   },
-  { 
-    id: 'british', 
-    name: 'British', 
+  {
+    id: 'british',
+    name: 'British',
     breed: 'British Shorthair',
     description: 'Minimalismo Inteligente e Estável.',
     tokens: {
@@ -187,14 +187,14 @@ export const THEMES: AppTheme[] = [
         accent: '#334155',
         background: '#F8FAFC',
         surface: '#FFFFFF',
-        surfaceElevated: '#F1F5F9',
+        surfaceElevated: '#ececec',
         text: '#0F172A',
         textSecondary: '#334155',
         textMuted: '#64748B',
         textOnPrimary: '#FFFFFF',
         textOnAccent: '#FFFFFF',
         border: '#E2E8F0',
-        shadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+        shadow: '0 2px 10px rgba(0, 0, 0, 35%)',
         shadowElevated: '0 4px 20px rgba(0, 0, 0, 0.08)'
       },
       layout: {

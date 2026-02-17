@@ -94,7 +94,7 @@ export const MagicCanvasTool: React.FC = () => {
 
   useEffect(() => {
     const isDrawingTool = ['pencil', 'nib', 'brush', 'spray', 'eraser'].includes(activeToolId);
-    
+
     // Dispatch 'garra' only if a drawing tool is active AND mouse is over the drawing surface
     const cursorType = isDrawingTool && isMouseOverDrawingSurface ? 'garra' : null;
 
@@ -263,7 +263,11 @@ export const MagicCanvasTool: React.FC = () => {
 
     const isInside =
       e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
-    setIsMouseOverDrawingSurface(isInside); // Actively set state based on current mouse position
+
+    // Optimization: Only update state if it changed to prevent excessive re-renders
+    if (isInside !== isMouseOverDrawingSurface) {
+      setIsMouseOverDrawingSurface(isInside);
+    }
 
     if (drawingRef.current && isInside) {
       const pressure = e.pressure || 0.5;
@@ -396,8 +400,8 @@ export const MagicCanvasTool: React.FC = () => {
             ref={drawingSurfaceRef}
             className="absolute inset-0 w-full h-full touch-none"
             style={{
-              transform: 'none !important',
-              transition: 'none !important'
+              transform: 'none',
+              transition: 'none'
             }}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
