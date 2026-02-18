@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, Component, ErrorInfo, ReactNode } from "react";
-import { Cat, AlertCircle, RefreshCw, Book, MessageSquare, Calendar, Palette, User, ShieldCheck, Lock, LogOut } from "lucide-react";
+import { Cat, AlertCircle, RefreshCw, Book, MessageSquare, Calendar, Palette, User, ShieldCheck, Lock, LogOut, Menu } from "lucide-react";
 import GatinhaLogo from './core/assets/GATINHA_LOGO.svg?react';
 
 // Core Imports
