@@ -32,6 +32,7 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
   const [ecosystemProfiles, setEcosystemProfiles] = useState<AliceProfile[]>(() => IdentityManager.getProfiles());
   const [familyContext, setFamilyContext] = useState<FamilyContext>(() => IdentityManager.getFamilyContext());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const customBackgroundInputRef = useRef<HTMLInputElement>(null); // Generic ref for custom background
 
   // Removed early return here to fix Hook Rule violation
   // if (!activeProfile) return null;
@@ -78,6 +79,23 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
     }
   };
 
+  const handleCustomBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && state.app.theme.id) { // Ensure theme ID is available
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        updateAppState({
+          customBackgroundByThemeId: {
+            ...state.app.customBackgroundByThemeId,
+            [state.app.theme.id]: base64,
+          },
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (!activeProfile) return null;
 
   return (
@@ -112,6 +130,34 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
             <section className="space-y-12 animate-fade-in">
               <header><h2 className="font-hand text-6xl text-[var(--primary)]">Mudar meu Mundo</h2></header>
               <ThemeCustomizer currentTheme={state.app.theme} onUpdateTheme={theme => updateAppState({ theme })} />
+
+              <div className="mimi-card p-10 space-y-6">
+                <h3 className="text-lg font-black text-[var(--text-primary)]">Fundo Personalizado do Tema Atual ({state.app.theme.name})</h3>
+                <p className="text-sm text-[var(--text-muted)]">Envie uma imagem para usar como fundo exclusivo para o tema <span className="font-bold">{state.app.theme.name}</span>.</p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => customBackgroundInputRef.current?.click()}
+                    className="px-6 py-3 bg-[var(--primary)] text-[var(--text-on-primary)] rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <Upload size={20} /> Escolher Imagem
+                  </button>
+                  {state.app.customBackgroundByThemeId?.[state.app.theme.id] && (
+                    <button
+                      onClick={() => updateAppState({ customBackgroundByThemeId: { ...state.app.customBackgroundByThemeId, [state.app.theme.id]: undefined } })}
+                      className="px-6 py-3 bg-red-500/10 text-red-500 rounded-full flex items-center gap-2 hover:bg-red-500 hover:text-white transition-colors"
+                    >
+                      <Trash2 size={20} /> Remover
+                    </button>
+                  )}
+                </div>
+                <input type="file" ref={customBackgroundInputRef} onChange={handleCustomBackgroundUpload} className="hidden" accept="image/*" />
+                {state.app.customBackgroundByThemeId?.[state.app.theme.id] && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-[var(--text-muted)] mb-2">Pré-visualização:</h4>
+                    <img src={state.app.customBackgroundByThemeId[state.app.theme.id]} alt="Fundo Personalizado" className="w-full h-48 object-cover rounded-xl shadow-lg border border-[var(--border-color)]" />
+                  </div>
+                )}
+              </div>
             </section>
           )}
           {activeTab === 'family' && isAdmin && (
@@ -133,11 +179,10 @@ const ProfilesManagement = ({ activeProfile, isAdmin, profiles }: { activeProfil
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {profiles.map(p => (
         <div key={p.id} className="bg-[var(--surface)] p-6 rounded-[2.5rem] shadow-sm border border-[var(--border-color)] flex items-center justify-between group">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--surface-elevated)] overflow-hidden flex items-center justify-center text-[var(--primary)] font-black text-xl">
-              {p.profileImage?.data ? <img src={p.profileImage.data} className="w-full h-full object-cover" /> : p.nickname[0]}
-            </div>
-            <div>
+                      <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[var(--surface-elevated)] overflow-hidden flex items-center justify-center text-[var(--primary)] font-black text-xl">
+                        {p.profileImage?.data ? <img src={p.profileImage.data} className="w-full h-full object-cover" /> : p.nickname[0]}
+                      </div>            <div>
               <h4 className="font-bold text-[var(--text-primary)]">{p.nickname}</h4>
               <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{p.role === 'child' ? 'Criança' : 'Administrador'}</p>
             </div>
@@ -338,7 +383,7 @@ const AboutMeView = ({ state, updateChild, fileRef, handlePhoto }: any) => (
   <section className="space-y-12 animate-fade-in">
     <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div><h2 className="font-hand text-7xl text-[var(--primary)]">Meu Diário Mágico</h2><p className="text-[var(--text-muted)] font-medium text-lg">Conte seu segredos para a Mimi conhecer você!</p></div>
-      <div onClick={() => fileRef.current?.click()} className="w-40 h-40 rounded-[3rem] bg-[var(--surface-elevated)] border-8 border-white shadow-2xl cursor-pointer hover:scale-105 transition-all overflow-hidden relative group shrink-0">
+      <div onClick={() => fileRef.current?.click()} className="w-32 h-32 md:w-40 md:h-40 rounded-[3rem] bg-[var(--surface-elevated)] border-8 border-white shadow-2xl cursor-pointer hover:scale-105 transition-all overflow-hidden relative group shrink-0">
         {state.profileImage?.data ? <img src={state.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center text-[var(--primary)] gap-2"><Camera size={32} /><span className="text-[10px] font-black uppercase">Foto</span></div>}
         <input type="file" ref={fileRef} onChange={handlePhoto} className="hidden" accept="image/*" />
       </div>
@@ -537,24 +582,24 @@ const TrainingRange = ({ label, value, onChange, color }: any) => (
 
 const MagicSection = ({ icon: Icon, title, color, children }: { icon: any, title: string, color: string, children?: React.ReactNode }) => (
   <div className="mimi-card p-10 space-y-8 relative overflow-hidden group">
-    <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity"><Icon size={120} style={{ color }} /></div>
+    <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity"><Icon size={80} className="md:size-[120px]" style={{ color }} /></div>
     <div className="flex items-center gap-4 relative z-10">
       <div className="p-4 rounded-3xl shadow-lg text-white" style={{ backgroundColor: color }}><Icon size={24} /></div>
-      <h3 className="font-hand text-4xl" style={{ color }}>{title}</h3>
+      <h3 className="font-hand text-3xl md:text-4xl" style={{ color }}>{title}</h3>
     </div>
     <div className="relative z-10">{children}</div>
   </div>
 );
 
 const SidebarTab = ({ active, onClick, icon: Icon, label, isAdmin }: { active: boolean, onClick: () => void, icon: any, label: string, isAdmin: boolean }) => (
-  <button onClick={onClick} className={`flex flex-col items-center justify-center gap-2 w-20 h-20 rounded-3xl transition-all relative ${active ? (isAdmin ? 'bg-slate-900 text-white scale-110 shadow-xl' : 'text-[var(--primary)] bg-[var(--surface-elevated)] scale-110 shadow-lg') : (isAdmin ? 'text-slate-400 hover:text-slate-600' : 'text-[var(--text-muted)] opacity-40 hover:opacity-100')}`}>
+  <button onClick={onClick} className={`flex flex-col items-center justify-center gap-2 w-16 h-16 md:w-20 md:h-20 rounded-3xl transition-all relative ${active ? (isAdmin ? 'bg-slate-900 text-white scale-110 shadow-xl' : 'text-[var(--primary)] bg-[var(--surface-elevated)] scale-110 shadow-lg') : (isAdmin ? 'text-slate-400 hover:text-slate-600' : 'text-[var(--text-muted)] opacity-40 hover:opacity-100')}`}>
     <Icon size={24} />
-    <span className="text-[9px] font-black uppercase tracking-tight text-center">{label}</span>
+    <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tight text-center">{label}</span>
   </button>
 );
 
 
 
 const Switch = ({ active, onToggle }: { active: boolean, onToggle: () => void }) => (
-  <button onClick={onToggle} className={`w-14 h-8 rounded-full relative transition-colors ${active ? 'bg-[var(--primary)]' : 'bg-[var(--border-color)]'}`}><div className={`absolute top-1 w-6 h-6 bg-[var(--surface)] rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} /></button>
+  <button onClick={onToggle} className={`w-12 h-7 md:w-14 md:h-8 rounded-full relative transition-colors ${active ? 'bg-[var(--primary)]' : 'bg-[var(--border-color)]'}`}><div className={`absolute top-1 w-6 h-6 bg-[var(--surface)] rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} /></button>
 );

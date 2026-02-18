@@ -94,13 +94,13 @@ export const ChatModule = ({
     <div className="flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden">
       {/* Decoração Flutuante */}
       <div className="absolute top-10 right-10 opacity-20 animate-mimi-float pointer-events-none">
-        <Sparkles size={80} className="text-[var(--accent)]" />
+        <Sparkles size={60} className="md:size-80 text-[var(--accent)]" />
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-10 no-scrollbar pb-40">
         {conversation.messages.map((m, i) => (
           <div key={`${m.timestamp}-${i}`} className={`flex items-end gap-4 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}>
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg overflow-hidden transition-transform hover:scale-110 ${m.role === 'user' ? 'bg-[var(--primary)] text-[var(--text-on-primary)]' : 'bg-[var(--surface)] text-[var(--primary)] border-[var(--primary)]/20 animate-float-slow'}`}>
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg overflow-hidden transition-transform hover:scale-110 ${m.role === 'user' ? 'bg-[var(--primary)] text-[var(--text-on-primary)]' : 'bg-[var(--surface)] text-[var(--primary)] border-[var(--primary)]/20 animate-float-slow'}`}>
               {m.role === 'user' ? (
                 profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <User size={22} />
               ) : <Cat size={22} />}
@@ -125,7 +125,7 @@ export const ChatModule = ({
         
         {internalProcessing && (
           <div className="flex justify-start items-center gap-4 animate-fade-in">
-             <div className="w-12 h-12 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-500 shadow-md animate-mimi-float">
+             <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-500 shadow-md animate-mimi-float">
                 <Cat size={22} />
              </div>
              <div className="flex flex-col gap-2">
@@ -157,17 +157,17 @@ export const ChatModule = ({
                 if(e.key === 'Enter') handleMimiFlow(inputValue);
               }} 
                             placeholder={`Diga algo para a Mimi, ${profile.nickname}...`}
-                            className="flex-1 bg-transparent px-4 py-4 outline-none font-hand text-3xl placeholder:opacity-70 text-[var(--text-primary)]"
+                            className="flex-1 bg-transparent px-4 py-4 outline-none font-hand text-2xl md:text-3xl placeholder:opacity-70 text-[var(--text-primary)]"
                             disabled={internalProcessing}
                           />            <div className="flex gap-2">
               <button 
-                className="w-16 h-16 bg-[var(--primary)]/10 rounded-full flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors active:scale-95"
+                className="w-14 h-14 md:w-16 md:h-16 bg-[var(--primary)]/10 rounded-full flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors active:scale-95"
                 disabled={internalProcessing}
               >
                 <Mic size={28} />
               </button>
               <button 
-                className="w-16 h-16 bg-[var(--primary)] rounded-full flex items-center justify-center text-[var(--text-on-primary)] shadow-[var(--shadow-elevated)] hover:scale-110 active:scale-90 transition-all group"
+                className="w-14 h-14 md:w-16 md:h-16 bg-[var(--primary)] rounded-full flex items-center justify-center text-[var(--text-on-primary)] shadow-[var(--shadow-elevated)] hover:scale-110 active:scale-90 transition-all group"
                 onClick={() => handleMimiFlow(inputValue)}
                 disabled={internalProcessing || !inputValue.trim()}
               >

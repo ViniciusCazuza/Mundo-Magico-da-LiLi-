@@ -190,7 +190,8 @@ const CURSOR_SIZE = 64; // Increased from 48
 const PARTICLE_SIZE = 96; // Increased from 48 and now matches new SVG width/height
 const MAX_PARTICLES = 50;
 const PARTICLE_LIFETIME_MS = 1000;
-const SPAWN_DISTANCE_THRESHOLD = 40; // px between footprints, increased from 30
+const SPAWN_DISTANCE_THRESHOLD = 96;
+const PARTICLE_LAG_BEHIND_AMOUNT = 20; // Pixels to lag particles behind the cursor
 
 const NEON_CURSOR_BASE_COLOR = '#FFEDF2'; // A subtle pinkish-white for the neon base
 
@@ -430,8 +431,22 @@ const CustomCursor: React.FC = () => {
       const ox = (Math.random() - 0.5) * 14;
       const oy = (Math.random() - 0.5) * 14;
 
+      // Calculate movement vector since previousMousePos to determine lag direction
+      const moveDx = spawnPointX - previousMousePos.current.x;
+      const moveDy = spawnPointY - previousMousePos.current.y;
+      const moveDistance = Math.sqrt(moveDx * moveDx + moveDy * moveDy);
+
+      let lagOffsetX = 0;
+      let lagOffsetY = 0;
+
+      if (moveDistance > 0) {
+        // Normalize movement vector and apply lag in the opposite direction
+        lagOffsetX = -(moveDx / moveDistance) * PARTICLE_LAG_BEHIND_AMOUNT;
+        lagOffsetY = -(moveDy / moveDistance) * PARTICLE_LAG_BEHIND_AMOUNT;
+      }
+
       // Pass calculated spawnPointX, spawnPointY and cached themeColors
-      spawnParticle(spawnPointX + ox, spawnPointY + oy, angle, themeColors);
+      spawnParticle(spawnPointX + ox + lagOffsetX, spawnPointY + oy + lagOffsetY, angle, themeColors);
     }
 
     previousMousePos.current.x = spawnPointX; // Update previousMousePos with effective spawn point

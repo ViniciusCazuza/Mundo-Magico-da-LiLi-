@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { ParentReport } from "../../core/types";
 import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../core/events";
+import { NeurodiversitySymbol } from "../../core/components/NeurodiversitySymbol";
 
 // Define uma nova interface estendida para eventos com ID único
 interface ObservabilityEventWithId extends ObservabilityEvent {
@@ -132,7 +133,10 @@ export const ParentZoneView = ({ reports, children }: ParentZoneViewProps) => {
             <ShieldAlert size={24}/>
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-900">Governança Parental</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-black text-slate-900">Governança Parental</h1>
+              <NeurodiversitySymbol size={32} opacity={0.3} className="hidden lg:block" />
+            </div>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Monitoramento de Observabilidade Integral</p>
           </div>
         </div>

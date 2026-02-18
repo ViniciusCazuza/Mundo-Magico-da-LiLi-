@@ -179,7 +179,7 @@ export const LibraryModule: React.FC = () => {
       <header className="p-6 md:p-8 shrink-0 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="font-hand text-5xl text-[var(--primary)]">Minha Biblioteca</h1>
+            <h1 className="font-hand text-4xl md:text-5xl text-[var(--primary)]">Minha Biblioteca</h1>
             <p className="text-sm text-[var(--text-muted)] font-medium">Guarde aqui suas histórias e artes preferidas!</p>
           </div>
           
@@ -221,11 +221,11 @@ export const LibraryModule: React.FC = () => {
             <div 
               key={item.id}
               onClick={() => handleOpenReading(item)}
-              className="group mimi-card-elevated p-0 flex flex-col h-[340px] relative overflow-hidden animate-fade-in hover:scale-[1.02] cursor-pointer"
+              className="group mimi-card-elevated p-0 flex flex-col h-[280px] sm:h-[340px] relative overflow-hidden animate-fade-in hover:scale-[1.02] cursor-pointer"
             >
               {/* Thumbnail de Imagem */}
               {item.imageUrl ? (
-                <div className="h-40 w-full overflow-hidden bg-slate-100 relative">
+                <div className="h-32 sm:h-40 w-full overflow-hidden bg-slate-100 relative">
                   <img src={item.imageUrl} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt={item.title} />
                   <div className="absolute top-3 left-3 p-2 bg-white/90 backdrop-blur-sm rounded-xl text-[var(--primary)] shadow-sm">
                     <Sparkles size={14} />
@@ -260,7 +260,7 @@ export const LibraryModule: React.FC = () => {
                   </div>
                 </div>
                 
-                <h3 className="font-hand text-2xl text-[var(--text-primary)] leading-tight line-clamp-2">{item.title}</h3>
+                <h3 className="font-hand text-xl md:text-2xl text-[var(--text-primary)] leading-tight line-clamp-2">{item.title}</h3>
                 <p className="text-sm text-[var(--text-secondary)] line-clamp-2 leading-relaxed flex-1">
                   {item.content}
                 </p>
@@ -278,9 +278,9 @@ export const LibraryModule: React.FC = () => {
           ))}
 
           {filteredItems.length === 0 && (
-            <div className="col-span-full h-96 flex flex-col items-center justify-center text-center space-y-4 opacity-30 text-[var(--text-muted)]">
-              <History size={64} className="mb-2" />
-              <h3 className="font-hand text-3xl">Sua estante está vazia...</h3>
+            <div className="col-span-full h-80 sm:h-96 flex flex-col items-center justify-center text-center space-y-4 opacity-30 text-[var(--text-muted)]">
+              <History size={48} className="md:size-64 mb-2" />
+              <h3 className="font-hand text-2xl md:text-3xl">Sua estante está vazia...</h3>
               <p className="max-w-xs text-sm font-medium">Crie desenhos mágicos no Ateliê para guardá-los aqui!</p>
             </div>
           )}

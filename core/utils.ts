@@ -1,4 +1,6 @@
 
+import { BreakpointKey, ResponsiveValue } from './types'; // Import new types
+
 export const safeJsonParse = (key: string, fallback: any) => {
   try {
     const val = localStorage.getItem(key);
@@ -121,4 +123,63 @@ export const getContrastRatio = (color1: string, color2: string) => {
 
 export const isColorSafe = (foreground: string, background: string) => {
   return getContrastRatio(foreground, background) >= 4.5;
+};
+
+// --- Responsive Utilities ---
+const BREAKPOINTS: Record<BreakpointKey, number> = {
+  base: 0,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+};
+
+export const getCurrentBreakpoint = (): BreakpointKey => {
+  if (typeof window === 'undefined') return 'base'; // Default for SSR
+  const width = window.innerWidth;
+  if (width >= BREAKPOINTS['2xl']) return '2xl';
+  if (width >= BREAKPOINTS.xl) return 'xl';
+  if (width >= BREAKPOINTS.lg) return 'lg';
+  if (width >= BREAKPOINTS.md) return 'md';
+  if (width >= BREAKPOINTS.sm) return 'sm';
+  return 'base';
+};
+
+export const getResponsiveValue = <T>(
+  value: ResponsiveValue<T> | undefined,
+  currentBreakpoint: BreakpointKey
+): T | undefined => {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'object' || value === null) {
+    return value as T;
+  }
+
+  // Find the largest breakpoint key that is less than or equal to the current breakpoint
+  const breakpointKeys = Object.keys(BREAKPOINTS) as BreakpointKey[];
+  const sortedBreakpoints = breakpointKeys.sort((a, b) => BREAKPOINTS[a] - BREAKPOINTS[b]);
+
+  let bestMatch: T | undefined = undefined;
+  let currentBreakpointIndex = sortedBreakpoints.indexOf(currentBreakpoint);
+
+  // Iterate backwards from the current breakpoint to 'base'
+  for (let i = currentBreakpointIndex; i >= 0; i--) {
+    const bp = sortedBreakpoints[i];
+    if (value[bp] !== undefined) {
+      bestMatch = value[bp];
+      break;
+    }
+  }
+
+  // Fallback to 'base' if no specific breakpoint is found for a smaller one
+  if (bestMatch === undefined && value.base !== undefined) {
+      bestMatch = value.base;
+  }
+  
+  // If no base value, just return the first available responsive value
+  if (bestMatch === undefined && Object.values(value).length > 0) {
+      return Object.values(value)[0] as T;
+  }
+
+  return bestMatch;
 };

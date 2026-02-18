@@ -108,6 +108,8 @@ export interface AppSettings {
   autoVoiceEnabled: boolean;
   animationIntensity: "low" | "medium" | "magical";
   callAliceBy: "name" | "nickname";
+
+  customBackgroundByThemeId?: Record<string, string>; // New field for custom backgrounds per theme ID
 }
 
 export interface ParentAreaConfig {

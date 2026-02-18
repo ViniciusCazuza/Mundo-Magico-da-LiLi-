@@ -25,6 +25,8 @@ export const perfilStorage = {
           if (!data.mimi.languageComplexity) data.mimi.languageComplexity = "simple";
           if (!data.mimi.praiseFrequency) data.mimi.praiseFrequency = 3;
           if (!data.app.animationIntensity) data.app.animationIntensity = "medium";
+          if (!data.app.customBackgroundByThemeId) data.app.customBackgroundByThemeId = {}; // Initialize new field
+
           
           if (!data.mimi.protocolGovernance) {
             data.mimi.protocolGovernance = {
@@ -127,7 +129,8 @@ export const perfilStorage = {
         voiceVolume: 0.8,
         autoVoiceEnabled: legacyProfile.autoAudio ?? true,
         animationIntensity: "medium",
-        callAliceBy: "nickname"
+        callAliceBy: "nickname",
+        customBackgroundByThemeId: {} // Initialize new field
       },
       parent: {
         passwordEnabled: false

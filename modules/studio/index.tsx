@@ -95,20 +95,20 @@ export const StudioModule: React.FC = () => {
                 onClick={() => setActiveToolId(tool.id)}
                 className="group relative flex flex-col text-left bg-white border-8 border-white rounded-[4rem] overflow-hidden transition-all duration-700 hover:-translate-y-4 hover:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] active:scale-95"
               >
-                <div className={`h-64 w-full bg-gradient-to-br ${tool.bannerGradient} flex items-center justify-center relative overflow-hidden`}>
+                <div className={`h-48 sm:h-64 w-full bg-gradient-to-br ${tool.bannerGradient} flex items-center justify-center relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-                  <span className="text-9xl select-none filter drop-shadow-2xl transition-all duration-700 group-hover:scale-125 group-hover:rotate-12">
+                  <span className="text-7xl sm:text-9xl select-none filter drop-shadow-2xl transition-all duration-700 group-hover:scale-125 group-hover:rotate-12">
                     {tool.illustration}
                   </span>
                 </div>
 
                 <div className="p-12 space-y-6 relative">
                   <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-3xl bg-indigo-500 text-[var(--text-on-primary)] flex items-center justify-center shadow-xl transition-all duration-500 group-hover:rotate-[-10deg]" style={{ backgroundColor: tool.color }}>
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-indigo-500 text-[var(--text-on-primary)] flex items-center justify-center shadow-xl transition-all duration-500 group-hover:rotate-[-10deg]" style={{ backgroundColor: tool.color }}>
                       <tool.icon size={36} />
                     </div>
                     <div>
-                      <h3 className="font-hand text-5xl text-slate-800 transition-colors group-hover:text-[var(--primary)]">
+                      <h3 className="font-hand text-4xl sm:text-5xl text-slate-800 transition-colors group-hover:text-[var(--primary)]">
                         {tool.name}
                       </h3>
                       <p className="text-[11px] font-black uppercase tracking-widest text-slate-300">Portal Criativo</p>
@@ -141,7 +141,7 @@ export const StudioModule: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
-      <header className="shrink-0 h-20 bg-white/80 backdrop-blur-xl border-b-2 border-dashed border-indigo-100 px-8 flex items-center justify-between z-[100] animate-fade-in shadow-sm">
+      <header className="shrink-0 h-16 sm:h-20 bg-white/80 backdrop-blur-xl border-b-2 border-dashed border-indigo-100 px-8 flex items-center justify-between z-[100] animate-fade-in shadow-sm">
         <button 
           onClick={() => setActiveToolId(null)}
           className="flex items-center gap-3 px-6 py-3 bg-[var(--primary)]/10 text-[var(--primary)] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--primary)] hover:text-[var(--text-on-primary)] transition-all active:scale-95 shadow-sm"
@@ -151,7 +151,7 @@ export const StudioModule: React.FC = () => {
         </button>
 
         <div className="text-center">
-          <h2 className="font-hand text-4xl text-slate-800 leading-none">
+          <h2 className="font-hand text-3xl sm:text-4xl text-slate-800 leading-none">
             {activeTool?.name}
           </h2>
           <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-300 mt-1">
@@ -159,7 +159,7 @@ export const StudioModule: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] animate-breathing shadow-inner border border-[var(--primary)]/20">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] animate-breathing shadow-inner border border-[var(--primary)]/20">
           {activeTool && <activeTool.icon size={24} />}
         </div>
       </header>

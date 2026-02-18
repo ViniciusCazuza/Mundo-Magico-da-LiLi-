@@ -5,11 +5,12 @@ import GatinhaLogo from './core/assets/GATINHA_LOGO.svg?react';
 // Core Imports
 import { Conversation, UsageLog, AppSection, AppTheme, CalendarEvent, ParentReport } from "./core/types";
 import { INITIAL_GREETINGS, THEMES, STORAGE_KEYS } from "./core/config";
-import { safeJsonParse } from "./core/utils";
+import { safeJsonParse, getCurrentBreakpoint, getResponsiveValue } from "./core/utils";
 import { mimiEvents, MIMI_EVENT_TYPES } from "./core/events";
 import { IdentityManager } from "./core/ecosystem/IdentityManager";
 import { ECOSYSTEM_EVENTS, AliceProfile, EcosystemSession } from "./core/ecosystem/types";
 import CustomCursor from './core/components/CustomCursor';
+import MobileNav from './core/components/MobileNav';
 
 // Modules Imports
 import { ChatModule } from "./modules/chat/index";
@@ -20,12 +21,17 @@ import { StudioModule } from "./modules/studio/index";
 import { LibraryModule } from "./modules/library/index";
 import { AgendaModule } from "./modules/agenda/Agenda";
 
+// Perfil Imports for AppShell
+import { PerfilState } from './modules/perfil/types';
+import { perfilStorage } from './modules/perfil/services/perfilStorage';
+
 class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean }> {
     state = { hasError: false };
 
     constructor(props: { children?: ReactNode }) {
         super(props);
     }
+
 
     static getDerivedStateFromError(_: Error) { return { hasError: true }; }
     componentDidCatch(error: Error, info: ErrorInfo) { console.error(error, info); }
@@ -60,6 +66,9 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
     const [usageLogs, setUsageLogs] = useState<UsageLog[]>(() => safeJsonParse(STORAGE_KEYS.USAGE, []));
     const [reports, setReports] = useState<ParentReport[]>(() => safeJsonParse(STORAGE_KEYS.REPORTS, []));
     const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => safeJsonParse(STORAGE_KEYS.CALENDAR, []));
+    const [perfilState, setPerfilState] = useState<PerfilState>(() => perfilStorage.getInitialState()); // Load PerfilState
+    const [currentBreakpoint, setCurrentBreakpoint] = useState<BreakpointKey>(getCurrentBreakpoint()); // Track current breakpoint
+    const [isMobileNavOpen, setIsMobileNavOpen] = useState(false); // State for mobile nav
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const isAdmin = currentProfile.role === "parent_admin";
@@ -81,11 +90,20 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
     const logoFillColorClass = activeTheme.id === 'siamese' ? 'fill-black' : 'fill-white';
 
     useEffect(() => {
+        const handleResize = () => {
+            setCurrentBreakpoint(getCurrentBreakpoint());
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
         const unsubUpdate = mimiEvents.on(ECOSYSTEM_EVENTS.PROFILE_UPDATED, (updated) => {
             if (updated.id === currentProfile.id) setCurrentProfile(updated);
         });
         const unsubLegacy = mimiEvents.on("PROFILE_UPDATED", (newState) => {
             if (newState.app?.theme && !isAdmin) setTheme(newState.app.theme);
+            setPerfilState(newState); // Update perfilState from the event
         });
         const unsubReports = mimiEvents.on(MIMI_EVENT_TYPES.REPORT_CREATED, (updated) => setReports(updated));
 
@@ -112,11 +130,20 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
         } as AppTheme : theme;
 
         const { tokens } = activeTheme;
+
+        const responsiveBaseSize = getResponsiveValue(tokens.typography.baseSize, currentBreakpoint);
+        const responsiveLineHeight = getResponsiveValue(tokens.typography.lineHeight, currentBreakpoint);
+        const responsiveSpacingScale = getResponsiveValue(tokens.layout.spacingScale, currentBreakpoint);
+
+        let finalBackground = tokens.colors.background;
+        if (perfilState.app.customBackgroundByThemeId?.[activeTheme.id]) {
+            finalBackground = `url("${perfilState.app.customBackgroundByThemeId[activeTheme.id]}")`;
+        }
         root.setAttribute('data-theme', isAdmin ? 'admin-sober' : activeTheme.id);
         root.style.setProperty('--primary', tokens.colors.primary);
         root.style.setProperty('--secondary', tokens.colors.secondary);
         root.style.setProperty('--accent', tokens.colors.accent);
-        root.style.setProperty('--bg-app', tokens.colors.background);
+        root.style.setProperty('--bg-app', finalBackground);
         root.style.setProperty('--surface', tokens.colors.surface);
         root.style.setProperty('--surface-elevated', tokens.colors.surfaceElevated);
         root.style.setProperty('--text-primary', tokens.colors.text);
@@ -130,20 +157,28 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
         root.style.setProperty('--blur-base', tokens.layout.blurIntensity);
         root.style.setProperty('--shadow-base', tokens.colors.shadow);
         root.style.setProperty('--shadow-elevated', tokens.colors.shadowElevated);
-        root.style.setProperty('--spacing-unit', { compact: '1rem', comfortable: '1.5rem', spacious: '2.5rem' }[tokens.layout.spacingScale]);
+        root.style.setProperty('--spacing-unit', { compact: '1rem', comfortable: '1.5rem', spacious: '2.5rem' }[responsiveSpacingScale || 'comfortable']);
         root.style.setProperty('--font-family', tokens.typography.fontFamily);
-        root.style.setProperty('--font-size-base', tokens.typography.baseSize);
-        root.style.setProperty('--line-height-base', tokens.typography.lineHeight);
+        root.style.setProperty('--font-size-base', responsiveBaseSize || '16px');
+        root.style.setProperty('--line-height-base', responsiveLineHeight || '1.6');
         root.style.setProperty('--letter-spacing-heading', tokens.typography.letterSpacingHeading);
         root.style.setProperty('--font-weight-bold', { playful: '800', elegant: '300', bold: '700', clean: '600' }[tokens.typography.headingStyle]);
         root.style.setProperty('--transition-speed', tokens.motion.transitionSpeed);
         root.style.setProperty('--hover-scale', tokens.motion.hoverScale);
         root.style.setProperty('--ease-base', tokens.motion.ease);
         root.style.setProperty('--pattern-bg', isAdmin ? 'none' : tokens.decorative.backgroundPattern);
-    }, [theme, isAdmin]);
+    }, [theme, isAdmin, perfilState, currentBreakpoint]);
 
     return (
-        <div className="fixed inset-0 flex flex-col overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)] transition-all animate-fade-in font-sans">
+        <div
+            className="fixed inset-0 flex flex-col overflow-hidden text-[var(--text-primary)] transition-all animate-fade-in font-sans"
+            style={{
+                backgroundImage: 'var(--bg-app)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+            }}
+        >
             {!isAdmin && (
                 <div className="fixed inset-0 pointer-events-none opacity-40 z-0 animate-aurora" style={{ backgroundImage: 'var(--pattern-bg)', backgroundSize: '400% 400%' }}></div>
             )}
@@ -160,6 +195,11 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
                         </span>
                     </div>
                 </div>
+
+                {/* Hamburger menu for mobile */}
+                <button onClick={() => setIsMobileNavOpen(true)} className="lg:hidden p-3 text-[var(--text-primary)] hover:text-[var(--primary)]">
+                    <Menu size={28} />
+                </button>
 
                 <div className="hidden lg:flex gap-3 p-2 rounded-[2.5rem] bg-black/5 backdrop-blur-sm border border-white/10">
                     <NavButton icon={MessageSquare} label="Conversar" active={section === 'chat'} onClick={() => setSection('chat')} isAdmin={isAdmin} />
@@ -214,6 +254,15 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
                     {section === 'library' && <LibraryModule />}
                 </div>
             </main>
+
+            {/* Mobile Navigation */}
+            <MobileNav
+                isOpen={isMobileNavOpen}
+                onClose={() => setIsMobileNavOpen(false)}
+                onNavigate={(s) => { setSection(s); setIsMobileNavOpen(false); }}
+                isAdmin={isAdmin}
+                activeSection={section}
+            />
         </div>
     );
 };

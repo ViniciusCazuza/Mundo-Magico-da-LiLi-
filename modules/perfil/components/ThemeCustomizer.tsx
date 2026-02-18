@@ -3,6 +3,7 @@ import React from "react";
 import { Check, Sparkles } from "lucide-react";
 import { AppTheme } from "../../../core/types";
 import { THEMES } from "../../../core/config";
+import { NeurodiversitySymbol } from "../../../core/components/NeurodiversitySymbol";
 
 interface ThemeCustomizerProps {
   currentTheme: AppTheme;
@@ -31,7 +32,7 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ currentTheme, 
           >
             {/* Dynamic Preview Layer */}
             <div 
-              className="w-full h-16 rounded-xl mb-4 transition-all duration-500 shadow-inner overflow-hidden relative"
+              className="w-full h-12 sm:h-16 rounded-xl mb-4 transition-all duration-500 shadow-inner overflow-hidden relative"
               style={{ 
                 background: t.tokens.colors.background, 
                 backgroundImage: t.tokens.decorative.backgroundPattern
@@ -47,10 +48,15 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ currentTheme, 
 
             {/* Label with dynamic contrast */}
             <div className="text-center">
-              <span className="text-xs font-black uppercase tracking-[0.2em] block transition-colors group-hover:text-[var(--primary)]" 
-                    style={{ color: currentTheme.id === t.id ? t.tokens.colors.primary : t.tokens.colors.text }}>
-                {t.name}
-              </span>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.2em] block transition-colors group-hover:text-[var(--primary)]" 
+                      style={{ color: currentTheme.id === t.id ? t.tokens.colors.primary : t.tokens.colors.text }}>
+                  {t.name}
+                </span>
+                {t.id === 'neuro-gentle-embrace' && (
+                  <NeurodiversitySymbol size={24} opacity={0.6} />
+                )}
+              </div>
             </div>
 
             {/* Selection indicator with glow */}
@@ -75,19 +81,19 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ currentTheme, 
 
       <div className="p-10 mimi-card flex flex-col md:flex-row items-center gap-10 justify-center border-dashed border-[var(--border-color)] group">
         <div className="text-center md:text-left flex-1">
-          <h4 className="font-hand text-4xl text-[var(--primary)] mb-2 group-hover:scale-105 transition-transform origin-left">Seu Mundo, Suas Cores</h4>
-          <p className="text-xs text-[var(--text-muted)] max-w-sm">Mudar o tema altera as formas e o brilho do seu reino encantado. Escolha o que mais te faz feliz hoje!</p>
+          <h4 className="font-hand text-3xl md:text-4xl text-[var(--primary)] mb-2 group-hover:scale-105 transition-transform origin-left">Seu Mundo, Suas Cores</h4>
+          <p className="text-xs md:text-sm text-[var(--text-muted)] max-w-sm">Mudar o tema altera as formas e o brilho do seu reino encantado. Escolha o que mais te faz feliz hoje!</p>
         </div>
         
         <div className="flex gap-8 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
            <div className="flex flex-col items-center gap-2 group-hover:translate-y-[-5px] transition-transform">
-              <div className="w-12 h-12 mimi-card flex items-center justify-center text-[var(--primary)] text-sm font-black border-[var(--border-color)]">Aa</div>
+              <div className="w-10 h-10 md:w-12 md:h-12 mimi-card flex items-center justify-center text-[var(--primary)] text-sm font-black border-[var(--border-color)]">Aa</div>
            </div>
            <div className="flex flex-col items-center gap-2 group-hover:translate-y-[-5px] transition-transform delay-75">
-              <div className="w-12 h-12 mimi-card border-4 border-[var(--primary)] bg-transparent"></div>
+              <div className="w-10 h-10 md:w-12 md:h-12 mimi-card border-4 border-[var(--primary)] bg-transparent"></div>
            </div>
            <div className="flex flex-col items-center gap-2 group-hover:translate-y-[-5px] transition-transform delay-150">
-              <div className="w-12 h-12 mimi-card bg-[var(--primary)]"></div>
+              <div className="w-10 h-10 md:w-12 md:h-12 mimi-card bg-[var(--primary)]"></div>
            </div>
         </div>
       </div>
