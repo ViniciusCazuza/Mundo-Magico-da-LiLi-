@@ -3,6 +3,7 @@ import { AliceProfile, EcosystemData, ECOSYSTEM_EVENTS, FamilyContext, Ecosystem
 import { mimiEvents } from "../events";
 import { STORAGE_KEYS } from "../config";
 import { safeLocalStorageSetItem } from "../utils";
+import { Result } from "../utils/result";
 
 const ECOSYSTEM_STORAGE_KEY = "alice_ecosystem_v2";
 const SESSION_STORAGE_KEY = "alice_session_v1";
@@ -91,7 +92,8 @@ export class IdentityManager {
     if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
-        if (parsed.role === 'child' && parsed.isAuthenticated) {
+        // Permite a restauração de qualquer papel autenticado (Axioma 2)
+        if (parsed.isAuthenticated && (parsed.role === 'child' || parsed.role === 'parent_admin')) {
           this.session = parsed;
         } else {
           this.logout();
@@ -120,24 +122,20 @@ export class IdentityManager {
     return this.ensureInstance().familyContext;
   }
 
-  static login(id: string, pin?: string): boolean {
+  static login(id: string, pin?: string): Result<boolean> {
     if (this.session.isAuthenticated) {
-      console.warn("[IdentityManager] Bloqueio de sessão: Encerre a sessão atual antes de trocar de perfil.");
-      return false;
+      return Result.fail(new Error("Já existe uma sessão ativa."));
     }
 
     const inst = this.ensureInstance();
     const target = inst.profiles.find(p => p.id === id);
-    if (!target) return false;
+    if (!target) return Result.fail(new Error("Perfil não encontrado."));
 
     if (target.role === "parent_admin") {
-      // Se nenhum PIN estiver definido (parentPinHash é null ou vazio), permite o login sem PIN.
-      // Caso contrário, o PIN está definido e precisa ser verificado.
-      if (!inst.parentPinHash) {
-        // Nenhuma verificação de PIN necessária
-      } else {
-        // PIN está definido, verifica o PIN fornecido
-        if (!pin || !this.verifyPin(pin)) return false;
+      if (inst.parentPinHash) {
+        if (!pin || !this.verifyPin(pin)) {
+          return Result.fail(new Error("Senha PIN incorreta."));
+        }
       }
     }
 
@@ -148,9 +146,13 @@ export class IdentityManager {
       sessionStartedAt: Date.now()
     };
 
+    // Sincroniza a instância principal (Evita retorno automático para criança)
+    inst.activeProfileId = id;
+    this.save();
+
     safeLocalStorageSetItem(SESSION_STORAGE_KEY, JSON.stringify(this.session));
     mimiEvents.dispatch(ECOSYSTEM_EVENTS.PROFILE_SWITCHED, target);
-    return true;
+    return Result.ok(true);
   }
 
   static logout() {

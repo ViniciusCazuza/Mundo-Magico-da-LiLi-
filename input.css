@@ -1,1 +1,126 @@
 @import "tailwindcss";
+
+/* BASE TOKENS (APEX v2.0) */
+:root {
+  --primary: #FFB7C5;
+  --secondary: #98FB98;
+  --accent: #FF69B4;
+  --bg-app: #FFFFFF;
+  --surface: #F9F9F9;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  
+  --ui-radius: 24px;
+  --ui-component-radius: 24px;
+  --ui-border-width: 0px;
+  --ui-shadow: none;
+  --ui-shadow-elevated: none;
+  --ui-blur: 0px;
+  --font-main: 'Fredoka', sans-serif;
+  --ui-transition: 0.3s;
+  --ui-ease: ease-in-out;
+}
+
+/* --- ANATOMIA DINÂMICA --- */
+
+@keyframes input-jelly {
+  0% { transform: scale(1, 1); }
+  30% { transform: scale(1.01, 0.99); }
+  50% { transform: scale(0.99, 1.01); }
+  100% { transform: scale(1, 1); }
+}
+
+.input-typing {
+  animation: input-jelly 0.2s ease-out;
+}
+
+.btn-dynamic, .tactile-base {
+  background-color: var(--primary);
+  border-radius: var(--ui-component-radius) !important;
+  border: var(--ui-border-width) solid var(--border-color, transparent);
+  box-shadow: var(--ui-shadow);
+  font-family: var(--font-main);
+  transition: all var(--ui-transition) var(--ui-ease);
+}
+
+.mimi-card {
+  border-radius: var(--ui-radius);
+  border: var(--ui-border-width) solid var(--border-color, rgba(0,0,0,0.1));
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(var(--ui-blur));
+  -webkit-backdrop-filter: blur(var(--ui-blur));
+  transition: all var(--ui-transition) var(--ui-ease);
+}
+
+/* --- LOGIN LIQUID MORPHISM (ESTÉTICA ORIGINAL) --- */
+
+@keyframes liquid-bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.liquid-bg-anim {
+  background: linear-gradient(-45deg, #0F172A, #1E1B4B, #312E81, #1E1B4B);
+  background-size: 400% 400%;
+  animation: liquid-bg 15s ease infinite;
+}
+
+.liquid-bubble {
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* --- ESTADOS DE FOCO ANIMADOS --- */
+
+input, textarea {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Foco Neubrutalista */
+[data-theme-style="outlined"] input:focus,
+[data-theme-style="outlined"] textarea:focus {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  border-color: #000000 !important;
+}
+
+/* Foco Neumorfista */
+[data-theme-style="pillow"] input:focus,
+[data-theme-style="pillow"] textarea:focus {
+  box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6), 
+              inset -8px -8px 16px rgba(255, 255, 255, 0.9) !important;
+  transform: scale(0.995);
+}
+
+/* Foco Glassmorphism */
+[data-theme-style="glass"] input:focus,
+[data-theme-style="glass"] textarea:focus {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 20px var(--primary) !important;
+}
+
+/* --- ISOLAMENTO DO LOGIN (PORTAL FIXO) --- */
+#magic-portal-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

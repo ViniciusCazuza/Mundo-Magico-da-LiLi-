@@ -4,6 +4,8 @@ import { Check, Sparkles } from "lucide-react";
 import { AppTheme } from "../../../core/types";
 import { THEMES } from "../../../core/config";
 import { NeurodiversitySymbol } from "../../../core/components/NeurodiversitySymbol";
+import { ThemeRegistry } from "../../../core/theme/ThemeRegistry";
+import { IdentityManager } from "../../../core/ecosystem/IdentityManager";
 
 interface ThemeCustomizerProps {
   currentTheme: AppTheme;
@@ -11,31 +13,34 @@ interface ThemeCustomizerProps {
 }
 
 export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ currentTheme, onUpdateTheme }) => {
+  const profile = IdentityManager.getActiveProfile();
+  const availableThemes = ThemeRegistry.getAvailableThemes(profile?.role || 'child');
+
   return (
     <div className="space-y-10">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {THEMES.map(t => (
+        {availableThemes.map(t => (
           <button 
             key={t.id}
             onClick={() => onUpdateTheme(t)}
             style={{ 
-              borderRadius: t.tokens.layout.borderRadius,
-              backgroundColor: t.tokens.colors.surface,
-              boxShadow: currentTheme.id === t.id ? `0 10px 30px -5px ${t.tokens.colors.primary}` : 'none',
-              border: `2px solid ${currentTheme.id === t.id ? t.tokens.colors.primary : 'transparent'}`,
-              fontFamily: t.tokens.typography.fontFamily,
-              color: t.tokens.colors.text
+              borderRadius: t.tokens?.layout?.componentShape === 'square' ? '0px' : (t.tokens?.layout?.borderRadius || '24px'),
+              backgroundColor: t.tokens?.colors?.surface || '#FFFFFF',
+              boxShadow: currentTheme.id === t.id ? (t.tokens?.colors?.shadowElevated || 'none') : (t.tokens?.colors?.shadow || 'none'),
+              border: `${t.tokens?.layout?.borderWidth || '0px'} solid ${currentTheme.id === t.id ? (t.tokens?.colors?.primary || 'transparent') : 'transparent'}`,
+              fontFamily: t.tokens?.typography?.fontFamily || 'sans-serif',
+              color: t.tokens?.colors?.text || '#000000'
             }}
             className={`flex flex-col items-center p-6 transition-all relative group h-full justify-center
               ${currentTheme.id === t.id ? 'scale-105 z-10' : 'opacity-80 hover:opacity-100 hover:scale-[1.05] hover:z-20'}
-              ${t.tokens.motion.animationLevel === 'none' ? '' : 'active:scale-95'}`}
+              ${t.tokens?.motion?.animationLevel === 'none' ? '' : 'active:scale-95'}`}
           >
             {/* Dynamic Preview Layer */}
             <div 
               className="w-full h-12 sm:h-16 rounded-xl mb-4 transition-all duration-500 shadow-inner overflow-hidden relative"
               style={{ 
-                background: t.tokens.colors.background, 
-                backgroundImage: t.tokens.decorative.backgroundPattern
+                background: t.tokens?.colors?.background || '#EEE', 
+                backgroundImage: t.tokens?.decorative?.backgroundPattern || 'none'
               }}
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />

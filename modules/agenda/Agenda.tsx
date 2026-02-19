@@ -51,19 +51,19 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
         {/* Legenda semântica temática */}
         <div className="mt-8 grid grid-cols-2 gap-y-4 gap-x-2 px-4">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patinha Tranquila</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)]" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patinha</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Miado Importante</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--primary)] shadow-[0_0_5px_var(--primary)]" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Miado</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_red]" />
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Alerta Bigodinho!</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_5px_var(--accent)]" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Alerta!</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-40" />
             <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Momentos</span>
           </div>
         </div>

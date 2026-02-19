@@ -32,7 +32,8 @@ export const Dock: React.FC<DockProps> = ({ items, onRestore }) => {
       <div className="relative inline-flex items-end pointer-events-auto">
         
         <div 
-          className="absolute inset-0 bg-[var(--surface)]/70 backdrop-blur-3xl border border-[var(--border-color)] rounded-[2.2rem] shadow-[var(--shadow-elevated)] transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] -z-10"
+          className="absolute inset-0 bg-[var(--surface)]/70 backdrop-blur-3xl border-[var(--ui-border-width)] border-[var(--border-color)] shadow-[var(--shadow-elevated)] transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] -z-10"
+          style={{ borderRadius: 'var(--ui-radius)' }}
         />
 
         <div 
@@ -65,15 +66,15 @@ export const Dock: React.FC<DockProps> = ({ items, onRestore }) => {
                 <button
                   onClick={() => onRestore(item.id)}
                   className={`
-                    group relative w-full h-full rounded-2xl flex items-center justify-center 
-                    transition-all duration-150 active:scale-90
+                    group relative w-full h-full flex items-center justify-center 
+                    transition-all duration-150 active:scale-90 border-[var(--ui-border-width)]
                     ${isHovered 
-                      ? 'bg-[var(--primary)] text-[var(--text-on-primary)] shadow-[0_15px_30px_-5px_var(--primary)] scale-105 brightness-110' 
-                      : 'bg-[var(--primary)] text-[var(--text-on-primary)] shadow-md'
+                      ? 'bg-[var(--primary)] text-[var(--text-on-primary)] shadow-[var(--ui-shadow-elevated)] scale-105 brightness-110 border-[var(--border-color)]' 
+                      : 'bg-[var(--primary)] text-[var(--text-on-primary)] shadow-[var(--ui-shadow)] border-[var(--border-color)]'
                     }
                   `}
                   style={{ 
-                    borderRadius: `${14 * scale}px`,
+                    borderRadius: 'var(--ui-component-radius)',
                   }}
                 >
                   <Icon size={Math.round(20 * (1 + (scale - 1) * 0.4))} />

@@ -34,6 +34,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
   maxLength,
   mask, // Destructure the new mask prop
 }) => {
+  const [isTyping, setIsTyping] = useState(false);
 
   // Function to apply the mask to the input value
   const applyMask = (value: string, mask: string) => {
@@ -61,6 +62,15 @@ export const ModernInput: React.FC<ModernInputProps> = ({
     return maskedValue;
   };
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const newValue = mask ? applyMask(e.target.value, mask) : e.target.value;
+    onChange(newValue);
+    
+    // Trigger typing animation
+    setIsTyping(true);
+    setTimeout(() => setIsTyping(false), 200);
+  };
+
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value.length > 0;
 
@@ -75,9 +85,9 @@ export const ModernInput: React.FC<ModernInputProps> = ({
     <div className="relative w-full group">
       <label
         htmlFor={id}
-        className={`absolute left-4 transition-all duration-300 ease-out pointer-events-none
+        className={`absolute left-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none
           ${showFloatingLabel
-            ? '-top-3 text-xs px-1 bg-[var(--surface-elevated)] rounded-md left-3'
+            ? '-top-3 text-xs px-2 bg-[var(--surface-elevated)] rounded-md left-3 z-10'
             : 'top-1/2 -translate-y-1/2 left-4'}
           ${error ? 'text-red-500' : success ? 'text-green-500' : (isFocused ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]')}
         `}
@@ -89,22 +99,20 @@ export const ModernInput: React.FC<ModernInputProps> = ({
         <textarea
           id={id}
           value={value}
-          onChange={(e) => {
-            const newValue = mask ? applyMask(e.target.value, mask) : e.target.value;
-            onChange(newValue);
-          }}
+          onChange={handleTextChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={isFocused && !hasValue ? placeholder : ''}
           disabled={disabled}
           rows={rows}
           maxLength={maxLength}
-          className={`w-full p-4 rounded-[var(--radius-base)] border-[var(--border-width)] outline-none transition-all duration-300 ease-out resize-y
+          className={`w-full p-4 rounded-[var(--ui-radius)] border-[var(--ui-border-width)] outline-none transition-all duration-300 ease-out resize-y
             bg-[var(--surface-elevated)] text-[var(--text-primary)]
-            focus:ring-2 focus:ring-[var(--primary)]/30
+            focus:ring-4 focus:ring-[var(--primary)]/10
             ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
             ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
-            shadow-[var(--shadow-base)] focus:shadow-[0_0_20px_-5px_var(--primary)]
+            ${isTyping ? 'input-typing' : ''}
+            shadow-[var(--ui-shadow)] focus:shadow-[var(--ui-shadow-elevated)]
           `}
           style={{ borderColor: borderColor }}
         />
@@ -113,21 +121,19 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           id={id}
           type={type}
           value={value}
-          onChange={(e) => {
-            const newValue = mask ? applyMask(e.target.value, mask) : e.target.value;
-            onChange(newValue);
-          }}
+          onChange={handleTextChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder={isFocused && !hasValue ? placeholder : ''} // Updated placeholder logic
+          placeholder={isFocused && !hasValue ? placeholder : ''} 
           disabled={disabled}
           maxLength={maxLength}
-          className={`w-full h-14 p-4 rounded-[var(--radius-base)] border-[var(--border-width)] outline-none transition-all duration-300 ease-out
+          className={`w-full h-14 p-4 rounded-[var(--ui-radius)] border-[var(--ui-border-width)] outline-none transition-all duration-300 ease-out
             bg-[var(--surface-elevated)] text-[var(--text-primary)]
-            focus:ring-2 focus:ring-[var(--primary)]/30
+            focus:ring-4 focus:ring-[var(--primary)]/10
             ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
             ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
-            shadow-[var(--shadow-base)] focus:shadow-[0_0_20px_-5px_var(--primary)]
+            ${isTyping ? 'input-typing' : ''}
+            shadow-[var(--ui-shadow)] focus:shadow-[var(--ui-shadow-elevated)]
           `}
           style={{ borderColor: borderColor }}
         />

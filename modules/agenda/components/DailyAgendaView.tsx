@@ -39,7 +39,8 @@ export const DailyAgendaView: React.FC<DailyAgendaViewProps> = ({
         </div>
         <button 
           onClick={onAddClick}
-          className="mimi-button p-4 rounded-2xl shadow-lg"
+          className="btn-dynamic p-4 text-white shadow-lg"
+          style={{ borderRadius: 'var(--ui-radius)' }}
           aria-label="Adicionar Nova Atividade"
         >
           <Plus size={24} />
@@ -55,7 +56,8 @@ export const DailyAgendaView: React.FC<DailyAgendaViewProps> = ({
             </h4>
             <div className="grid grid-cols-1 gap-2">
               {dayEvents.map(e => (
-                <div key={e.id} className="p-4 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border-color)] flex items-center gap-3">
+                <div key={e.id} className="p-4 bg-[var(--surface-elevated)] border border-[var(--border-color)] flex items-center gap-3"
+                     style={{ borderRadius: 'var(--ui-radius)' }}>
                   <ActivityIcon name={e.type} size={18} className="text-[var(--primary)]" />
                   <span className="font-bold text-[var(--text-primary)] text-sm">{e.title}</span>
                 </div>

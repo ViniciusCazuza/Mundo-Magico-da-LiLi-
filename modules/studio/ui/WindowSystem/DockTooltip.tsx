@@ -16,8 +16,8 @@ export const DockTooltip: React.FC<DockTooltipProps> = ({ label, visible }) => {
       className={`
         absolute -top-16 left-1/2 -translate-x-1/2 
         px-5 py-2.5 
-        bg-[var(--primary)] border-2 border-white/30
-        text-white text-[11px] font-black uppercase tracking-[0.2em] 
+        bg-[var(--primary)] border-2 border-black/30
+        text-black text-[11px] font-black uppercase tracking-[0.2em] 
         rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]
         pointer-events-none whitespace-nowrap z-[1000]
         transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)]
@@ -30,7 +30,7 @@ export const DockTooltip: React.FC<DockTooltipProps> = ({ label, visible }) => {
       
       {/* Seta do Tooltip */}
       <div 
-        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-[var(--primary)] rotate-45 border-r-2 border-b-2 border-white/10" 
+        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-[var(--primary)] rotate-45 border-r-2 border-b-2 border-black/10" 
       />
     </div>
   );

@@ -1,11 +1,41 @@
-
-import React, { RefObject, useState, useEffect } from "react";
-import { Send, Cat, User, Sparkles, Smile, Mic } from "lucide-react";
+import React, { RefObject, useState, useEffect, useMemo } from "react";
+import { Send, Cat, User, Sparkles, Smile, Mic, Cpu, Terminal, Radio } from "lucide-react";
 import { Conversation, Message, UserProfile } from "../../core/types";
 import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../core/events";
 import { getAtomicMimiResponse } from "./services/mimi.api";
 import { mimiAudio } from "./audio/audio.manager";
 import { executeAlertProtocol } from "./protocols/alert.protocol";
+import { useTheme } from "../../core/theme/useTheme";
+import { MatrixRain, HackerOverlay } from "../../core/components/MatrixRain";
+
+// APEX v2.0 Components
+import { TactileButton } from "../../core/components/ui/TactileButton";
+import { MagicCard } from "../../core/components/ui/MagicCard";
+import { MagicDust } from "../../core/components/effects/MagicDust";
+
+// Componente de Descriptografia Hacker (Protocolo APEX v2.0)
+const DecryptText = ({ text }: { text: string }) => {
+  const [displayText, setDisplayText] = useState("");
+  const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  useEffect(() => {
+    let iteration = 0;
+    const interval = setInterval(() => {
+      setDisplayText(prev => 
+        text.split("").map((char, index) => {
+          if (index < iteration) return text[index];
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join("")
+      );
+
+      if (iteration >= text.length) clearInterval(interval);
+      iteration += 1 / 3;
+    }, 30);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <span className="font-mono tracking-tight">{displayText}</span>;
+};
 
 interface ChatModuleProps {
   conversation: Conversation;
@@ -25,6 +55,11 @@ export const ChatModule = ({
 }: ChatModuleProps) => {
   const [internalProcessing, setInternalProcessing] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [showMagicDust, setShowMagicDust] = useState(false);
+  const [showEmojis, setShowEmojis] = useState(false);
+  
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
   
   useEffect(() => {
     const warmup = () => {
@@ -80,6 +115,12 @@ export const ChatModule = ({
 
       onUpdateConversation({ ...conversation, messages: [...messagesWithUser, modelMsg] });
       
+      // Simulação de Sucesso Mágico (LingoEngine feedback)
+      if (atomicResult.text.length > 50) { 
+        setShowMagicDust(true); 
+        setTimeout(() => setShowMagicDust(false), 2000);
+      }
+      
       if (atomicResult.speechEnabled && atomicResult.audioBase64) {
         await mimiAudio.playSync(atomicResult.audioBase64);
       }
@@ -91,51 +132,89 @@ export const ChatModule = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden">
-      {/* Decoração Flutuante */}
-      <div className="absolute top-10 right-10 opacity-20 animate-mimi-float pointer-events-none">
-        <Sparkles size={60} className="md:size-80 text-[var(--accent)]" />
-      </div>
+    <div className={`flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden ${isHackerMode ? 'font-mono text-green-500' : ''}`}>
+      {/* Background Effects (Local scope for module specific effects) */}
+      {isHackerMode && (
+        <div className="absolute top-4 right-4 z-50 animate-pulse text-green-500/30">
+          <Radio size={24} />
+        </div>
+      )}
+
+      {/* Magic Dust Effect (Particle System) */}
+      <MagicDust active={showMagicDust} />
+
+      {/* Decoração Flutuante (Kids Mode) */}
+      {!isHackerMode && (
+        <div className="absolute top-10 right-10 opacity-20 animate-mimi-float pointer-events-none">
+          <Sparkles size={60} className="md:size-80 text-[var(--accent)]" />
+        </div>
+      )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-10 no-scrollbar pb-40">
         {conversation.messages.map((m, i) => (
           <div key={`${m.timestamp}-${i}`} className={`flex items-end gap-4 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}>
-            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg overflow-hidden transition-transform hover:scale-110 ${m.role === 'user' ? 'bg-[var(--primary)] text-[var(--text-on-primary)]' : 'bg-[var(--surface)] text-[var(--primary)] border-[var(--primary)]/20 animate-float-slow'}`}>
+            {/* Avatar Tactile */}
+            <div className={`
+              w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden transition-all
+              ${isHackerMode 
+                ? 'binary-night-glitch border-2 border-green-500/50 bg-black' 
+                : 'tactile-base bg-[var(--surface-elevated)] shadow-md' 
+              }
+            `}>
               {m.role === 'user' ? (
-                profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <User size={22} />
-              ) : <Cat size={22} />}
+                profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <User size={22} className="text-white" />
+              ) : (
+                isHackerMode ? <Cpu size={22} className="animate-pulse" /> : <Cat size={22} className="text-white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+              )}
             </div>
-            <div 
-              className={`
-                max-w-[85%] md:max-w-[70%] px-8 py-6 text-xl md:text-2xl leading-relaxed font-medium transition-all shadow-md
-                ${m.role === 'user' 
-                  ? 'bg-[var(--primary)] text-[var(--text-on-primary)] rounded-[2.5rem] rounded-br-[0.5rem] shadow-[0_10px_20px_var(--primary)]/20' 
-                  : 'bg-[var(--surface)]/90 backdrop-blur-md text-[var(--text-primary)] border-[var(--border-color)] rounded-[2.5rem] rounded-bl-[0.5rem] shadow-[var(--shadow-base)]/50'
-                }
-              `}
-              style={{ fontFamily: m.role === 'model' ? 'var(--font-family)' : 'Fredoka' }}
-            >
-              {m.text}
+
+            {/* Message Bubble (MagicCard or Tactile) */}
+            <div className={`max-w-[85%] md:max-w-[70%]`}>
+              {isHackerMode ? (
+                <div className="border-green-500/30 bg-black/80 text-green-400 p-4 border-l-4 border-l-green-500 font-mono text-xl md:text-2xl shadow-lg">
+                  {m.role === 'model' ? <DecryptText text={m.text} /> : m.text}
+                </div>
+              ) : (
+                <MagicCard 
+                  glass={m.role === 'model'} 
+                  isAiMessage={m.role === 'model'}
+                  className={`
+                    px-8 py-6 text-xl md:text-2xl leading-relaxed font-medium
+                    ${m.role === 'user' 
+                      ? 'bg-[var(--primary)] text-white rounded-[var(--ui-radius)] rounded-br-[0.5rem] shadow-[var(--ui-shadow)]' 
+                      : 'rounded-[var(--ui-radius)] rounded-bl-[0.5rem] text-[var(--text-primary)]'
+                    }
+                  `}
+                >
+                  <span style={{ fontFamily: m.role === 'model' ? 'var(--font-main)' : 'var(--font-main)' }}>
+                    {m.text}
+                  </span>
+                </MagicCard>
+              )}
+              
               <div className={`text-[9px] font-black uppercase tracking-widest mt-3 opacity-40 ${m.role === 'user' ? 'text-right' : 'text-left'}`}>
-                {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {isHackerMode ? `[TIMESTAMP: ${m.timestamp}]` : new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>
         ))}
         
+        {/* Thinking State */}
         {internalProcessing && (
           <div className="flex justify-start items-center gap-4 animate-fade-in">
-             <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-500 shadow-md animate-mimi-float">
-                <Cat size={22} />
+             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center animate-mimi-float ${isHackerMode ? 'bg-black border border-green-500 text-green-500' : 'tactile-base bg-[var(--surface)] ai-thinking shadow-md'}`}>
+                {isHackerMode ? <Terminal size={22} /> : <Cat size={22} className="text-white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />}
              </div>
              <div className="flex flex-col gap-2">
-                <div className="flex gap-2 p-5 bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-white shadow-sm">
-                  <div className="w-3 h-3 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                  <div className="w-3 h-3 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-3 h-3 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]/60 ml-3 animate-pulse">
-                  Mimi está pensando...
+                <MagicCard glass className="px-6 py-4 rounded-[2.5rem]">
+                   <div className="flex gap-2">
+                      <div className={`w-3 h-3 rounded-full animate-bounce ${isHackerMode ? 'bg-green-500' : 'bg-[var(--primary)]'}`} style={{ animationDelay: '0s' }}></div>
+                      <div className={`w-3 h-3 rounded-full animate-bounce ${isHackerMode ? 'bg-green-500' : 'bg-[var(--primary)]'}`} style={{ animationDelay: '0.2s' }}></div>
+                      <div className={`w-3 h-3 rounded-full animate-bounce ${isHackerMode ? 'bg-green-500' : 'bg-[var(--primary)]'}`} style={{ animationDelay: '0.4s' }}></div>
+                   </div>
+                </MagicCard>
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ml-3 animate-pulse ${isHackerMode ? 'text-green-500' : 'text-[var(--primary)]/60'}`}>
+                  {isHackerMode ? "ANALISANDO DADOS..." : "Mimi está pensando..."}
                 </span>
              </div>
           </div>
@@ -143,36 +222,56 @@ export const ChatModule = ({
       </div>
 
       {!isReadOnly && (
-        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[var(--bg-app)] via-[var(--bg-app)]/80 to-transparent shrink-0">
-                      <div className="max-w-4xl mx-auto flex items-center gap-4 bg-white/90 backdrop-blur-2xl p-3 rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-4 border-white focus-within:border-[var(--primary)] focus-within:shadow-[0_0_30px_var(--primary)]/30 transition-all">            <button 
-              className="p-4 text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
-              onClick={() => console.log('Emoji button clicked! (Functionality to be implemented)')}
+        <div className={`absolute bottom-0 left-0 right-0 p-8 shrink-0 ${isHackerMode ? 'bg-black/90' : 'bg-transparent'}`}>
+          <div className={`
+            max-w-4xl mx-auto flex items-center gap-4 p-3 transition-all
+            ${isHackerMode 
+              ? 'bg-black border-2 border-green-500/50 rounded-none shadow-[0_0_20px_rgba(0,255,65,0.2)]' 
+              : 'mimi-card bg-[var(--surface)]/90 backdrop-blur-2xl border-[var(--ui-border-width)] border-[var(--primary)]/20 shadow-[var(--ui-shadow-elevated)] focus-within:border-[var(--primary)]'
+            }
+          `}
+          style={{ borderRadius: isHackerMode ? '0' : 'var(--ui-radius)' }}
+          >
+            {/* Input Actions with Tactile Buttons */}
+            <TactileButton 
+              variant={isHackerMode ? "ghost" : "secondary"} 
+              size="icon" 
+              className={isHackerMode ? 'text-green-500' : ''}
+              onClick={() => setShowEmojis(!showEmojis)}
             >
-              <Smile size={28} />
-            </button>
+              {isHackerMode ? <Terminal size={28} /> : <Smile size={28} className="text-white" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))' }} />}
+            </TactileButton>
+
             <input 
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               onKeyDown={e => {
                 if(e.key === 'Enter') handleMimiFlow(inputValue);
               }} 
-                            placeholder={`Diga algo para a Mimi, ${profile.nickname}...`}
-                            className="flex-1 bg-transparent px-4 py-4 outline-none font-hand text-2xl md:text-3xl placeholder:opacity-70 text-[var(--text-primary)]"
-                            disabled={internalProcessing}
-                          />            <div className="flex gap-2">
-              <button 
-                className="w-14 h-14 md:w-16 md:h-16 bg-[var(--primary)]/10 rounded-full flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors active:scale-95"
+              placeholder={isHackerMode ? "> ENTER_COMMAND_OR_QUERY..." : `Diga algo para a Mimi, ${profile.nickname}...`}
+              className={`flex-1 bg-transparent px-4 py-4 outline-none placeholder:opacity-50 ${isHackerMode ? 'font-mono text-green-400' : 'font-main text-2xl md:text-3xl text-[var(--text-primary)]'}`}
+              disabled={internalProcessing}
+            />
+            
+            <div className="flex gap-2">
+              <TactileButton 
+                variant="secondary" 
+                size="icon"
                 disabled={internalProcessing}
               >
-                <Mic size={28} />
-              </button>
-              <button 
-                className="w-14 h-14 md:w-16 md:h-16 bg-[var(--primary)] rounded-full flex items-center justify-center text-[var(--text-on-primary)] shadow-[var(--shadow-elevated)] hover:scale-110 active:scale-90 transition-all group"
+                <Mic size={24} className="text-white" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))' }} />
+              </TactileButton>
+
+              <TactileButton 
+                variant={isHackerMode ? 'secondary' : 'primary'}
+                size="icon"
                 onClick={() => handleMimiFlow(inputValue)}
                 disabled={internalProcessing || !inputValue.trim()}
+                isThinking={internalProcessing}
+                className={isHackerMode ? 'bg-green-600 text-black border border-green-400' : 'shadow-lg'}
               >
-                <Send size={28} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
+                <Send size={24} />
+              </TactileButton>
             </div>
           </div>
         </div>

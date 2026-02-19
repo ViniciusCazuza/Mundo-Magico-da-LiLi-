@@ -70,8 +70,20 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
           <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">{year}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={onPrevMonth} className="p-3 bg-[var(--surface)] hover:bg-[var(--surface-elevated)] rounded-2xl transition-all text-[var(--primary)] shadow-sm border border-[var(--border-color)]"><ChevronLeft size={24}/></button>
-          <button onClick={onNextMonth} className="p-3 bg-[var(--surface)] hover:bg-[var(--surface-elevated)] rounded-2xl transition-all text-[var(--primary)] shadow-sm border border-[var(--border-color)]"><ChevronRight size={24}/></button>
+          <button 
+            onClick={onPrevMonth} 
+            className="p-3 btn-dynamic text-white shadow-sm border border-[var(--border-color)] transition-all active:scale-95"
+            style={{ borderRadius: 'var(--ui-component-radius)' }}
+          >
+            <ChevronLeft size={24}/>
+          </button>
+          <button 
+            onClick={onNextMonth} 
+            className="p-3 btn-dynamic text-white shadow-sm border border-[var(--border-color)] transition-all active:scale-95"
+            style={{ borderRadius: 'var(--ui-component-radius)' }}
+          >
+            <ChevronRight size={24}/>
+          </button>
         </div>
       </header>
 
@@ -87,10 +99,11 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
               {day ? (
                 <button 
                   onClick={() => onSelectDate(day.dateStr)}
-                  className={`w-full h-full rounded-[var(--radius-base)] border-2 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden
+                  className={`w-full h-full border-2 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden
                     ${selectedDate === day.dateStr ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-inner' : 'border-transparent bg-[var(--surface-elevated)] hover:bg-[var(--surface)] hover:border-[var(--primary)]'}
                     ${day.priority === 'HIGH' ? 'border-red-500/30' : ''}
                   `}
+                  style={{ borderRadius: 'var(--ui-radius)' }}
                 >
                   <span className={`text-base font-black ${selectedDate === day.dateStr ? 'text-[var(--primary)]' : 'text-[var(--text-muted)] group-hover:text-[var(--primary)]'}`}>
                     {day.day}
@@ -103,7 +116,7 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
                           day.priority === 'MEDIUM' ? 'bg-[var(--primary)]' : 'bg-emerald-500'}
                       `} />
                     )}
-                    {day.hasEvents && <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>}
+                    {day.hasEvents && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-40"></div>}
                   </div>
 
                   {day.hasReport && (

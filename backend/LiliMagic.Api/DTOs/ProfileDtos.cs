@@ -28,6 +28,9 @@ public class UserProfileDto
     [JsonPropertyName("autoAudio")]
     public bool AutoAudio { get; set; } = true;
 
+    [JsonPropertyName("role")]
+    public string Role { get; set; } = "child"; // "child" | "parent_admin"
+
     // Imagem de perfil
     [JsonPropertyName("profileImage")]
     public ProfileImageDto? ProfileImage { get; set; }

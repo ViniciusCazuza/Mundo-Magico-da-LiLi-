@@ -174,6 +174,8 @@ export interface AppTheme {
       borderWidth: string;
       shadowIntensity: 'none' | 'soft' | 'medium' | 'strong';
       blurIntensity: string;
+      componentShape: 'rounded' | 'square' | 'pill';
+      edgeStyle: 'smooth' | 'sharp' | 'brutal';
     };
     typography: {
       fontFamily: string;
@@ -187,6 +189,7 @@ export interface AppTheme {
       transitionSpeed: string;
       hoverScale: string;
       ease: string;
+      glitchEnabled?: boolean;
     };
     decorative: {
       backgroundPattern: string;
