@@ -1,30 +1,130 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../../../core/theme/useTheme';
 import { ThemeRegistry } from '../../../core/theme/ThemeRegistry';
-import { MagicCard } from '../../../core/components/ui/MagicCard';
-import { TactileButton } from '../../../core/components/ui/TactileButton';
-import { Lock, Check, Sparkles, Terminal, Layers, Box, Fingerprint } from 'lucide-react';
+import { Check, Sparkles, Terminal, Layers, Box, Fingerprint, Droplets, Zap, Heart, Shield, Sun, Cat } from 'lucide-react';
 import { IdentityManager } from '../../../core/ecosystem/IdentityManager';
+import { AppTheme } from '../../../core/types';
+import { AmbientThemeEffect } from '../../../core/components/effects/AmbientThemeEffect';
+import { HackerSimulator } from '../../../core/components/HackerSimulator';
+
+const getThemeIcon = (id: string) => {
+  switch(id) {
+    case 'binary-night': return <Terminal className="text-[var(--primary)]" />;
+    case 'glass-elite': return <Layers className="text-[var(--primary)]" />;
+    case 'neubrutalist-raw': return <Box className="text-[var(--text-primary)]" />;
+    case 'fluid-vision': return <Droplets className="text-[var(--primary)]" />;
+    case 'luminous-interface': return <Zap className="text-[var(--accent)]" />;
+    case 'skeuomorph-command': return <Fingerprint className="text-[var(--text-muted)]" />;
+    case 'neumorphic-tactile': return <Box className="text-[var(--primary)]" />;
+    case 'maternal-sweetness': return <Heart className="text-[var(--primary)]" />;
+    case 'maternal-strength': return <Shield className="text-[var(--primary)]" />;
+    case 'neuro-gentle-embrace': return <Sun className="text-[var(--primary)]" />;
+    default: return <Sparkles className="text-[var(--primary)]" />;
+  }
+};
+
+const EliteThemeCard = ({ 
+  theme, 
+  isActive, 
+  onSelect 
+}: { 
+  theme: AppTheme, 
+  isActive: boolean, 
+  onSelect: (id: string) => void 
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Adaptação Visual JIT Total (100% Theme Assumption on Hover)
+  const themeStyles = isHovered ? {
+    '--primary': theme.tokens.colors.primary,
+    '--secondary': theme.tokens.colors.secondary,
+    '--accent': theme.tokens.colors.accent,
+    '--bg-app': theme.tokens.colors.background,
+    '--surface': theme.tokens.colors.surface,
+    '--surface-elevated': theme.tokens.colors.surfaceElevated,
+    '--text-primary': theme.tokens.colors.text,
+    '--text-secondary': theme.tokens.colors.textSecondary,
+    '--text-muted': theme.tokens.colors.textMuted,
+    '--border-color': theme.tokens.colors.border,
+    '--text-on-primary': theme.tokens.colors.textOnPrimary,
+    '--text-on-accent': theme.tokens.colors.textOnAccent,
+    '--ui-radius': theme.tokens.layout.borderRadius,
+    '--ui-border-width': theme.tokens.layout.borderWidth,
+    '--ui-shadow': theme.tokens.colors.shadow,
+    '--ui-shadow-elevated': theme.tokens.colors.shadowElevated,
+    '--ui-blur': theme.tokens.layout.blurIntensity,
+    '--ui-component-radius': theme.tokens.layout.componentShape === 'pill' ? '9999px' : 
+                             theme.tokens.layout.componentShape === 'square' ? '0px' : theme.tokens.layout.borderRadius,
+    '--ui-edge-style': theme.tokens.layout.edgeStyle,
+    '--font-main': theme.tokens.typography.fontFamily,
+    '--ui-transition': theme.tokens.motion.transitionSpeed,
+    '--ui-ease': theme.tokens.motion.ease,
+  } as React.CSSProperties : {};
+
+  return (
+    <div 
+      className="h-full transition-transform duration-500"
+      data-theme-style={isHovered ? theme.tokens.layout.cardStyle : undefined}
+      data-theme-id={isHovered ? theme.id : undefined}
+      data-glitch={isHovered && theme.tokens.motion.glitchEnabled ? "true" : "false"}
+      style={themeStyles}
+    >
+      <button
+        onClick={() => onSelect(theme.id)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          document.dispatchEvent(new CustomEvent('theme-preview', { detail: { themeId: theme.id } }));
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          document.dispatchEvent(new CustomEvent('theme-preview', { detail: { themeId: null } }));
+        }}
+        className={`
+          relative group flex flex-col items-start p-10 text-left transition-all duration-500 h-full w-full overflow-hidden
+          mimi-card
+          ${isActive ? 'ring-4 ring-emerald-500 ring-offset-4 ring-offset-[var(--bg-app)]' : ''}
+          ${isHovered ? 'scale-105 z-10 shadow-2xl' : 'hover:scale-[1.02]'}
+        `}
+      >
+        {/* OMNI-SKILL: 100% Immersive Full Card Ambient on Hover */}
+        {isHovered && (
+          <div className="absolute inset-0 z-0">
+             <AmbientThemeEffect themeId={theme.id} container />
+             {theme.id === 'binary-night' && <HackerSimulator />}
+          </div>
+        )}
+
+        <div className={`
+          relative z-10 mb-6 p-5 rounded-[var(--ui-component-radius)] transition-all duration-500 group-hover:scale-110
+          bg-[var(--surface-elevated)] border-[var(--ui-border-width)] border-[var(--border-color)] shadow-[var(--ui-shadow)]
+          glitch-icon cursor-pointer
+        `}>
+          {getThemeIcon(theme.id)}
+        </div>
+
+        <h3 className={`relative z-10 text-xl font-black tracking-tight transition-colors duration-300 text-[var(--text-primary)]`} style={{ fontFamily: 'var(--font-main)' }}>
+          {theme.name}
+        </h3>
+        <p className={`relative z-10 text-sm font-medium leading-relaxed transition-colors duration-300 text-[var(--text-muted)]`} style={{ fontFamily: 'var(--font-main)' }}>
+          {theme.description}
+        </p>
+
+        {isActive && (
+          <div className="absolute top-6 right-6 bg-emerald-500 text-white p-2 rounded-full shadow-lg z-20 border-4 border-[var(--surface)]">
+            <Check size={18} strokeWidth={4} />
+          </div>
+        )}
+      </button>
+    </div>
+  );
+};
 
 export const EliteThemeSelector: React.FC = () => {
   const { themeId, changeTheme } = useTheme();
-  const profile = IdentityManager.getActiveProfile();
   
-  // Filtra apenas temas disponíveis para o administrador que não são os básicos infantis
   const childThemeIds = ['siamese', 'persian', 'bengal', 'british', 'ragdoll'];
-  const eliteThemes = ThemeRegistry.getAvailableThemes(profile?.role || 'parent_admin')
+  const eliteThemes = ThemeRegistry.getAvailableThemes()
     .filter(t => !childThemeIds.includes(t.id));
-
-  const getThemeIcon = (id: string) => {
-    switch(id) {
-      case 'binary-night': return <Terminal className="text-green-500" />;
-      case 'glass-elite': return <Layers className="text-blue-400" />;
-      case 'neubrutalist-raw': return <Box className="text-black" />;
-      case 'skeuomorph-command': return <Fingerprint className="text-gray-500" />;
-      default: return <Sparkles className="text-purple-500" />;
-    }
-  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -35,46 +135,12 @@ export const EliteThemeSelector: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {eliteThemes.map(theme => (
-          <button
+          <EliteThemeCard 
             key={theme.id}
-            onClick={() => changeTheme(theme.id)}
-            className={`
-              relative group flex flex-col items-start p-6 rounded-[2rem] border-2 text-left transition-all duration-300
-              ${themeId === theme.id 
-                ? 'bg-slate-900 border-slate-900 shadow-2xl scale-105' 
-                : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-lg'
-              }
-            `}
-          >
-            <div className={`
-              mb-4 p-4 rounded-2xl transition-colors
-              ${themeId === theme.id ? 'bg-white/10' : 'bg-slate-50'}
-            `}>
-              {getThemeIcon(theme.id)}
-            </div>
-
-            <h3 className={`text-lg font-bold mb-1 ${themeId === theme.id ? 'text-white' : 'text-slate-800'}`}>
-              {theme.name}
-            </h3>
-            <p className={`text-xs font-medium ${themeId === theme.id ? 'text-slate-400' : 'text-slate-500'}`}>
-              {theme.description}
-            </p>
-
-            {/* Visual Preview (Abstract) */}
-            <div className="mt-6 w-full h-24 rounded-xl overflow-hidden relative border border-white/10">
-              <div 
-                className="absolute inset-0"
-                style={{ background: theme.tokens.colors.background }} 
-              />
-              {theme.id === 'binary-night' && <div className="absolute inset-0 bg-[url('https://media.giphy.com/media/dummy/giphy.gif')] opacity-20" />} 
-            </div>
-
-            {themeId === theme.id && (
-              <div className="absolute top-4 right-4 bg-emerald-500 text-white p-1.5 rounded-full shadow-lg">
-                <Check size={16} strokeWidth={3} />
-              </div>
-            )}
-          </button>
+            theme={theme}
+            isActive={themeId === theme.id}
+            onSelect={changeTheme}
+          />
         ))}
       </div>
     </div>

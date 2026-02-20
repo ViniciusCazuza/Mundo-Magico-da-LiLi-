@@ -15,6 +15,9 @@ import { mimiEvents } from "../../core/events";
 import { resizeImage } from "../../core/utils";
 import { IdentityManager } from "../../core/ecosystem/IdentityManager";
 import { AliceProfile, ECOSYSTEM_EVENTS, FamilyContext } from "../../core/ecosystem/types";
+import { MatrixRain, HackerOverlay } from "../../core/components/MatrixRain";
+import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
+import { useTheme } from "../../core/theme/useTheme";
 
 // Internal Components
 import { ThemeCustomizer } from "./components/ThemeCustomizer";
@@ -94,11 +97,22 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
     }
   };
 
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
+
   if (!activeProfile) return null;
 
   return (
-    <div className={`flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden animate-fade-in ${isAdmin ? 'bg-slate-50' : 'bg-transparent'}`}>
-      <nav className={`w-full md:w-28 py-6 px-4 flex md:flex-col items-center gap-6 shrink-0 md:border-r overflow-x-auto no-scrollbar ${isAdmin ? 'bg-white border-slate-200' : 'border-[var(--border-color)]'}`}>
+    <div className={`flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden animate-fade-in ${isAdmin ? (isHackerMode ? 'bg-black text-green-500' : 'bg-slate-50') : 'bg-transparent'}`}>
+      {isAdmin && isHackerMode && (
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <MatrixRain />
+          <HackerOverlay />
+          <HackerSimulator />
+          <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+        </div>
+      )}
+      <nav className={`w-full md:w-28 py-6 px-4 flex md:flex-col items-center gap-6 shrink-0 md:border-r overflow-x-auto no-scrollbar ${isAdmin ? (isHackerMode ? 'bg-black/80 border-green-500/30' : 'bg-white border-slate-200') : 'border-[var(--border-color)]'}`}>
         <SidebarTab active={activeTab === 'profiles'} onClick={() => setActiveTab('profiles')} icon={Users} label="Gestão" isAdmin={isAdmin} />
         {activeProfile.role === 'child' && <SidebarTab active={activeTab === 'child'} onClick={() => setActiveTab('child')} icon={User} label="Sobre Mim" isAdmin={isAdmin} />}
         <SidebarTab active={activeTab === 'mimi'} onClick={() => setActiveTab('mimi')} icon={BrainCircuit} label="Mimi" isAdmin={isAdmin} />
@@ -126,13 +140,13 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
           )}
           {activeTab === 'app' && (
             <section className="space-y-12 animate-fade-in">
-              <header><h2 className="font-hand text-6xl text-[var(--primary)]">Mudar meu Mundo</h2></header>
+              <header><h2 className="font-hand text-6xl text-[var(--text-primary)]">Mudar meu Mundo</h2></header>
               <ThemeCustomizer currentTheme={state.app.theme} onUpdateTheme={theme => updateAppState({ theme })} />
 
               <div className="mimi-card p-10 space-y-6">
                 <h3 className="text-lg font-black text-[var(--text-primary)]">Fundo Personalizado ({state.app.theme.name})</h3>
                 <div className="flex items-center gap-4">
-                  <button onClick={() => customBackgroundInputRef.current?.click()} className="px-6 py-3 btn-dynamic text-white flex items-center gap-2 shadow-lg">
+                  <button onClick={() => customBackgroundInputRef.current?.click()} className="px-6 py-3 btn-dynamic text-[var(--text-on-primary)] flex items-center gap-2 shadow-lg">
                     <Upload size={20} /> Escolher Imagem
                   </button>
                   {state.app.customBackgroundByThemeId?.[state.app.theme.id] && (
@@ -248,9 +262,9 @@ const AboutMeView = ({ state, updateChild, handlePhoto }: any) => {
   return (
     <section className="space-y-12 animate-fade-in">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div><h2 className="font-hand text-7xl text-[var(--primary)]">Meu Diário Mágico</h2><p className="text-[var(--text-muted)] font-medium text-lg">Conte seus segredos para a Mimi conhecer você!</p></div>
+        <div><h2 className="font-hand text-7xl text-[var(--text-primary)]">Meu Diário Mágico</h2><p className="text-[var(--text-muted)] font-medium text-lg">Conte seus segredos para a Mimi conhecer você!</p></div>
         <div onClick={() => fileInputRef.current?.click()} className="w-32 h-32 md:w-40 md:h-40 bg-[var(--surface-elevated)] border-2 border-[var(--border-color)] shadow-2xl cursor-pointer overflow-hidden relative group shrink-0" style={{ borderRadius: 'var(--ui-radius)' }}>
-          {state.profileImage?.data ? <img src={state.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center text-[var(--primary)] opacity-40 gap-2"><Camera size={48} /><span className="text-[10px] font-black uppercase">Foto</span></div>}
+          {state.profileImage?.data ? <img src={state.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-primary)] gap-2"><Camera size={48} /><span className="text-[10px] font-black uppercase">Foto</span></div>}
           <input type="file" ref={fileInputRef} onChange={handlePhoto} className="hidden" accept="image/*" />
         </div>
       </header>
@@ -374,8 +388,8 @@ const MagicSection = ({ icon: Icon, title, color, children }: any) => (
   <div className="mimi-card p-10 space-y-8 relative overflow-hidden group">
     <div className="absolute top-0 right-0 p-6 opacity-20"><Icon size={120} style={{ color }} /></div>
     <div className="flex items-center gap-4 relative z-10">
-      <div className="p-4 rounded-3xl text-white shadow-lg" style={{ backgroundColor: color }}><Icon size={24} /></div>
-      <h3 className="font-hand text-4xl" style={{ color }}>{title}</h3>
+      <div className="p-4 rounded-3xl text-[var(--text-on-primary)] shadow-lg" style={{ backgroundColor: color }}><Icon size={24} /></div>
+      <h3 className="font-hand text-4xl text-[var(--text-primary)]">{title}</h3>
     </div>
     <div className="relative z-10">{children}</div>
   </div>
@@ -387,19 +401,20 @@ const SidebarTab = ({ active, onClick, icon: Icon, label, isAdmin }: any) => (
     className={`flex flex-col items-center justify-center gap-2 w-16 h-16 md:w-20 md:h-20 transition-all relative group
       ${active 
         ? (isAdmin ? 'bg-slate-900 text-white shadow-xl scale-105' : 'btn-dynamic text-[var(--text-on-primary)] scale-110 shadow-lg') 
-        : (isAdmin ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-600' : 'bg-[var(--surface-elevated)]/30 text-[var(--text-muted)] hover:opacity-100 hover:bg-[var(--surface-elevated)] border-[var(--ui-border-width)] border-transparent')
+        : (isAdmin ? 'text-slate-400 hover:bg-slate-100 hover:text-slate-600' : 'bg-[var(--surface-elevated)]/30 text-[var(--text-primary)] hover:opacity-100 hover:bg-[var(--surface-elevated)] border-[var(--ui-border-width)] border-transparent')
       }`}
     style={{ 
       borderRadius: 'var(--ui-component-radius)',
       borderWidth: 'var(--ui-border-width)',
-      borderColor: active ? 'var(--border-color)' : 'transparent'
+      borderColor: active ? 'var(--border-color)' : 'transparent',
+      color: active ? 'var(--text-on-primary)' : 'var(--text-primary)'
     }}
   >
     <Icon size={24} className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:rotate-6'}`} />
-    <span className={`text-[8px] md:text-[9px] font-black uppercase text-center tracking-tight ${active ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
+    <span className={`text-[8px] md:text-[9px] font-black uppercase text-center tracking-tight ${active ? 'opacity-100' : 'opacity-80'}`}>{label}</span>
     
     {active && !isAdmin && (
-      <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/50 rounded-full hidden md:block" />
+      <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--primary)] rounded-full hidden md:block" />
     )}
   </button>
 );

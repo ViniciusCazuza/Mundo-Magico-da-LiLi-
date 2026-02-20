@@ -48,3 +48,8 @@ Antes de escrever código, determine o runtime pela natureza do problema:
 5. **EOD Workflow:** Commit conciso com dedicatória afetuosa para Alice como PAI.
 6. **Preservação de Integridade Afetiva (CRÍTICO):** Todos os campos do "Meu Diário Mágico" (`AboutMeView` e interface `ChildProfile`) são considerados dados de missão crítica. É terminantemente PROIBIDO deletar, simplificar ou omitir qualquer campo destas seções durante refatorações ou correções de bugs, a menos que solicitado explicitamente pelo usuário. A totalidade da Inteligência Afetiva da Alice deve ser preservada em cada entrega.
 7. **Studio Cursor Persistence:** No Ateliê de Desenho (`MagicCanvasTool`), o cursor de "garra" deve persistir por toda a área do módulo (incluindo painéis flutuantes, dock e ferramentas) enquanto uma ferramenta de desenho estiver ativa. A detecção de presença do mouse deve ser feita via container raiz para evitar que o cursor resete ao passar sobre elementos da UI. Um cleanup no `useEffect` deve garantir que o cursor retorne ao estado padrão (patinha) ao desmontar o módulo.
+8. **Elite Morphisms & Hacker Mode (APEX v2.0):** 
+   - Novos temas Elite (Glass, Neubrutalism, Fluidmorphism, Luminous, Skeuomorphism) devem seguir rigorosamente as definições de tokens em `core/config.ts`.
+   - O modo Hacker (`binary-night`) exige o uso de `MatrixRain`, `HackerOverlay`, `HackerSimulator` e `StrategicHackGif` para imersão total nos módulos de Chat e Studio.
+   - Efeitos de "glitch" e descriptografia de texto (`DecryptText`) são obrigatórios para mensagens da IA no modo Hacker.
+   - Ambientes ambientais (bubbles, sparkles, neon pulses) devem ser injetados no `AppShell` baseados no ID do tema ativo para garantir coesão visual sistêmica.

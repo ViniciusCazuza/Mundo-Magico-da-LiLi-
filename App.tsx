@@ -20,9 +20,10 @@ import { StudioModule } from "./modules/studio/index";
 import { LibraryModule } from "./modules/library/index";
 import { AgendaModule } from "./modules/agenda/Agenda";
 import { LoginScreen } from "./modules/login/index";
-import { MatrixRain, HackerOverlay } from "./core/components/MatrixRain";
 import { ParentProfileModule } from "./modules/parent-profile/index";
 import { ThemeRegistry } from "./core/theme/ThemeRegistry";
+import { AmbientThemeEffect } from "./core/components/effects/AmbientThemeEffect";
+import { LoadingEngine, useLoading } from "./core/components/effects/LoadingEngine";
 
 // Perfil Imports for AppShell
 import { PerfilState } from './modules/perfil/types';
@@ -64,13 +65,21 @@ interface AppShellProps {
 
 const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppShellProps) => {
     const [section, setSection] = useState<AppSection>("chat");
-    const [theme, setTheme] = useState<AppTheme>(() => safeJsonParse(STORAGE_KEYS.THEME, THEMES[0]));
+    const [theme, setTheme] = useState<AppTheme>(() => {
+        const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+        if (saved) {
+            const parsed = safeJsonParse(STORAGE_KEYS.THEME, THEMES[0]);
+            const resolved = ThemeRegistry.resolveTheme(parsed.id);
+            return resolved.success ? resolved.data : THEMES[0];
+        }
+        return THEMES[0];
+    });
     const [currentProfile, setCurrentProfile] = useState<AliceProfile>(profile);
     const [usageLogs, setUsageLogs] = useState<UsageLog[]>(() => safeJsonParse(STORAGE_KEYS.USAGE, []));
     const [reports, setReports] = useState<ParentReport[]>(() => safeJsonParse(STORAGE_KEYS.REPORTS, []));
     const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => safeJsonParse(STORAGE_KEYS.CALENDAR, []));
     const [perfilState, setPerfilState] = useState<PerfilState>(() => perfilStorage.getInitialState()); 
-    const [currentBreakpoint, setCurrentBreakpoint] = useState<BreakpointKey>('lg'); 
+    const [currentBreakpoint, setCurrentBreakpoint] = useState<any>('lg'); 
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false); 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -89,16 +98,20 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
         });
         const unsubReports = mimiEvents.on(MIMI_EVENT_TYPES.REPORT_CREATED, (updated) => setReports(updated));
 
-        return () => { unsubUpdate(); unsubLegacy(); unsubReports(); };
+        // CRÍTICO: Escuta mudanças globais de tema (Sync para conta dos pais)
+        const unsubTheme = mimiEvents.on(MIMI_EVENT_TYPES.THEME_CHANGED, (newTheme) => {
+            setTheme(newTheme);
+        });
+
+        return () => { unsubUpdate(); unsubLegacy(); unsubReports(); unsubTheme(); };
     }, [currentProfile.id, isAdmin]);
 
     useEffect(() => {
-        const role = currentProfile.role || 'child';
-        const themeResult = ThemeRegistry.resolveTheme(theme.id, role);
+        const themeResult = ThemeRegistry.resolveTheme(theme.id);
         if (themeResult.success) {
             ThemeRegistry.applyTokens(themeResult.data);
         } else {
-            const defaultTheme = ThemeRegistry.getAvailableThemes('child')[0];
+            const defaultTheme = ThemeRegistry.getAvailableThemes()[0];
             ThemeRegistry.applyTokens(defaultTheme);
         }
     }, [theme, currentProfile.role]);
@@ -113,25 +126,22 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
                 backgroundRepeat: 'no-repeat'
             }}
         >
+            <LoadingEngine themeId={theme.id} />
+
             {!isAdmin && (
                 <div className="fixed inset-0 pointer-events-none opacity-40 z-0 animate-aurora" style={{ backgroundImage: 'var(--pattern-bg)', backgroundSize: '400% 400%' }}></div>
             )}
 
-            {theme.id === 'binary-night' && (
-                <>
-                    <MatrixRain />
-                    <HackerOverlay />
-                </>
-            )}
+            <AmbientThemeEffect themeId={theme.id} />
 
             <nav className={`h-24 shrink-0 border-b-[var(--ui-border-width)] border-[var(--border-color)] px-10 flex items-center justify-between z-50 shadow-sm backdrop-blur-3xl transition-all bg-[var(--surface)]/95`}>
                 <div className="flex items-center gap-5 cursor-pointer group" onClick={() => setSection("chat")}>
                     <div className={`w-14 h-14 flex items-center justify-center text-white shadow-lg transition-all group-hover:scale-110 group-hover:rotate-3 animate-breathing bg-[var(--primary)]`}
                          style={{ borderRadius: 'var(--ui-component-radius)', boxShadow: '0 0 20px var(--primary)' }}>
-                        <GatinhaLogo className={`w-full h-full p-1 ${logoFillColorClass}`} />
+                        <GatinhaLogo className="w-full h-full p-1" style={{ fill: 'var(--text-on-primary)' }} />
                     </div>
                     <div className="flex flex-col">
-                        <span className={`font-hand text-5xl font-black leading-none -mb-1 text-[var(--primary)]`}>Mimi</span>
+                        <span className={`font-hand text-5xl font-black leading-none -mb-1`} style={{ color: 'var(--text-primary)' }}>Mimi</span>
                         <span className={`text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-muted)]`}>
                             {isAdmin ? 'Reino dos Pais' : `Mundo da ${currentProfile.nickname}`}
                         </span>
@@ -153,8 +163,8 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
 
                 <div className="flex items-center gap-5">
                     <div onClick={() => setSection('profile')} className="flex items-center gap-3 px-4 py-2 transition-all cursor-pointer group">
-                        <div className={`w-10 h-10 flex items-center justify-center font-black text-[var(--primary)] text-lg shadow-inner overflow-hidden relative border-2 border-[var(--border-color)] group-hover:scale-105 transition-all
-                             ${isAdmin ? 'bg-white' : 'bg-[var(--surface-elevated)] shadow-lg'}`}
+                        <div className={`w-10 h-10 flex items-center justify-center font-black text-indigo-950 text-lg shadow-inner overflow-hidden relative border-2 border-[var(--border-color)] group-hover:scale-105 transition-all
+                             ${isAdmin ? 'bg-white' : 'bg-[var(--primary)] shadow-lg'}`}
                              style={{ borderRadius: 'var(--ui-component-radius)', boxShadow: 'var(--ui-shadow)' }}>
                             {currentProfile.profileImage?.data ? <img key={currentProfile.profileImage.updatedAt} src={currentProfile.profileImage.data} className="w-full h-full object-cover" /> : <span>{currentProfile.nickname[0]}</span>}
                         </div>
@@ -213,6 +223,8 @@ const ProfileGate = () => {
     const [session, setSession] = useState<EcosystemSession>(() => IdentityManager.getSession());
     const [profiles, setProfiles] = useState<AliceProfile[]>(() => IdentityManager.getProfiles());
     const [targetProfileId, setTargetProfileId] = useState<string | null>(null);
+    const { showLoading, hideLoading } = useLoading();
+    
     const [pinInput, setPinInput] = useState("");
     const [isBooting, setIsBooting] = useState(true);
     const [isRestoringSession, setIsRestoringSession] = useState(true);
@@ -238,7 +250,14 @@ const ProfileGate = () => {
         setProfiles(IdentityManager.getProfiles());
         setSession(IdentityManager.getSession());
         setIsRestoringSession(false);
-        const timer = setTimeout(() => setIsBooting(false), 2500);
+        
+        // Ativa o Loading Engine no boot inicial
+        showLoading();
+        const timer = setTimeout(() => {
+            setIsBooting(false);
+            hideLoading();
+        }, 3000);
+
         const unsubSwitch = mimiEvents.on(ECOSYSTEM_EVENTS.PROFILE_SWITCHED, () => setSession(IdentityManager.getSession()));
         const unsubLogout = mimiEvents.on(ECOSYSTEM_EVENTS.SESSION_ENDED, () => {
             setSession(IdentityManager.getSession());
@@ -257,14 +276,24 @@ const ProfileGate = () => {
     }, [session.isAuthenticated, session.activeProfileId, globalSessionConv, startNewSession]);
 
     const handleProfileSelect = (p: AliceProfile) => {
-        if (p.role === 'child') IdentityManager.login(p.id);
+        if (p.role === 'child') {
+            showLoading();
+            setTimeout(() => {
+                IdentityManager.login(p.id);
+                hideLoading();
+            }, 1500);
+        }
         else { setTargetProfileId(p.id); setPinInput(""); }
     };
 
     const handlePinSubmit = (pin: string) => {
         if (targetProfileId && IdentityManager.login(targetProfileId, pin).success) {
-            setTargetProfileId(null);
-            setPinError(false);
+            showLoading();
+            setTimeout(() => {
+                setTargetProfileId(null);
+                setPinError(false);
+                hideLoading();
+            }, 1500);
         } else {
             setPinInput("");
             setPinError(true);
@@ -272,18 +301,7 @@ const ProfileGate = () => {
     };
 
     if (isBooting) {
-        return (
-            <div className="fixed inset-0 bg-[#F8F9FF] flex flex-col items-center justify-center z-[10000] overflow-hidden">
-                <div className="absolute inset-0 opacity-20 animate-aurora pointer-events-none" style={{ backgroundImage: 'linear-gradient(45deg, #818CF8, #F472B6, #FB923C)', backgroundSize: '400% 400%' }}></div>
-                <div className="relative z-10 text-center flex flex-col items-center">
-                    <div className="w-24 h-24 bg-indigo-500 rounded-[2.5rem] flex items-center justify-center text-white shadow-[0_20px_40px_rgba(129,140,248,0.4)] mb-8 animate-breathing">
-                        <GatinhaLogo className="w-full h-full p-2 fill-white" />
-                    </div>
-                    <h1 className="font-hand text-5xl text-indigo-900 mb-2">Preparando a mágica...</h1>
-                    <p className="text-indigo-400 font-bold tracking-[0.3em] uppercase text-[10px] animate-pulse">Sussurrando segredos para a Mimi</p>
-                </div>
-            </div>
-        );
+        return <div className="fixed inset-0 bg-white z-[10000]"></div>; // O LoadingEngine cuidará da visual real
     }
 
     if (isRestoringSession) return null;

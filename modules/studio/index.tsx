@@ -8,6 +8,7 @@ import { LaboratoryTool } from "./tools/LaboratoryTool";
 import { MagicCanvasTool } from "./tools/MagicCanvasTool";
 import { useTheme } from "../../core/theme/useTheme";
 import { HackerOverlay } from "../../core/components/MatrixRain";
+import { HackerSimulator } from "../../core/components/HackerSimulator";
 
 type StudioToolId = 'laboratory' | 'canvas';
 
@@ -176,7 +177,17 @@ export const StudioModule: React.FC = () => {
       </header>
 
       <div className="flex-1 flex flex-col min-h-0 relative">
-        {isHackerMode && <div className="absolute inset-0 z-50 pointer-events-none opacity-50"><HackerOverlay /></div>}
+        {isHackerMode && (
+          <div className="absolute inset-0 z-50 pointer-events-none opacity-60 bg-black/40">
+            <HackerOverlay />
+            <HackerSimulator />
+            <div className="absolute top-0 left-0 w-full h-1 bg-green-500/20 animate-pulse"></div>
+            <div className="absolute bottom-4 right-4 z-50 p-2 border border-green-500/30 bg-black/80 font-mono text-[9px] text-green-500 animate-pulse">
+               {`[ATELIER_OVERRIDE_ACTIVE: ${activeToolId || 'STANDBY'}]`}
+            </div>
+            <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+          </div>
+        )}
         {activeTool && <activeTool.component />}
       </div>
     </div>

@@ -10,44 +10,53 @@ import { Result } from "../utils/result";
 export class ThemeRegistry {
   
   /**
-   * Obtém a lista de temas permitida para o papel do usuário.
-   * Axioma 2: Estados ilegais irrepresentáveis.
+   * Obtém a lista de temas completa para todos os perfis.
+   * A restrição foi removida para permitir personalização total em todas as contas.
    */
-  static getAvailableThemes(role: UserRole): AppTheme[] {
-    const parentThemeIds = [
-      "binary-night",
-      "neumorphic-tactile",
-      "glass-elite",
-      "neubrutalist-raw",
-      "skeuomorph-command",
-      "luminous-interface",
-      "maternal-sweetness",
-      "maternal-strength",
-      "neuro-gentle-embrace"
-    ];
-
-    if (role === 'parent_admin') {
-      return THEMES; // Pais acessam todos os temas (Elite + Kids)
-    }
-    
-    // Crianças acessam apenas os temas infantis (não contidos na lista de elite)
-    return THEMES.filter(t => !parentThemeIds.includes(t.id));
+  static getAvailableThemes(): AppTheme[] {
+    return THEMES;
   }
 
   /**
    * Resolve o tema atual garantindo fallback seguro (Padrão de Ouro).
    */
-  static resolveTheme(themeId: string, role: UserRole): Result<AppTheme> {
-    const available = this.getAvailableThemes(role);
-    const theme = available.find(t => t.id === themeId);
+  static resolveTheme(themeId: string): Result<AppTheme> {
+    const theme = THEMES.find(t => t.id === themeId);
 
     if (theme) {
       return Result.ok(theme);
     }
 
     // Fallback silencioso mas reportado
-    console.warn(`[ThemeRegistry] Tema '${themeId}' não disponível para o papel '${role}'. Retornando padrão.`);
-    return Result.ok(available[0] || THEMES[0]);
+    console.warn(`[ThemeRegistry] Tema '${themeId}' não encontrado. Retornando padrão.`);
+    return Result.ok(THEMES[0]);
+  }
+
+  /**
+   * Calcula o filtro de drop-shadow ideal para o cursor baseado no tema.
+   */
+  static getCursorFilter(theme: AppTheme): string {
+    const tokens = theme.tokens;
+    if (theme.id === 'neumorphic-tactile') {
+      return `drop-shadow(0 0 12px rgba(163, 177, 198, 0.8)) drop-shadow(0 0 4px rgba(0, 0, 0, 0.1))`;
+    }
+    if (theme.id === 'binary-night' || theme.id === 'luminous-interface') {
+      return `drop-shadow(0 0 12px ${tokens.colors.primary}) drop-shadow(0 0 25px ${tokens.colors.primary})`;
+    }
+    return `drop-shadow(0 0 8px ${tokens.colors.primary}) drop-shadow(0 0 18px ${tokens.colors.accent})`;
+  }
+
+  /**
+   * Calcula a cor base do cursor para o tema.
+   */
+  static getCursorColor(theme: AppTheme): string {
+    if (theme.id === 'binary-night' || theme.id === 'luminous-interface') {
+      return theme.tokens.colors.primary;
+    }
+    if (theme.id === 'neumorphic-tactile') {
+      return '#A3B1C6';
+    }
+    return '#FFEDF2'; // Base original
   }
 
   /**
@@ -72,6 +81,10 @@ export class ThemeRegistry {
     root.style.setProperty('--border-color', tokens.colors?.border || 'rgba(0,0,0,0.1)');
     root.style.setProperty('--text-on-primary', tokens.colors?.textOnPrimary || '#FFFFFF');
     root.style.setProperty('--text-on-accent', tokens.colors?.textOnAccent || '#FFFFFF');
+    
+    // --- Cursor FX (APEX v2.2) ---
+    root.style.setProperty('--ui-cursor-filter', this.getCursorFilter(theme));
+    root.style.setProperty('--ui-cursor-color', this.getCursorColor(theme));
     
     // --- Estrutura Dinâmica (Anatomia de Componentes) ---
     root.style.setProperty('--ui-radius', tokens.layout?.borderRadius || '24px');

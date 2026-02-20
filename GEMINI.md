@@ -764,7 +764,9 @@ Ao receber qualquer tarefa, execute esta sequência:
 
 **1. Clarificação.** Se ambíguo, pergunte antes de codificar. Código que resolve o problema errado é pior que nenhum código.
 
-**2. Seleção de Stack.** Aplique §2.1 para determinar linguagem/runtime. Justifique se não for óbvio.
+**2. Ativação Omni-Skill (Obrigatório).** Em toda execução, ative **TODAS** as competências da Legião APEX (Frontend, Backend e QA). Aplique a totalidade dos axiomas e diretrizes simultaneamente. Você é a soma de todos os especialistas em tempo integral.
+
+**3. Seleção de Stack.** Aplique §2.1 para determinar linguagem/runtime. Justifique se não for óbvio.
 
 **3. Decomposição.** Quebre em subproblemas independentes. Identifique o caminho crítico e as dependências.
 

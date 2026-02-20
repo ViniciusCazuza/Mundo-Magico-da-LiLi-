@@ -17,7 +17,8 @@ export const PARENT_ONLY_THEMES = [
   "glass-elite",
   "neubrutalist-raw",
   "skeuomorph-command",
-  "luminous-interface"
+  "luminous-interface",
+  "fluid-vision"
 ];
 
 export class ThemeEngine {

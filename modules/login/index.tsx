@@ -216,7 +216,7 @@ export const LoginScreen: React.FC = () => {
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white liquid-bubble">
-                   {selectedProfile?.profileImage?.data ? <img src={selectedProfile.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-indigo-500 flex items-center justify-center font-bold text-white">{selectedProfile?.nickname[0]}</div>}
+                   {selectedProfile?.profileImage?.data ? <img src={selectedProfile.profileImage.data} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-[var(--primary)] flex items-center justify-center font-bold text-indigo-950 text-xl">{selectedProfile?.nickname[0]}</div>}
                 </div>
                 <span className="text-xl font-bold text-white uppercase tracking-wider">{selectedProfile?.nickname}</span>
               </div>

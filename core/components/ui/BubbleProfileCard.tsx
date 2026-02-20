@@ -94,7 +94,7 @@ export const BubbleProfileCard: React.FC<BubbleProfileCardProps> = ({ profile, o
         {profile.profileImage?.data ? (
           <img src={profile.profileImage.data} className="w-full h-full object-cover opacity-90 transition-opacity" />
         ) : (
-          <span className="text-5xl font-black text-white/60 drop-shadow-sm">{profile.nickname[0]}</span>
+          <span className="text-5xl font-black text-indigo-950 drop-shadow-sm">{profile.nickname[0]}</span>
         )}
 
         {profile.role === 'parent_admin' && (

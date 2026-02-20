@@ -7,6 +7,7 @@ import { mimiAudio } from "./audio/audio.manager";
 import { executeAlertProtocol } from "./protocols/alert.protocol";
 import { useTheme } from "../../core/theme/useTheme";
 import { MatrixRain, HackerOverlay } from "../../core/components/MatrixRain";
+import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 
 // APEX v2.0 Components
 import { TactileButton } from "../../core/components/ui/TactileButton";
@@ -132,12 +133,19 @@ export const ChatModule = ({
   };
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden ${isHackerMode ? 'font-mono text-green-500' : ''}`}>
+    <div className={`flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden isolate ${isHackerMode ? 'font-mono text-green-500' : ''}`}>
       {/* Background Effects (Local scope for module specific effects) */}
       {isHackerMode && (
-        <div className="absolute top-4 right-4 z-50 animate-pulse text-green-500/30">
-          <Radio size={24} />
-        </div>
+        <>
+          <HackerSimulator />
+          <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+          <div className="absolute top-4 right-4 z-[100] animate-pulse text-green-500/30 flex items-center gap-2 pointer-events-none">
+            <div className="bg-black border border-green-500/30 p-2 font-mono text-[9px] text-green-500">
+                [PACKET_INTERCEPT: ON] [SECURE_TUNNEL: ACTIVE]
+            </div>
+            <Radio size={20} />
+          </div>
+        </>
       )}
 
       {/* Magic Dust Effect (Particle System) */}
@@ -150,21 +158,31 @@ export const ChatModule = ({
         </div>
       )}
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-10 no-scrollbar pb-40">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-10 no-scrollbar pb-40 relative z-10">
         {conversation.messages.map((m, i) => (
           <div key={`${m.timestamp}-${i}`} className={`flex items-end gap-4 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}>
             {/* Avatar Tactile */}
             <div className={`
               w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden transition-all
               ${isHackerMode 
-                ? 'binary-night-glitch border-2 border-green-500/50 bg-black' 
+                ? 'border-2 border-green-500/50 bg-black shadow-[0_0_15px_rgba(0,255,65,0.2)]' 
                 : 'tactile-base bg-[var(--surface-elevated)] shadow-md' 
               }
             `}>
               {m.role === 'user' ? (
                 profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <User size={22} className="text-white" />
               ) : (
-                isHackerMode ? <Cpu size={22} className="animate-pulse" /> : <Cat size={22} className="text-white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                <Cat 
+                  size={22} 
+                  strokeWidth={3} 
+                  className={`
+                    transition-all duration-300
+                    ${isHackerMode 
+                      ? 'text-black drop-shadow-[0_0_3px_#00FF41]' 
+                      : 'text-[var(--text-primary)] drop-shadow-[0_0_3px_rgba(255,255,255,1)]'
+                    }
+                  `} 
+                />
               )}
             </div>
 
@@ -202,8 +220,17 @@ export const ChatModule = ({
         {/* Thinking State */}
         {internalProcessing && (
           <div className="flex justify-start items-center gap-4 animate-fade-in">
-             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center animate-mimi-float ${isHackerMode ? 'bg-black border border-green-500 text-green-500' : 'tactile-base bg-[var(--surface)] ai-thinking shadow-md'}`}>
-                {isHackerMode ? <Terminal size={22} /> : <Cat size={22} className="text-white" strokeWidth={2.5} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />}
+             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center animate-mimi-float ${isHackerMode ? 'bg-black border border-green-500/50 shadow-[0_0_10px_rgba(0,255,65,0.2)]' : 'tactile-base bg-[var(--surface)] ai-thinking shadow-md'}`}>
+                <Cat 
+                  size={22} 
+                  strokeWidth={3}
+                  className={`
+                    ${isHackerMode 
+                      ? 'text-black drop-shadow-[0_0_3px_#00FF41]' 
+                      : 'text-[var(--primary)] drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]'
+                    }
+                  `}
+                />
              </div>
              <div className="flex flex-col gap-2">
                 <MagicCard glass className="px-6 py-4 rounded-[2.5rem]">
@@ -222,7 +249,7 @@ export const ChatModule = ({
       </div>
 
       {!isReadOnly && (
-        <div className={`absolute bottom-0 left-0 right-0 p-8 shrink-0 ${isHackerMode ? 'bg-black/90' : 'bg-transparent'}`}>
+        <div className={`absolute bottom-0 left-0 right-0 p-8 shrink-0 z-[100] ${isHackerMode ? 'bg-black/90' : 'bg-transparent'}`}>
           <div className={`
             max-w-4xl mx-auto flex items-center gap-4 p-3 transition-all
             ${isHackerMode 
@@ -233,15 +260,14 @@ export const ChatModule = ({
           style={{ borderRadius: isHackerMode ? '0' : 'var(--ui-radius)' }}
           >
             {/* Input Actions with Tactile Buttons */}
-            <TactileButton 
-              variant={isHackerMode ? "ghost" : "secondary"} 
-              size="icon" 
-              className={isHackerMode ? 'text-green-500' : ''}
-              onClick={() => setShowEmojis(!showEmojis)}
-            >
-              {isHackerMode ? <Terminal size={28} /> : <Smile size={28} className="text-white" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))' }} />}
-            </TactileButton>
-
+                        <TactileButton
+                          variant={isHackerMode ? "ghost" : "secondary"}
+                          size="icon"
+                          className={isHackerMode ? 'text-green-500' : ''}
+                          onClick={() => setShowEmojis(!showEmojis)}
+                        >
+                          {isHackerMode ? <Terminal size={28} /> : <Smile size={28} className="text-[var(--text-on-accent)]" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.1))' }} />}
+                        </TactileButton>
             <input 
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
@@ -253,26 +279,24 @@ export const ChatModule = ({
               disabled={internalProcessing}
             />
             
-            <div className="flex gap-2">
-              <TactileButton 
-                variant="secondary" 
-                size="icon"
-                disabled={internalProcessing}
-              >
-                <Mic size={24} className="text-white" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))' }} />
-              </TactileButton>
-
-              <TactileButton 
-                variant={isHackerMode ? 'secondary' : 'primary'}
-                size="icon"
-                onClick={() => handleMimiFlow(inputValue)}
-                disabled={internalProcessing || !inputValue.trim()}
-                isThinking={internalProcessing}
-                className={isHackerMode ? 'bg-green-600 text-black border border-green-400' : 'shadow-lg'}
-              >
-                <Send size={24} />
-              </TactileButton>
-            </div>
+                        <div className="flex gap-2">
+                          <TactileButton
+                            variant="secondary"
+                            size="icon"
+                            disabled={internalProcessing}
+                          >
+                            <Mic size={24} className="text-[var(--text-on-accent)]" style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.1))' }} />
+                          </TactileButton>
+                            <TactileButton
+                              variant={isHackerMode ? 'secondary' : 'primary'}
+                              size="icon"
+                              onClick={() => handleMimiFlow(inputValue)}
+                              disabled={internalProcessing || !inputValue.trim()}
+                              isThinking={internalProcessing}
+                              className={isHackerMode ? 'bg-green-600 text-black border border-green-400' : 'shadow-lg'}
+                            >
+                              <Send size={24} className={isHackerMode ? 'text-black' : 'text-[var(--text-on-primary)]'} />
+                            </TactileButton>            </div>
           </div>
         </div>
       )}

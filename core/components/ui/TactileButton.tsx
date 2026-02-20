@@ -26,7 +26,7 @@ export const TactileButton: React.FC<TactileButtonProps> = ({
   const baseStyles = "relative inline-flex items-center justify-center font-bold tracking-wide transition-all outline-none select-none btn-dynamic";
   
   const variants = {
-    primary: "bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-white hover:brightness-110",
+    primary: "bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] text-[var(--text-on-primary)] hover:brightness-110",
     secondary: "bg-[var(--surface-elevated)] text-[var(--text-primary)] border-[var(--border-color)]/20",
     danger: "bg-red-500 text-white shadow-lg",
     ghost: "bg-transparent shadow-none hover:bg-black/5"

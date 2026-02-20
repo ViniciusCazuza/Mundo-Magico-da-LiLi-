@@ -145,7 +145,7 @@ export interface LibraryItem {
 export type AppSection = "chat" | "studio" | "library" | "profile" | "parent-zone" | "calendar";
 
 export interface AppTheme {
-  id: 'siamese' | 'persian' | 'bengal' | 'british' | 'ragdoll' | 'binary-night' | 'luminous-interface' | 'maternal-sweetness' | 'maternal-strength' | 'neuro-gentle-embrace';
+  id: 'siamese' | 'persian' | 'bengal' | 'british' | 'ragdoll' | 'binary-night' | 'glass-elite' | 'neubrutalist-raw' | 'fluid-vision' | 'luminous-interface' | 'skeuomorph-command' | 'neumorphic-tactile' | 'maternal-sweetness' | 'maternal-strength' | 'neuro-gentle-embrace';
   name: string;
   breed: string;
   description: string;
@@ -168,7 +168,7 @@ export interface AppTheme {
       shadowElevated: string;
     };
     layout: {
-      cardStyle: 'glass' | 'pillow' | 'flat' | 'outlined' | 'minimal';
+      cardStyle: 'glass' | 'pillow' | 'flat' | 'outlined' | 'minimal' | 'neubrutalist' | 'neumorphic' | 'fluid';
       spacingScale: ResponsiveValue<'compact' | 'comfortable' | 'spacious'>;
       borderRadius: string;
       borderWidth: string;

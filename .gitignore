@@ -50,3 +50,6 @@ appsettings.*.json
 .env
 .env.local
 .env.*.local
+
+# Apex Architecture Skills
+SKILLS/

@@ -4,46 +4,59 @@ import { AppTheme } from '../types';
 import { THEMES, STORAGE_KEYS } from '../config';
 import { IdentityManager } from '../ecosystem/IdentityManager';
 
+import { mimiEvents, MIMI_EVENT_TYPES } from '../events';
+
 /**
- * Hook de Consumo do ThemeRegistry (APEX v2.0)
- * Provê estado reativo e métodos de troca de tema com validação de domínio.
+ * Hook de Consumo do ThemeRegistry (APEX v2.1)
+ * Provê estado reativo e métodos de troca de tema com persistência por perfil.
  */
 export const useTheme = () => {
   const profile = IdentityManager.getActiveProfile();
-  const role = profile?.role || 'child';
+  const profileId = profile?.id || 'default';
+  const themeStorageKey = `${STORAGE_KEYS.THEME}_${profileId}`;
 
-  // Inicializa com o tema atual do DOM ou o primeiro tema disponível
+  // Inicializa com o tema do perfil ou o primeiro tema disponível
   const [currentTheme, setCurrentTheme] = useState<AppTheme>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+    const saved = localStorage.getItem(themeStorageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        const resolved = ThemeRegistry.resolveTheme(parsed.id, role);
-        return resolved.success ? resolved.data : ThemeRegistry.getAvailableThemes(role)[0];
+        const id = typeof parsed === 'string' ? parsed : parsed.id;
+        const resolved = ThemeRegistry.resolveTheme(id);
+        return resolved.success ? resolved.data : ThemeRegistry.getAvailableThemes()[0];
       } catch (e) {
-        return ThemeRegistry.getAvailableThemes(role)[0];
+        return ThemeRegistry.getAvailableThemes()[0];
       }
     }
-    return ThemeRegistry.getAvailableThemes(role)[0];
+    return ThemeRegistry.getAvailableThemes()[0];
   });
 
   const changeTheme = useCallback((themeId: string) => {
-    const result = ThemeRegistry.resolveTheme(themeId, role);
+    const result = ThemeRegistry.resolveTheme(themeId);
     
     if (result.success) {
-      setCurrentTheme(result.data);
-      // O App.tsx cuidará da aplicação dos tokens via useEffect, 
-      // mas podemos aplicar aqui também para feedback imediato se necessário.
-      return { success: true, theme: result.data };
+      const newTheme = result.data;
+      setCurrentTheme(newTheme);
+      
+      // Persistência Isolada por Perfil
+      localStorage.setItem(themeStorageKey, JSON.stringify(newTheme));
+      
+      // SincronizaÃ§Ã£o Global
+      mimiEvents.dispatch(MIMI_EVENT_TYPES.THEME_CHANGED, newTheme);
+      
+      // AplicaÃ§Ã£o Imediata
+      ThemeRegistry.applyTokens(newTheme);
+
+      return { success: true, theme: newTheme };
     }
     
-    return { success: false, error: result.error };
-  }, [role]);
+    return { success: false, error: 'Tema nÃ£o encontrado.' };
+  }, [themeStorageKey]);
 
   return {
     theme: currentTheme,
     themeId: currentTheme.id,
     changeTheme,
-    availableThemes: ThemeRegistry.getAvailableThemes(role)
+    availableThemes: ThemeRegistry.getAvailableThemes()
   };
 };

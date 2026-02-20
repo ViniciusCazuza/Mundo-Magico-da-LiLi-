@@ -66,20 +66,20 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
     <div className="w-full max-w-lg mimi-card overflow-hidden flex flex-col h-full animate-fade-in border-[var(--border-color)]">
       <header className="p-8 flex items-center justify-between bg-[var(--surface-elevated)]">
         <div>
-          <h2 className="font-hand text-4xl text-[var(--primary)] capitalize">{monthName}</h2>
+          <h2 className="font-hand text-4xl text-[var(--text-primary)] capitalize">{monthName}</h2>
           <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">{year}</p>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={onPrevMonth} 
-            className="p-3 btn-dynamic text-white shadow-sm border border-[var(--border-color)] transition-all active:scale-95"
+            className="p-3 btn-dynamic text-[var(--text-on-primary)] shadow-sm border border-[var(--border-color)]/20 transition-all active:scale-95"
             style={{ borderRadius: 'var(--ui-component-radius)' }}
           >
             <ChevronLeft size={24}/>
           </button>
           <button 
             onClick={onNextMonth} 
-            className="p-3 btn-dynamic text-white shadow-sm border border-[var(--border-color)] transition-all active:scale-95"
+            className="p-3 btn-dynamic text-[var(--text-on-primary)] shadow-sm border border-[var(--border-color)]/20 transition-all active:scale-95"
             style={{ borderRadius: 'var(--ui-component-radius)' }}
           >
             <ChevronRight size={24}/>
@@ -112,8 +112,8 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
                   <div className="flex gap-0.5">
                     {day.hasActivities && (
                       <div className={`w-1.5 h-1.5 rounded-full transition-all 
-                        ${day.priority === 'HIGH' ? 'bg-red-500 animate-pulse' : 
-                          day.priority === 'MEDIUM' ? 'bg-[var(--primary)]' : 'bg-emerald-500'}
+                        ${day.priority === 'HIGH' ? 'bg-amber-500 animate-pulse' : 
+                          day.priority === 'MEDIUM' ? 'bg-indigo-500' : 'bg-emerald-500'}
                       `} />
                     )}
                     {day.hasEvents && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-40"></div>}

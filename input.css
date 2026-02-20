@@ -89,6 +89,8 @@ input, textarea {
 }
 
 /* Foco Neubrutalista */
+[data-theme-style="neubrutalist"] input:focus,
+[data-theme-style="neubrutalist"] textarea:focus,
 [data-theme-style="outlined"] input:focus,
 [data-theme-style="outlined"] textarea:focus {
   transform: translate(2px, 2px) !important;
@@ -96,12 +98,13 @@ input, textarea {
   border-color: #000000 !important;
 }
 
-/* Foco Neumorfista */
+/* Foco Neumorfista / Esqueuomórfico */
 [data-theme-style="pillow"] input:focus,
-[data-theme-style="pillow"] textarea:focus {
-  box-shadow: inset 8px 8px 16px rgba(163, 177, 198, 0.6), 
-              inset -8px -8px 16px rgba(255, 255, 255, 0.9) !important;
-  transform: scale(0.995);
+[data-theme-style="pillow"] textarea:focus,
+[data-theme-style="neumorphic"] input:focus,
+[data-theme-style="neumorphic"] textarea:focus {
+  box-shadow: var(--ui-shadow-elevated) !important;
+  transform: scale(0.99);
 }
 
 /* Foco Glassmorphism */
@@ -110,6 +113,147 @@ input, textarea {
   background: rgba(255, 255, 255, 0.2) !important;
   border-color: var(--primary) !important;
   box-shadow: 0 0 20px var(--primary) !important;
+}
+
+/* Foco Fluidmorphism */
+[data-theme-style="fluid"] input:focus,
+[data-theme-style="fluid"] textarea:focus {
+  background: white !important;
+  color: black !important;
+  box-shadow: 0 0 30px var(--primary) !important;
+  border-radius: 9999px !important;
+}
+
+/* --- ESTILOS DE CARD ESPECÍFICOS (APEX v2.0) --- */
+
+/* Neumorfismo Pro (Tactile) */
+[data-theme-style="pillow"] .mimi-card,
+[data-theme-style="neumorphic"] .mimi-card {
+  background: var(--surface) !important;
+  box-shadow: 12px 12px 24px rgba(163, 177, 198, 0.4), 
+              -12px -12px 24px rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme-style="pillow"] .btn-dynamic,
+[data-theme-style="neumorphic"] .btn-dynamic {
+  background: var(--surface) !important;
+  box-shadow: 6px 6px 12px rgba(163, 177, 198, 0.4), 
+              -6px -6px 12px rgba(255, 255, 255, 0.8) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme-style="pillow"] .btn-dynamic:active,
+[data-theme-style="neumorphic"] .btn-dynamic:active {
+  box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.5), 
+              inset -4px -4px 8px rgba(255, 255, 255, 0.8) !important;
+  transform: scale(0.98);
+}
+
+/* Glassmorphism Elite */
+[data-theme-style="glass"] .mimi-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(var(--ui-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ui-blur)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme-style="glass"] .btn-dynamic {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Neubrutalismo Raw */
+[data-theme-style="neubrutalist"] .mimi-card {
+  background: white !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 12px 12px 0px #000000 !important;
+  border-radius: 0px !important;
+}
+
+[data-theme-style="neubrutalist"] .btn-dynamic {
+  background: var(--primary) !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  border-radius: 0px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+[data-theme-style="neubrutalist"] .btn-dynamic:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #000000 !important;
+}
+
+/* Fluidmorphism */
+[data-theme-style="fluid"] .mimi-card {
+  border-radius: 48px !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme-style="fluid"] .btn-dynamic {
+  border-radius: 9999px !important;
+  background: linear-gradient(135deg, var(--primary), var(--accent)) !important;
+  border: none !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* --- HACKER THEME ENHANCEMENTS --- */
+
+@keyframes matrix-scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+[data-theme-id="binary-night"] .mimi-card {
+  background: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid var(--primary) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme-id="binary-night"] .mimi-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes binary-glitch {
+  0% { transform: translate(0); filter: hue-rotate(0deg); }
+  25% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+  50% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
+  75% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
+  100% { transform: translate(0); filter: hue-rotate(360deg); }
+}
+
+.binary-night-glitch, [data-glitch="true"] h1, [data-glitch="true"] h2, [data-glitch="true"] h3, [data-glitch="true"] .glitch-icon svg, [data-glitch="true"] .glitch-ready {
+  animation: binary-glitch 0.3s infinite linear;
+  text-shadow: 2.5px 0 #ff00e6, -2.5px 0 #00bfff;
+}
+
+/* Excluir Glitch de áreas de conteúdo denso e funcional */
+[data-theme-id="binary-night"] .chat-module,
+[data-theme-id="binary-night"] .chat-module svg,
+[data-theme-id="binary-night"] .chat-module p,
+[data-theme-id="binary-night"] .chat-module span,
+[data-theme-id="binary-night"] input,
+[data-theme-id="binary-night"] textarea,
+[data-theme-id="binary-night"] img,
+[data-theme-id="binary-night"] .profile-photo {
+  animation: none !important;
+  text-shadow: none !important;
 }
 
 /* --- ISOLAMENTO DO LOGIN (PORTAL FIXO) --- */

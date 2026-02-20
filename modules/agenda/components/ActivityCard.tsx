@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Bell, BellOff, Trash2, Pencil, AlertCircle, Cat, PawPrint } from "lucide-react";
 import { AgendaActivity } from "../types";
@@ -14,33 +13,33 @@ interface ActivityCardProps {
 export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onToggleAlert, onDelete, onEdit }) => {
   const getPriorityData = () => {
     switch(activity.priority) {
-      case 'HIGH': 
-        return { 
-          color: '#EF4444', 
-          label: 'Alerta Bigodinho!', 
-          icon: AlertCircle, 
-          className: 'animate-mimi-pulse-red border-red-500 bg-red-50/10' 
+      case 'HIGH':
+        return {
+          color: '#F59E0B',
+          label: 'Alerta Bigodinho!',
+          icon: AlertCircle,
+          className: 'border-amber-500 bg-amber-50/10'
         };
-      case 'MEDIUM': 
-        return { 
-          color: 'var(--primary)', 
-          label: 'Miado Importante', 
-          icon: Cat, 
-          className: 'border-[var(--primary)] bg-[var(--primary)]/5' 
+      case 'MEDIUM':
+        return {
+          color: '#6366F1',
+          label: 'Miado Importante',
+          icon: Cat,
+          className: 'border-indigo-500 bg-indigo-50/10'
         };
-      case 'LOW': 
-        return { 
-          color: '#10B981', 
-          label: 'Patinha Tranquila', 
-          icon: PawPrint, 
-          className: 'border-emerald-400 bg-emerald-50/10' 
+      case 'LOW':
+        return {
+          color: '#10B981',
+          label: 'Patinha Tranquila',
+          icon: PawPrint,
+          className: 'border-emerald-400 bg-emerald-50/10'
         };
-      default: 
-        return { 
-          color: 'var(--border-color)', 
-          label: 'Rotina', 
-          icon: Cat, 
-          className: 'border-[var(--border-color)]' 
+      default:
+        return {
+          color: 'var(--text-muted)',
+          label: 'Rotina',
+          icon: Cat,
+          className: 'border-slate-200'
         };
     }
   };
@@ -48,17 +47,17 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onToggleAl
   const priorityData = getPriorityData();
 
   return (
-    <div 
+    <div
       className={`flex items-center gap-4 bg-[var(--surface)] p-5 border-2 shadow-sm group hover:shadow-md transition-all animate-fade-in ${priorityData.className}`}
       style={{ borderLeftWidth: '8px', borderLeftColor: priorityData.color, borderRadius: 'var(--ui-radius)' }}
     >
       <div className="w-14 font-black text-[var(--text-primary)] text-sm opacity-80">
         {activity.time}
       </div>
-      
+
       <div className="w-12 h-12 flex items-center justify-center shadow-inner shrink-0"
            style={{ borderRadius: 'var(--ui-component-radius)', backgroundColor: 'var(--surface-elevated)' }}>
-        <ActivityIcon name={activity.icon || activity.name} size={24} />
+        <ActivityIcon name={activity.icon || activity.name} size={24} className="text-[var(--text-primary)]" />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -66,9 +65,9 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onToggleAl
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-[var(--text-primary)] text-base truncate">{activity.name}</h4>
           </div>
-          
+
           {/* Badge de Prioridade Temática */}
-          <div 
+          <div
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full w-fit"
             style={{ backgroundColor: `${priorityData.color}20` }}
           >
@@ -81,23 +80,23 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onToggleAl
       </div>
 
       <div className="flex items-center gap-1 md:gap-2 shrink-0">
-        <button 
+        <button
           onClick={() => onToggleAlert(activity.id)}
           aria-label="Alternar alerta"
-          className={`p-3 transition-all ${activity.alertEnabled ? 'bg-[var(--primary)] text-white shadow-lg' : 'bg-[var(--surface-elevated)] text-[var(--text-muted)] hover:bg-black/5'}`}
+          className={`p-3 transition-all ${activity.alertEnabled ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
           style={{ borderRadius: 'var(--ui-component-radius)' }}
         >
           {activity.alertEnabled ? <Bell size={18} /> : <BellOff size={18} />}
         </button>
-        <button 
+        <button
           onClick={() => onEdit(activity)}
           aria-label="Editar atividade"
-          className="p-3 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all opacity-0 group-hover:opacity-100"
+          className="p-3 text-[var(--text-muted)] hover:text-indigo-500 transition-all opacity-0 group-hover:opacity-100"
           style={{ borderRadius: 'var(--ui-component-radius)' }}
         >
           <Pencil size={18} />
         </button>
-        <button 
+        <button
           onClick={() => onDelete(activity.id)}
           aria-label="Excluir atividade"
           className="p-3 text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
