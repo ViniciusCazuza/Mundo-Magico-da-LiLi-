@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Palette, Wand2, Sparkles, Download, RefreshCw, 
   Image as ImageIcon, Cat, AlertCircle, Wand, Type, Image as ImageLucide, ChevronRight,
-  Layout, Heart, BookOpen, Eraser
+  Layout, Heart, BookOpen, Eraser, Save, Layers
 } from "lucide-react";
 import { IdentityManager } from "../../../core/ecosystem/IdentityManager";
 import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../../core/events";
@@ -11,6 +11,8 @@ import { LibraryItem } from "../../../core/types";
 import { STORAGE_KEYS } from "../../../core/config";
 import { safeJsonParse } from "../../../core/utils";
 import { TactileButton } from "../../../core/components/ui/TactileButton";
+import { useStudio } from "../hooks/useStudio";
+import { DrawingLayerType } from "../types";
 
 const MIMI_PRAISES = [
   "Uau, que imaginação linda!",
@@ -40,8 +42,13 @@ const INSPIRING_PHRASES = [
 
 const SESSION_STORAGE_KEY = "alice_studio_session_v2";
 
-export const LaboratoryTool: React.FC = () => {
+export interface LaboratoryToolProps {
+  onUseInCanvas?: (imageUrl: string) => void;
+}
+
+export const LaboratoryTool: React.FC<LaboratoryToolProps> = ({ onUseInCanvas }) => {
   const profile = IdentityManager.getActiveProfile();
+  const { addLayer, createNewDrawing, saveLayer } = useStudio(profile?.id);
   
   const savedSession = useMemo(() => {
     const data = localStorage.getItem(SESSION_STORAGE_KEY);
@@ -55,6 +62,7 @@ export const LaboratoryTool: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [mimiMessage, setMimiMessage] = useState<string>("");
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
+  const [isSavingToGallery, setIsSavingToGallery] = useState(false);
 
   const [artStyle, setArtStyle] = useState(savedSession?.artStyle || 'watercolor');
   const [fantasyLevel, setFantasyLevel] = useState(savedSession?.fantasyLevel || 3);
@@ -108,6 +116,47 @@ export const LaboratoryTool: React.FC = () => {
     }
   };
 
+  const handleSaveToGallery = async () => {
+    if (!lastCreation?.imageUrl) return;
+    setIsSavingToGallery(true);
+    
+    try {
+      // Cria um novo desenho se não existir, ou adiciona como camada
+      const result = await addLayer(
+        DrawingLayerType.Raster,
+        `Lab: ${prompt.slice(0, 30)}...`,
+        lastCreation.imageUrl
+      );
+      
+      if (result.success) {
+        setShowSavedFeedback(true);
+        setMimiMessage("Salvo na galeria! Miau!");
+        setTimeout(() => setShowSavedFeedback(false), 2000);
+      } else {
+        setError("Erro ao salvar na galeria");
+      }
+    } catch (err: any) {
+      setError(err.message || "Erro ao salvar");
+    } finally {
+      setIsSavingToGallery(false);
+    }
+  };
+
+  const handleUseInCanvas = async () => {
+    if (!lastCreation?.imageUrl) return;
+    
+    if (onUseInCanvas) {
+      onUseInCanvas(lastCreation.imageUrl);
+    } else {
+      // Fallback: adiciona como nova camada via useStudio
+      await addLayer(
+        DrawingLayerType.Raster,
+        `IA: ${prompt.slice(0, 30)}...`,
+        lastCreation.imageUrl
+      );
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
       {/* TOOLBAR SECUNDÁRIA */}
@@ -143,7 +192,27 @@ export const LaboratoryTool: React.FC = () => {
                      <p className="font-hand text-2xl text-[var(--primary)] animate-pulse">A mágica começou...</p>
                   </div>
                 ) : lastCreation ? (
-                  <img src={lastCreation.imageUrl} className="w-full h-full object-cover animate-fade-in" alt="Arte" />
+                  <div className="relative w-full h-full">
+                    <img src={lastCreation.imageUrl} className="w-full h-full object-cover animate-fade-in" alt="Arte" />
+                    {/* Botões de ação sobre a imagem */}
+                    <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={handleSaveToGallery}
+                        disabled={isSavingToGallery}
+                        className="p-2 bg-[var(--primary)] text-black rounded-full shadow-lg hover:scale-110 transition-transform"
+                        title="Salvar na Galeria"
+                      >
+                        <Save size={18} />
+                      </button>
+                      <button 
+                        onClick={handleUseInCanvas}
+                        className="p-2 bg-[var(--surface-elevated)] text-[var(--text-primary)] rounded-full shadow-lg hover:scale-110 transition-transform"
+                        title="Usar no Canvas"
+                      >
+                        <Layers size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center opacity-30 flex flex-col items-center gap-4">
                     <ImageIcon size={48} className="text-[var(--primary)]" />
@@ -197,7 +266,7 @@ export const LaboratoryTool: React.FC = () => {
           </div>
 
           {/* BOTÃO DE AÇÃO */}
-          <div className="p-6 bg-[var(--surface)] border-t border-[var(--border-color)]">
+          <div className="p-6 bg-[var(--surface)] border-t border-[var(--border-color)] space-y-3">
              <button 
                onClick={handleGenerate} 
                disabled={isGenerating || !prompt.trim()} 
@@ -206,6 +275,26 @@ export const LaboratoryTool: React.FC = () => {
                 {isGenerating ? <RefreshCw className="animate-spin" size={20} /> : <Sparkles size={20} />}
                 <span className="ml-2">{isGenerating ? 'Pintando...' : 'Pintar Agora! ✨'}</span>
              </button>
+             
+             {lastCreation && (
+               <div className="flex gap-3">
+                 <button 
+                   onClick={handleSaveToGallery}
+                   disabled={isSavingToGallery}
+                   className="flex-1 py-3 bg-[var(--surface-elevated)] text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider rounded-[var(--ui-radius)] hover:bg-[var(--primary)] hover:text-black transition-colors flex items-center justify-center gap-2"
+                 >
+                   <Save size={16} />
+                   {isSavingToGallery ? 'Salvando...' : 'Salvar na Galeria'}
+                 </button>
+                 <button 
+                   onClick={handleUseInCanvas}
+                   className="flex-1 py-3 bg-[var(--surface-elevated)] text-[var(--text-primary)] font-bold text-xs uppercase tracking-wider rounded-[var(--ui-radius)] hover:bg-[var(--primary)] hover:text-black transition-colors flex items-center justify-center gap-2"
+                 >
+                   <Layers size={16} />
+                   Usar no Canvas
+                 </button>
+               </div>
+             )}
           </div>
         </aside>
       </main>

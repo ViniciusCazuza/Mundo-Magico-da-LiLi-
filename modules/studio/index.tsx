@@ -6,18 +6,19 @@ import {
 import { IdentityManager } from "../../core/ecosystem/IdentityManager";
 import { LaboratoryTool } from "./tools/LaboratoryTool";
 import { MagicCanvasTool } from "./tools/MagicCanvasTool";
+import { StudioGallery } from "./ui/StudioGallery";
 import { useTheme } from "../../core/theme/useTheme";
 import { HackerOverlay } from "../../core/components/MatrixRain";
-import { HackerSimulator } from "../../core/components/HackerSimulator";
+import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 import { DecryptText } from "../../core/components/effects/DecryptText";
 
-type StudioToolId = 'laboratory' | 'canvas';
+type StudioToolId = 'laboratory' | 'canvas' | 'gallery';
 
 interface StudioToolDefinition {
   id: StudioToolId;
   name: string;
   icon: any;
-  component: React.FC;
+  component: React.FC<{ onToolSwitch?: (id: StudioToolId) => void }>;
   description: string;
   color: string;
   illustration: string;
@@ -44,6 +45,16 @@ const ATELIER_TOOLS: StudioToolDefinition[] = [
     color: '#F472B6',
     illustration: '🎨',
     bannerGradient: 'from-pink-400 to-pink-600'
+  },
+  {
+    id: 'gallery',
+    name: 'Galeria de Sonhos',
+    icon: LayoutGrid,
+    component: StudioGallery,
+    description: 'Veja todos os seus desenhos guardados com carinho.',
+    color: '#34D399',
+    illustration: '🖼️',
+    bannerGradient: 'from-emerald-400 to-emerald-600'
   }
 ];
 
@@ -190,7 +201,7 @@ export const StudioModule: React.FC = () => {
             <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
           </div>
         )}
-        {activeTool && <activeTool.component />}
+        {activeTool && <activeTool.component onToolSwitch={(id) => setActiveToolId(id)} />}
       </div>
     </div>
   );

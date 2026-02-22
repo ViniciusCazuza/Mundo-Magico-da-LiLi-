@@ -1,24 +1,50 @@
 /**
- * Studio API - Cliente para Backend Seguro
+ * Studio API - Cliente para Backend .NET
  * 
- * IMPORTANTE: Este módulo foi refatorado para usar o backend .NET
- * como gateway seguro para a API do Google Gemini.
+ * Integração Frontend-Backend para o Studio Mágico.
+ * Segue o padrão APEX Nível 15 com Result Pattern e tipos rigorosos.
  * 
- * A chave da API NUNCA é exposta no cliente - ela permanece
- * segura no servidor backend.
+ * Endpoints cobertos:
+ * - Operações CRUD de Desenhos
+ * - Operações de Camadas (Add, Update, Remove)
+ * - Geração de Imagens via IA
+ * - Inspiração Criativa
  */
 
-import { UserProfile } from "../../../core/types";
+import {
+  Drawing,
+  Layer,
+  LayerBase,
+  RasterLayer,
+  VectorLayer,
+  SkeletalLayer,
+  PagedList,
+  CreateDrawingRequest,
+  UpdateDrawingRequest,
+  AddLayerRequest,
+  UpdateLayerRequest,
+  Result,
+  DrawingLayerType,
+} from '../types';
+import { UserProfile } from '../../../core/types';
 
-// URL base do backend .NET
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+// ============================================================================
+// Configuração
+// ============================================================================
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5180';
+const API_TIMEOUT = 30000;
+
+// ============================================================================
+// Configurações do Studio (Geração de Imagens)
+// ============================================================================
 
 export interface StudioOptions {
   artStyle: string;
   fantasyLevel: number;
   detailLevel: string;
   illustrationType: string; // 'scene' | 'character'
-  framing?: 'full' | 'portrait'; // Corpo Inteiro | Perfil/Busto
+  framing?: 'full' | 'portrait';
   orientation: 'horizontal' | 'vertical' | 'square';
   textConfig: {
     enabled: boolean;
@@ -34,6 +60,347 @@ export interface StudioImageResponse {
 
 // Cache local para evitar gerações idênticas na mesma sessão
 let lastGeneration: StudioImageResponse | null = null;
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Helper para fazer requisições HTTP com timeout e tratamento de erros.
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeout: number = API_TIMEOUT
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('REQUEST_TIMEOUT');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Converte uma resposta HTTP em Result<T> tipado.
+ */
+function handleResponse<T>(response: Response, data: T): Result<T> {
+  if (!response.ok) {
+    return {
+      success: false,
+      error: `HTTP ${response.status}: ${response.statusText}`,
+      errorCode: `HTTP_${response.status}`,
+    };
+  }
+  return { success: true, data };
+}
+
+/**
+ * Converte um erro em Result<T> tipado.
+ */
+function handleError<T>(error: unknown): Result<T> {
+  console.error('[Studio API] Error Details:', {
+    error,
+    message: error instanceof Error ? error.message : 'Unknown',
+    stack: error instanceof Error ? error.stack : 'No stack'
+  });
+  
+  if (error instanceof Error) {
+    if (error.message === 'REQUEST_TIMEOUT') {
+      return {
+        success: false,
+        error: 'A Mimi demorou muito para responder. Verifique sua internet!',
+        errorCode: 'REQUEST_TIMEOUT',
+      };
+    }
+
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      return {
+        success: false,
+        error: 'A Mimi está descansando (Servidor Offline). Tente novamente em alguns instantes.',
+        errorCode: 'BACKEND_OFFLINE',
+      };
+    }
+
+    return {
+      success: false,
+      error: `Erro Mágico: ${error.message}`,
+      errorCode: 'NETWORK_ERROR',
+    };
+  }
+  
+  return {
+    success: false,
+    error: 'Um mistério aconteceu no Ateliê. Tente novamente!',
+    errorCode: 'UNKNOWN_ERROR',
+  };
+}
+
+// ============================================================================
+// API de Desenhos (CRUD)
+// ============================================================================
+
+/**
+ * Cria um novo desenho.
+ */
+export async function createDrawing(
+  request: CreateDrawingRequest
+): Promise<Result<Drawing>> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/studio/drawings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+/**
+ * Recupera um desenho por ID.
+ */
+export async function getDrawingById(id: string): Promise<Result<Drawing>> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/studio/drawings/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+/**
+ * Atualiza um desenho existente.
+ */
+export async function updateDrawing(
+  id: string,
+  request: UpdateDrawingRequest
+): Promise<Result<Drawing>> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/studio/drawings/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+/**
+ * Exclui um desenho por ID.
+ */
+export async function deleteDrawing(id: string): Promise<Result<boolean>> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/studio/drawings/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return handleResponse<boolean>(response, false);
+    }
+
+    return { success: true, data: true };
+  } catch (error) {
+    return handleError<boolean>(error);
+  }
+}
+
+/**
+ * Lista desenhos de um autor com paginação.
+ */
+export async function getDrawingsByAuthor(
+  authorId: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<Result<PagedList<Drawing>>> {
+  try {
+    const queryParams = new URLSearchParams({
+      authorId,
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
+
+    const response = await fetchWithTimeout(
+      `${API_BASE_URL}/api/studio/drawings?${queryParams}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return handleResponse<PagedList<Drawing>>(response, {} as PagedList<Drawing>);
+    }
+
+    const data: PagedList<Drawing> = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<PagedList<Drawing>>(error);
+  }
+}
+
+// ============================================================================
+// API de Camadas
+// ============================================================================
+
+/**
+ * Converte uma camada do frontend para o formato de requisição da API.
+ */
+function layerToRequest(layer: Layer): AddLayerRequest {
+  return {
+    layerType: layer.type,
+    name: layer.name,
+    content: JSON.stringify(layer),
+  };
+}
+
+/**
+ * Adiciona uma camada a um desenho existente.
+ */
+export async function addLayerToDrawing(
+  drawingId: string,
+  layer: Layer
+): Promise<Result<Drawing>> {
+  try {
+    const request = layerToRequest(layer);
+    
+    const response = await fetchWithTimeout(
+      `${API_BASE_URL}/api/studio/drawings/${drawingId}/layers`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      }
+    );
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+/**
+ * Atualiza uma camada existente em um desenho.
+ */
+export async function updateLayer(
+  drawingId: string,
+  layerId: string,
+  layer: Layer
+): Promise<Result<Drawing>> {
+  try {
+    const request: UpdateLayerRequest = {
+      layerId,
+      name: layer.name,
+      content: JSON.stringify(layer),
+    };
+
+    const response = await fetchWithTimeout(
+      `${API_BASE_URL}/api/studio/drawings/${drawingId}/layers/${layerId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      }
+    );
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+/**
+ * Remove uma camada de um desenho.
+ */
+export async function removeLayerFromDrawing(
+  drawingId: string,
+  layerId: string
+): Promise<Result<Drawing>> {
+  try {
+    const response = await fetchWithTimeout(
+      `${API_BASE_URL}/api/studio/drawings/${drawingId}/layers/${layerId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return handleResponse<Drawing>(response, {} as Drawing);
+    }
+
+    const data: Drawing = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError<Drawing>(error);
+  }
+}
+
+// ============================================================================
+// API de IA (Geração de Imagens)
+// ============================================================================
 
 /**
  * Gera uma inspiração criativa baseada no perfil e nas configurações do laboratório.
@@ -74,6 +441,9 @@ export const generateInspirationPrompt = async (
   }
 };
 
+/**
+ * Gera uma imagem mágica usando IA.
+ */
 export const generateMagicImage = async (
   prompt: string,
   profile: UserProfile,
@@ -141,3 +511,75 @@ export const generateMagicImage = async (
     throw error;
   }
 };
+
+// ============================================================================
+// Factory Functions para Criar Camadas
+// ============================================================================
+
+/**
+ * Cria uma nova camada Raster.
+ */
+export function createRasterLayer(
+  id: string,
+  name: string,
+  zIndex: number,
+  dataUrl: string
+): RasterLayer {
+  return {
+    id,
+    name,
+    type: DrawingLayerType.Raster,
+    zIndex,
+    opacity: 1.0,
+    isVisible: true,
+    blendMode: 'normal',
+    dataUrl,
+  };
+}
+
+/**
+ * Cria uma nova camada Vector.
+ */
+export function createVectorLayer(
+  id: string,
+  name: string,
+  zIndex: number,
+  path: VectorLayer['path'] = []
+): VectorLayer {
+  return {
+    id,
+    name,
+    type: DrawingLayerType.Vector,
+    zIndex,
+    opacity: 1.0,
+    isVisible: true,
+    blendMode: 'normal',
+    path,
+    strokeColor: '#000000',
+    strokeWidth: 2,
+    fillColor: 'transparent',
+    isClosed: false,
+  };
+}
+
+/**
+ * Cria uma nova camada Skeletal.
+ */
+export function createSkeletalLayer(
+  id: string,
+  name: string,
+  zIndex: number,
+  bones: SkeletalLayer['bones'] = []
+): SkeletalLayer {
+  return {
+    id,
+    name,
+    type: DrawingLayerType.Skeletal,
+    zIndex,
+    opacity: 1.0,
+    isVisible: true,
+    blendMode: 'normal',
+    bones,
+    ikChains: [],
+  };
+}
