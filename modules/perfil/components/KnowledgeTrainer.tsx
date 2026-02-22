@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, BrainCircuit, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 import { MimiCustomTrainingEntry } from "../types";
 
 interface KnowledgeTrainerProps {
@@ -44,14 +45,14 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
             onChange={e => setInput(e.target.value)}
             placeholder={isParentView ? "Adicione um fato ou instrução..." : "Ex: Eu amo morangos!"}
             onKeyDown={e => e.key === 'Enter' && add()}
-            className="flex-1 p-5 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-indigo-400 outline-none text-sm font-medium transition-all shadow-inner"
+            className="flex-1 p-5 bg-[var(--surface-elevated)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-transparent focus:border-[var(--primary)] outline-none text-sm font-medium transition-all shadow-inner"
           />
           <button 
             onClick={add}
             disabled={!input.trim()}
-            className="w-16 h-16 bg-indigo-600 text-white rounded-[1.75rem] flex items-center justify-center hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:scale-100"
+            className="w-16 h-16 btn-dynamic text-white flex items-center justify-center shadow-lg disabled:opacity-50 disabled:scale-100"
           >
-            <Plus size={24} />
+            <MagicIcon icon={Plus} size={24} color="white" />
           </button>
         </div>
 
@@ -59,7 +60,7 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
         {showSuccess && (
           <div className="absolute -top-12 left-0 right-0 flex justify-center animate-fade-in">
              <div className="bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl">
-                <CheckCircle2 size={14} /> Treinamento Salvo com Sucesso! ✨
+                <MagicIcon icon={CheckCircle2} size={14} color="white" /> Treinamento Salvo! ✨
              </div>
           </div>
         )}
@@ -70,31 +71,31 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
         {knowledge.map((item) => (
           <div 
             key={item.id} 
-            className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-[1.5rem] group animate-fade-in shadow-sm hover:shadow-md transition-all border-l-4 border-l-indigo-500"
+            className="flex items-center justify-between p-5 bg-[var(--surface)] border-[var(--ui-border-width)] border-[var(--border-color)] rounded-[var(--ui-radius)] group animate-fade-in shadow-sm hover:shadow-md transition-all border-l-[var(--ui-border-width)] border-l-[var(--primary)]"
           >
             <div className="flex-1 flex flex-col gap-1 pr-4">
               <div className="flex items-center gap-2">
-                <Sparkles size={12} className="text-indigo-400" />
-                <span className="text-sm font-bold text-slate-700">{item.content}</span>
+                <MagicIcon icon={Sparkles} size={12} color="var(--primary)" />
+                <span className="text-sm font-bold text-[var(--text-primary)]">{item.content}</span>
               </div>
-              <div className="flex items-center gap-2 text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-                <Clock size={10} />
+              <div className="flex items-center gap-2 text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">
+                <MagicIcon icon={Clock} size={10} color="var(--text-muted)" />
                 {new Date(item.createdAt).toLocaleDateString('pt-BR')} às {new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
             <button 
               onClick={() => remove(item.id)}
-              className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+              className="p-3 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
               title="Excluir Treinamento"
             >
-              <Trash2 size={18} />
+              <MagicIcon icon={Trash2} size={18} color="currentColor" />
             </button>
           </div>
         ))}
 
         {knowledge.length === 0 && (
           <div className="text-center py-10 opacity-30 flex flex-col items-center gap-3">
-             <BrainCircuit size={48} className="text-slate-400" />
+             <MagicIcon icon={BrainCircuit} size={48} color="var(--text-muted)" />
              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mimi ainda não tem treinamentos personalizados.</p>
           </div>
         )}

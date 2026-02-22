@@ -1,4 +1,6 @@
 
+import { BreakpointKey, ResponsiveValue } from './types'; // Import new types
+
 export const safeJsonParse = (key: string, fallback: any) => {
   try {
     const val = localStorage.getItem(key);
@@ -16,9 +18,9 @@ export const safeLocalStorageSetItem = (key: string, value: string) => {
     localStorage.setItem(key, value);
   } catch (e) {
     if (e instanceof DOMException && (
-      e.code === 22 || 
-      e.code === 1014 || 
-      e.name === 'QuotaExceededError' || 
+      e.code === 22 ||
+      e.code === 1014 ||
+      e.name === 'QuotaExceededError' ||
       e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
     ) {
       console.warn(`[Storage] Limite excedido para a chave: ${key}. Tentando liberar espaço...`);
@@ -106,7 +108,7 @@ export async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampl
 }
 
 const getLuminance = (hex: string) => {
-  const rgb = hex.replace(/^#/, '').match(/.{2}/g)?.map(x => parseInt(x, 16) / 255) || [0,0,0];
+  const rgb = hex.replace(/^#/, '').match(/.{2}/g)?.map(x => parseInt(x, 16) / 255) || [0, 0, 0];
   const [r, g, b] = rgb.map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
@@ -122,3 +124,98 @@ export const getContrastRatio = (color1: string, color2: string) => {
 export const isColorSafe = (foreground: string, background: string) => {
   return getContrastRatio(foreground, background) >= 4.5;
 };
+
+// --- Responsive Utilities ---
+const BREAKPOINTS: Record<BreakpointKey, number> = {
+  base: 0,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+};
+
+export const getCurrentBreakpoint = (): BreakpointKey => {
+  if (typeof window === 'undefined') return 'base'; // Default for SSR
+  const width = window.innerWidth;
+  if (width >= BREAKPOINTS['2xl']) return '2xl';
+  if (width >= BREAKPOINTS.xl) return 'xl';
+  if (width >= BREAKPOINTS.lg) return 'lg';
+  if (width >= BREAKPOINTS.md) return 'md';
+  if (width >= BREAKPOINTS.sm) return 'sm';
+  return 'base';
+};
+
+export const getResponsiveValue = <T>(
+  value: ResponsiveValue<T> | undefined,
+  currentBreakpoint: BreakpointKey
+): T | undefined => {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'object' || value === null) {
+    return value as T;
+  }
+
+  // Find the largest breakpoint key that is less than or equal to the current breakpoint
+  const breakpointKeys = Object.keys(BREAKPOINTS) as BreakpointKey[];
+  const sortedBreakpoints = breakpointKeys.sort((a, b) => BREAKPOINTS[a] - BREAKPOINTS[b]);
+
+  let bestMatch: T | undefined = undefined;
+  let currentBreakpointIndex = sortedBreakpoints.indexOf(currentBreakpoint);
+
+  // Iterate backwards from the current breakpoint to 'base'
+  for (let i = currentBreakpointIndex; i >= 0; i--) {
+    const bp = sortedBreakpoints[i];
+    if (value[bp] !== undefined) {
+      bestMatch = value[bp];
+      break;
+    }
+  }
+
+  // Fallback to 'base' if no specific breakpoint is found for a smaller one
+  if (bestMatch === undefined && value.base !== undefined) {
+    bestMatch = value.base;
+  }
+
+  // If no base value, just return the first available responsive value
+  if (bestMatch === undefined && Object.values(value).length > 0) {
+    return Object.values(value)[0] as T;
+  }
+
+  return bestMatch;
+};
+
+/**
+ * --- APEX v2.0 Core Utilities ---
+ */
+
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+/**
+ * Merges Tailwind CSS classes with clsx and tailwind-merge.
+ * This is an essential utility for clean component-based styling.
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * Result Pattern Implementation (APEX v2.0 Axiom 4)
+ * Type-safe way to handle success and failure without exceptions for control flow.
+ */
+export type Result<T, E = Error> =
+  | { ok: true; value: T; error: null }
+  | { ok: false; value: null; error: E };
+
+export const ok = <T>(value: T): Result<T, never> => ({
+  ok: true,
+  value,
+  error: null
+});
+
+export const err = <E>(error: E): Result<null, E> => ({
+  ok: false,
+  value: null,
+  error
+});
+

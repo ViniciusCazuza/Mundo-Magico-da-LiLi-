@@ -2,6 +2,8 @@
 import React, { useMemo } from "react";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { AgendaActivity, AgendaModuleProps } from "../types";
+import { useTheme } from "../../../core/theme/useTheme";
+import { DecryptText } from "../../../core/components/effects/DecryptText";
 
 interface MonthlyViewProps {
   currentDate: Date;
@@ -24,6 +26,8 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
   reports,
   activities
 }) => {
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -66,12 +70,28 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
     <div className="w-full max-w-lg mimi-card overflow-hidden flex flex-col h-full animate-fade-in border-[var(--border-color)]">
       <header className="p-8 flex items-center justify-between bg-[var(--surface-elevated)]">
         <div>
-          <h2 className="font-hand text-4xl text-[var(--primary)] capitalize">{monthName}</h2>
-          <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">{year}</p>
+          <h2 className="font-hand text-4xl text-[var(--text-primary)] capitalize">
+            {isHackerMode ? <DecryptText text={monthName.toUpperCase()} /> : monthName}
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">
+            {isHackerMode ? <DecryptText text={year.toString()} /> : year}
+          </p>
         </div>
         <div className="flex gap-2">
-          <button onClick={onPrevMonth} className="p-3 bg-[var(--surface)] hover:bg-[var(--surface-elevated)] rounded-2xl transition-all text-[var(--primary)] shadow-sm border border-[var(--border-color)]"><ChevronLeft size={24}/></button>
-          <button onClick={onNextMonth} className="p-3 bg-[var(--surface)] hover:bg-[var(--surface-elevated)] rounded-2xl transition-all text-[var(--primary)] shadow-sm border border-[var(--border-color)]"><ChevronRight size={24}/></button>
+          <button 
+            onClick={onPrevMonth} 
+            className="p-3 btn-dynamic text-[var(--text-on-primary)] shadow-sm border border-[var(--border-color)]/20 transition-all active:scale-95"
+            style={{ borderRadius: 'var(--ui-component-radius)' }}
+          >
+            <ChevronLeft size={24}/>
+          </button>
+          <button 
+            onClick={onNextMonth} 
+            className="p-3 btn-dynamic text-[var(--text-on-primary)] shadow-sm border border-[var(--border-color)]/20 transition-all active:scale-95"
+            style={{ borderRadius: 'var(--ui-component-radius)' }}
+          >
+            <ChevronRight size={24}/>
+          </button>
         </div>
       </header>
 
@@ -87,10 +107,11 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
               {day ? (
                 <button 
                   onClick={() => onSelectDate(day.dateStr)}
-                  className={`w-full h-full rounded-[var(--radius-base)] border-2 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden
+                  className={`w-full h-full border-2 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden
                     ${selectedDate === day.dateStr ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-inner' : 'border-transparent bg-[var(--surface-elevated)] hover:bg-[var(--surface)] hover:border-[var(--primary)]'}
                     ${day.priority === 'HIGH' ? 'border-red-500/30' : ''}
                   `}
+                  style={{ borderRadius: 'var(--ui-radius)' }}
                 >
                   <span className={`text-base font-black ${selectedDate === day.dateStr ? 'text-[var(--primary)]' : 'text-[var(--text-muted)] group-hover:text-[var(--primary)]'}`}>
                     {day.day}
@@ -99,11 +120,11 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
                   <div className="flex gap-0.5">
                     {day.hasActivities && (
                       <div className={`w-1.5 h-1.5 rounded-full transition-all 
-                        ${day.priority === 'HIGH' ? 'bg-red-500 animate-pulse' : 
-                          day.priority === 'MEDIUM' ? 'bg-[var(--primary)]' : 'bg-emerald-500'}
+                        ${day.priority === 'HIGH' ? 'bg-amber-500 animate-pulse' : 
+                          day.priority === 'MEDIUM' ? 'bg-indigo-500' : 'bg-emerald-500'}
                       `} />
                     )}
-                    {day.hasEvents && <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>}
+                    {day.hasEvents && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-40"></div>}
                   </div>
 
                   {day.hasReport && (

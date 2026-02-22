@@ -1,0 +1,24 @@
+{
+  "gifs": {
+    "public/assets/loading/binary-night_gif/hacker_loading.gif": { "backgroundColor": "#000000" },
+    "public/assets/loading/siamese_gif/fundo_azul.gif": { "backgroundColor": "#E0F2FE" },
+    "public/assets/loading/siamese_gif/fundo_branco_1.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_2.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_3.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_4.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_5.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_6.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_branco_7.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/siamese_gif/fundo_laranja.gif": { "backgroundColor": "#FFF7ED" },
+    "public/assets/loading/siamese_gif/fundo_roxo.gif": { "backgroundColor": "#F5F3FF" },
+    "public/assets/loading/siamese_gif/fundo_salmão.gif": { "backgroundColor": "#FFEDD5" },
+    "public/assets/loading/siamese_gif/fundo_verde.gif": { "backgroundColor": "#DCFCE7" },
+    "public/assets/loading/persian_gif/fundo_azul_1.gif": { "backgroundColor": "#E0F2FE" },
+    "public/assets/loading/persian_gif/fundo_branco_1.gif": { "backgroundColor": "#FFFFFF" },
+    "public/assets/loading/persian_gif/fundo_rosa_1.gif": { "backgroundColor": "#FFB6C1" },
+    "public/assets/loading/persian_gif/fundo_verde_1.gif": { "backgroundColor": "#DCFCE7" },
+    "public/assets/loading/bengal_gif/fundo_laranja_1.gif": { "backgroundColor": "#FFF7ED" },
+    "public/assets/loading/bengal_gif/fundo_rosa_1.gif": { "backgroundColor": "#FFB6C1" },
+    "public/assets/loading/british_gif/fundo_branco_1.gif": { "backgroundColor": "#FFFFFF" }
+  }
+}

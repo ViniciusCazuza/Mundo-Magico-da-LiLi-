@@ -62,13 +62,14 @@ export const StudioPanel: React.FC<StudioPanelProps> = ({
         width: width,
         zIndex: isDragging ? 1000 : 50,
         borderColor: 'var(--border-color)',
+        borderWidth: 'var(--ui-border-width)',
+        borderRadius: 'var(--ui-radius)',
         backgroundColor: 'var(--surface)',
-        backdropFilter: 'blur(32px)',
-        transition: isDragging ? 'none' : 'top 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s ease'
+        transition: isDragging ? 'none' : 'top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}
       className={`
-        fixed rounded-[2.5rem] border shadow-2xl flex flex-col overflow-hidden touch-none
-        ${isDragging ? 'shadow-2xl scale-[1.03] opacity-90' : 'animate-fade-in'}
+        fixed mimi-card border shadow-2xl flex flex-col overflow-hidden touch-none
+        ${isDragging ? 'shadow-2xl scale-[1.03] opacity-90' : 'animate-impact'}
       `}
     >
       <div 
@@ -84,14 +85,14 @@ export const StudioPanel: React.FC<StudioPanelProps> = ({
         
         <button 
           onClick={() => onMinimize?.(id)}
-          className="p-2 hover:bg-white/30 rounded-2xl text-[var(--text-muted)] hover:text-[var(--primary)] transition-all active:scale-90"
+          className="p-2 hover:bg-black/10 rounded-2xl text-[var(--text-muted)] hover:text-[var(--primary)] transition-all active:scale-90"
         >
           <ChevronDown size={18}/>
         </button>
       </div>
 
       <div 
-        className="flex-1 overflow-y-auto no-scrollbar p-6"
+        className="flex-1 overflow-y-auto no-scrollbar px-3 py-6"
         style={{ maxHeight: dynamicMaxContentHeight }}
       >
         {children}

@@ -119,6 +119,16 @@
       animation: fadeIn 0.6s var(--ease-standard) forwards;
     }
 
+    @keyframes impact {
+      0% { transform: scale(1.03); }
+      50% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+
+    .animate-impact {
+      animation: impact 0.3s var(--ease-standard);
+    }
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
