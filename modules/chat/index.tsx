@@ -6,37 +6,14 @@ import { getAtomicMimiResponse } from "./services/mimi.api";
 import { mimiAudio } from "./audio/audio.manager";
 import { executeAlertProtocol } from "./protocols/alert.protocol";
 import { useTheme } from "../../core/theme/useTheme";
-import { MatrixRain, HackerOverlay } from "../../core/components/MatrixRain";
 import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 
 // APEX v2.0 Components
 import { TactileButton } from "../../core/components/ui/TactileButton";
 import { MagicCard } from "../../core/components/ui/MagicCard";
 import { MagicDust } from "../../core/components/effects/MagicDust";
-
-// Componente de Descriptografia Hacker (Protocolo APEX v2.0)
-const DecryptText = ({ text }: { text: string }) => {
-  const [displayText, setDisplayText] = useState("");
-  const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  useEffect(() => {
-    let iteration = 0;
-    const interval = setInterval(() => {
-      setDisplayText(prev => 
-        text.split("").map((char, index) => {
-          if (index < iteration) return text[index];
-          return chars[Math.floor(Math.random() * chars.length)];
-        }).join("")
-      );
-
-      if (iteration >= text.length) clearInterval(interval);
-      iteration += 1 / 3;
-    }, 30);
-    return () => clearInterval(interval);
-  }, [text]);
-
-  return <span className="font-mono tracking-tight">{displayText}</span>;
-};
+import { MagicIcon } from "../../core/components/ui/MagicIcon";
+import { DecryptText } from "../../core/components/effects/DecryptText";
 
 interface ChatModuleProps {
   conversation: Conversation;
@@ -134,16 +111,15 @@ export const ChatModule = ({
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden isolate ${isHackerMode ? 'font-mono text-green-500' : ''}`}>
-      {/* Background Effects (Local scope for module specific effects) */}
+      {/* Elementos de Interface Hacker (Top Overlay) */}
       {isHackerMode && (
         <>
           <HackerSimulator />
-          <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
           <div className="absolute top-4 right-4 z-[100] animate-pulse text-green-500/30 flex items-center gap-2 pointer-events-none">
             <div className="bg-black border border-green-500/30 p-2 font-mono text-[9px] text-green-500">
                 [PACKET_INTERCEPT: ON] [SECURE_TUNNEL: ACTIVE]
             </div>
-            <Radio size={20} />
+            <MagicIcon icon={Radio} size={20} color="currentColor" glow />
           </div>
         </>
       )}
@@ -154,10 +130,11 @@ export const ChatModule = ({
       {/* Decoração Flutuante (Kids Mode) */}
       {!isHackerMode && (
         <div className="absolute top-10 right-10 opacity-20 animate-mimi-float pointer-events-none">
-          <Sparkles size={60} className="md:size-80 text-[var(--accent)]" />
+          <MagicIcon icon={Sparkles} size={80} color="var(--accent)" glow />
         </div>
       )}
 
+      {/* Área de Mensagens */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 md:px-12 py-10 space-y-10 no-scrollbar pb-40 relative z-10">
         {conversation.messages.map((m, i) => (
           <div key={`${m.timestamp}-${i}`} className={`flex items-end gap-4 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}>
@@ -166,22 +143,19 @@ export const ChatModule = ({
               w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden transition-all
               ${isHackerMode 
                 ? 'border-2 border-green-500/50 bg-black shadow-[0_0_15px_rgba(0,255,65,0.2)]' 
-                : 'tactile-base bg-[var(--surface-elevated)] shadow-md' 
+                : 'tactile-base bg-[var(--primary)] shadow-lg' 
               }
             `}>
               {m.role === 'user' ? (
-                profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <User size={22} className="text-white" />
+                profile.profileImage?.data ? <img src={profile.profileImage.data} className="w-full h-full object-cover" alt="Perfil" /> : <MagicIcon icon={User} size={22} color="white" />
               ) : (
-                <Cat 
+                <MagicIcon 
+                  icon={Cat}
                   size={22} 
                   strokeWidth={3} 
-                  className={`
-                    transition-all duration-300
-                    ${isHackerMode 
-                      ? 'text-black drop-shadow-[0_0_3px_#00FF41]' 
-                      : 'text-[var(--text-primary)] drop-shadow-[0_0_3px_rgba(255,255,255,1)]'
-                    }
-                  `} 
+                  color={isHackerMode ? 'black' : 'var(--text-on-primary)'}
+                  glow={isHackerMode}
+                  variant={isHackerMode ? 'default' : 'duotone'}
                 />
               )}
             </div>
@@ -199,13 +173,13 @@ export const ChatModule = ({
                   className={`
                     px-8 py-6 text-xl md:text-2xl leading-relaxed font-medium
                     ${m.role === 'user' 
-                      ? 'bg-[var(--primary)] text-white rounded-[var(--ui-radius)] rounded-br-[0.5rem] shadow-[var(--ui-shadow)]' 
+                      ? 'bg-[var(--primary)] text-[var(--text-on-primary)] rounded-[var(--ui-radius)] rounded-br-[0.5rem] shadow-[var(--ui-shadow)]' 
                       : 'rounded-[var(--ui-radius)] rounded-bl-[0.5rem] text-[var(--text-primary)]'
                     }
                   `}
                 >
                   <span style={{ fontFamily: m.role === 'model' ? 'var(--font-main)' : 'var(--font-main)' }}>
-                    {m.text}
+                    {isHackerMode && m.role === 'model' ? <DecryptText text={m.text} /> : m.text}
                   </span>
                 </MagicCard>
               )}
@@ -220,16 +194,14 @@ export const ChatModule = ({
         {/* Thinking State */}
         {internalProcessing && (
           <div className="flex justify-start items-center gap-4 animate-fade-in">
-             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center animate-mimi-float ${isHackerMode ? 'bg-black border border-green-500/50 shadow-[0_0_10px_rgba(0,255,65,0.2)]' : 'tactile-base bg-[var(--surface)] ai-thinking shadow-md'}`}>
-                <Cat 
+             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center animate-mimi-float ${isHackerMode ? 'bg-black border border-green-500/50 shadow-[0_0_10px_rgba(0,255,65,0.2)]' : 'tactile-base bg-[var(--primary)] ai-thinking shadow-lg'}`}>
+                <MagicIcon 
+                  icon={Cat}
                   size={22} 
                   strokeWidth={3}
-                  className={`
-                    ${isHackerMode 
-                      ? 'text-black drop-shadow-[0_0_3px_#00FF41]' 
-                      : 'text-[var(--primary)] drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]'
-                    }
-                  `}
+                  color={isHackerMode ? 'black' : 'var(--text-on-primary)'}
+                  glow={isHackerMode}
+                  variant={isHackerMode ? 'default' : 'duotone'}
                 />
              </div>
              <div className="flex flex-col gap-2">
@@ -248,6 +220,17 @@ export const ChatModule = ({
         )}
       </div>
 
+      {/* Gatinho Hacker Mascot - POSIÇÃO E TAMANHO CORRIGIDOS */}
+      {isHackerMode && (
+        <StrategicHackGif 
+          url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" 
+          position="left"
+          className="w-[350px] h-[350px] md:w-[500px] md:h-[500px] bottom-20"
+          opacity="opacity-80"
+        />
+      )}
+
+      {/* Barra de Entrada */}
       {!isReadOnly && (
         <div className={`absolute bottom-0 left-0 right-0 p-8 shrink-0 z-[100] ${isHackerMode ? 'bg-black/90' : 'bg-transparent'}`}>
           <div className={`

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useSquashStretch } from './usePhysics';
 import { LucideIcon } from 'lucide-react';
+import { MagicIcon } from './MagicIcon';
 
 interface TactileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -58,7 +59,15 @@ export const TactileButton: React.FC<TactileButtonProps> = ({
       aria-label={label || (typeof children === 'string' ? children : 'Button')}
       {...props}
     >
-      {Icon && <Icon className={`${children ? 'mr-2' : ''} ${size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'}`} />}
+      {Icon && (
+        <MagicIcon 
+          icon={Icon} 
+          size={size === 'lg' ? 24 : 20} 
+          className={children ? 'mr-2' : ''} 
+          color="currentColor"
+          variant="duotone"
+        />
+      )}
       {children}
       <div className={`absolute inset-0 rounded-[inherit] pointer-events-none transition-opacity duration-300 ${isPressed ? 'opacity-20 bg-black' : 'opacity-0'}`} />
     </button>

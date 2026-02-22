@@ -10,6 +10,8 @@ import { UsageLog } from '../../core/types';
 import { useTheme } from '../../core/theme/useTheme';
 import { HackerSimulator, StrategicHackGif } from '../../core/components/HackerSimulator';
 import { MatrixRain, HackerOverlay } from '../../core/components/MatrixRain';
+import { DecryptText } from '../../core/components/effects/DecryptText';
+import { MagicIcon } from '../../core/components/ui/MagicIcon';
 import { z } from 'zod';
 
 // Esquema de Validação Parent Profile (APEX v2.0)
@@ -52,10 +54,8 @@ export const ParentProfileModule: React.FC = () => {
       {/* Background Effects for Parent Zone */}
       {isHackerMode && (
         <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
-           <MatrixRain />
-           <HackerOverlay />
            <HackerSimulator />
-           <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
         </div>
       )}
 
@@ -63,10 +63,10 @@ export const ParentProfileModule: React.FC = () => {
       <nav className={`w-full md:w-64 border-r p-6 flex flex-col gap-2 shrink-0 z-50 transition-all ${isHackerMode ? 'bg-black/90 border-green-500/30' : 'bg-[var(--surface)]/95 backdrop-blur-3xl border-[var(--border-color)]'}`}>
         <div className="mb-8 px-2">
           <h1 className={`font-hand text-4xl leading-none transition-colors ${isHackerMode ? 'text-green-500' : 'text-[var(--text-primary)]'}`}>
-            {isHackerMode ? 'GUARDIAN_OS' : 'Guardião'}
+            {isHackerMode ? <DecryptText text="GUARDIAN_OS" /> : 'Guardião'}
           </h1>
           <p className={`text-[9px] font-black tracking-[0.3em] uppercase opacity-50 ${isHackerMode ? 'text-green-400' : 'text-[var(--text-muted)]'}`}>
-            {isHackerMode ? 'SECURE_DASHBOARD_V2.0' : 'Painel de Controle'}
+            {isHackerMode ? <DecryptText text="SECURE_DASHBOARD_V2.0" /> : 'Painel de Controle'}
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export const ParentProfileModule: React.FC = () => {
             onClick={() => IdentityManager.logout()}
             className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all font-bold text-sm ${isHackerMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
           >
-            <LogOut size={18} />
+            <MagicIcon icon={LogOut} size={18} color="currentColor" />
             Sair
           </button>
         </div>
@@ -120,10 +120,10 @@ export const ParentProfileModule: React.FC = () => {
             <div className="space-y-10 animate-fade-in">
               <header>
                 <h2 className={`text-5xl font-black transition-colors ${isHackerMode ? 'text-green-500' : 'text-[var(--text-primary)]'}`}>
-                  {isHackerMode ? `ACCESS_GRANTED: ${profile.nickname}` : `Bem-vindo, ${profile.nickname}`}
+                  {isHackerMode ? <DecryptText text={`ACCESS_GRANTED: ${profile.nickname.toUpperCase()}`} /> : `Bem-vindo, ${profile.nickname}`}
                 </h2>
                 <p className={`font-medium ${isHackerMode ? 'text-green-600' : 'text-[var(--text-secondary)]'}`}>
-                  {isHackerMode ? 'SYSTEM_STATUS: NOMINAL | ALL_LAYERS_PROTECTED' : 'O sistema está operando nominalmente.'}
+                  {isHackerMode ? <DecryptText text="SYSTEM_STATUS: NOMINAL | ALL_LAYERS_PROTECTED" /> : 'O sistema está operando nominalmente.'}
                 </p>
               </header>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -159,8 +159,14 @@ const NavButton = ({ active, onClick, icon: Icon, label, isHackerMode }: any) =>
       }
     `}
   >
-    <Icon size={18} className={`${active && isHackerMode ? 'animate-pulse' : ''}`} />
-    {label}
+    <MagicIcon 
+      icon={Icon} 
+      size={18} 
+      className={`${active && isHackerMode ? 'animate-pulse' : ''}`} 
+      variant={active ? 'gradient' : 'duotone'}
+      glow={active}
+    />
+    {isHackerMode ? <DecryptText text={label} /> : label}
   </button>
 );
 

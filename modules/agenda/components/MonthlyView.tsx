@@ -2,6 +2,8 @@
 import React, { useMemo } from "react";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { AgendaActivity, AgendaModuleProps } from "../types";
+import { useTheme } from "../../../core/theme/useTheme";
+import { DecryptText } from "../../../core/components/effects/DecryptText";
 
 interface MonthlyViewProps {
   currentDate: Date;
@@ -24,6 +26,8 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
   reports,
   activities
 }) => {
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -66,8 +70,12 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
     <div className="w-full max-w-lg mimi-card overflow-hidden flex flex-col h-full animate-fade-in border-[var(--border-color)]">
       <header className="p-8 flex items-center justify-between bg-[var(--surface-elevated)]">
         <div>
-          <h2 className="font-hand text-4xl text-[var(--text-primary)] capitalize">{monthName}</h2>
-          <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">{year}</p>
+          <h2 className="font-hand text-4xl text-[var(--text-primary)] capitalize">
+            {isHackerMode ? <DecryptText text={monthName.toUpperCase()} /> : monthName}
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-widest">
+            {isHackerMode ? <DecryptText text={year.toString()} /> : year}
+          </p>
         </div>
         <div className="flex gap-2">
           <button 

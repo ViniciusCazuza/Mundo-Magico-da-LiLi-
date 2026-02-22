@@ -1,10 +1,12 @@
 import React, { useMemo } from "react";
 import { MessageCircle, Volume2, Zap, BarChart3, Database, ShieldAlert } from "lucide-react";
+import { MagicIcon } from "../../core/components/ui/MagicIcon";
 import { UsageLog } from "../../core/types";
 import { DAILY_LIMITS } from "../../core/config";
 import { QuotaCard } from "./components/QuotaCard";
 import { useTheme } from "../../core/theme/useTheme";
 import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
+import { DecryptText } from "../../core/components/effects/DecryptText";
 
 interface QuotaModuleProps {
   usageLogs: UsageLog[];
@@ -79,17 +81,17 @@ export const QuotaModule: React.FC<QuotaModuleProps> = ({ usageLogs }) => {
       {isHackerMode && (
         <>
           <HackerSimulator />
-          <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+          <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
           <div className="absolute top-0 left-0 w-full h-1 bg-green-500/20 animate-pulse"></div>
         </>
       )}
 
       <div className="flex items-center justify-between mb-4 relative z-10">
         <h3 className={`text-xs font-black uppercase tracking-[0.4em] flex items-center gap-3 ${isHackerMode ? 'text-green-500' : 'text-slate-400'}`}>
-          <BarChart3 size={16} /> {isHackerMode ? 'RESOURCE_MONITOR_V2.0' : 'Monitoramento de Recursos'}
+          <MagicIcon icon={BarChart3} size={16} color="currentColor" variant="duotone" /> {isHackerMode ? <DecryptText text="RESOURCE_MONITOR_V2.0" /> : 'Monitoramento de Recursos'}
         </h3>
         <span className={`text-[9px] font-black uppercase px-3 py-1 rounded tracking-tighter ${isHackerMode ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-100 text-slate-400'}`}>
-          {isHackerMode ? 'SYS_UPTIME: STABLE' : 'Atualizado agora'}
+          {isHackerMode ? <DecryptText text="SYS_UPTIME: STABLE" /> : 'Atualizado agora'}
         </span>
       </div>
 
@@ -110,15 +112,15 @@ export const QuotaModule: React.FC<QuotaModuleProps> = ({ usageLogs }) => {
       {quotaMetrics.some(m => m.used >= m.limit) && (
         <div className={`p-6 border rounded-2xl flex items-start gap-4 animate-jelly relative z-10 ${isHackerMode ? 'bg-black border-green-500/50' : 'bg-red-50 border-red-100'}`}>
           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 shadow-lg ${isHackerMode ? 'bg-green-600' : 'bg-red-500'}`}>
-            <Zap size={20} />
+            <MagicIcon icon={Zap} size={20} color="white" glow />
           </div>
           <div>
             <h4 className={`text-sm font-black uppercase tracking-widest ${isHackerMode ? 'text-green-400' : 'text-red-700'}`}>
-              {isHackerMode ? 'QUOTA_EXCEEDED_ALERT' : 'Atenção ao Limite'}
+              {isHackerMode ? <DecryptText text="QUOTA_EXCEEDED_ALERT" /> : 'Atenção ao Limite'}
             </h4>
             <p className={`text-xs leading-relaxed mt-1 font-medium ${isHackerMode ? 'text-green-500/70' : 'text-red-600/80'}`}>
               {isHackerMode 
-                ? 'SYSTEM PROTOCOL: INITIATING POWER SAVING. SYNTH_VOICE AND DEEP_ANALYSIS MODULES SUSPENDED.' 
+                ? <DecryptText text="SYSTEM PROTOCOL: INITIATING POWER SAVING. SYNTH_VOICE AND DEEP_ANALYSIS MODULES SUSPENDED." />
                 : 'Alguns serviços atingiram o limite diário configurado. A Mimi pode responder de forma mais lenta ou sem áudio.'}
             </p>
           </div>

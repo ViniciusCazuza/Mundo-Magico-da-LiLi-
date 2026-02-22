@@ -24,6 +24,7 @@ import { ParentProfileModule } from "./modules/parent-profile/index";
 import { ThemeRegistry } from "./core/theme/ThemeRegistry";
 import { AmbientThemeEffect } from "./core/components/effects/AmbientThemeEffect";
 import { LoadingEngine, useLoading } from "./core/components/effects/LoadingEngine";
+import { DecryptText } from "./core/components/effects/DecryptText";
 
 // Perfil Imports for AppShell
 import { PerfilState } from './modules/perfil/types';
@@ -43,11 +44,13 @@ class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: bool
     render() {
         if (this.state.hasError) {
             return (
-                <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 text-center z-[9999]">
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-sm border-2 border-slate-100">
-                        <AlertCircle size={64} className="text-red-500 mx-auto mb-6" />
-                        <h1 className="font-hand text-4xl mb-4">Ops! Ocorreu um soluço mágico.</h1>
-                        <button onClick={() => window.location.reload()} className="w-full py-5 bg-indigo-500 text-white rounded-2xl font-black flex items-center justify-center gap-3"><RefreshCw size={22} /> Recarregar</button>
+                <div className="fixed inset-0 bg-[var(--bg-app)] flex flex-col items-center justify-center p-6 text-center z-[9999]">
+                    <div className="bg-[var(--surface)] p-10 rounded-[3rem] shadow-2xl max-w-sm border-2 border-[var(--border-color)]">
+                        <AlertCircle size={64} className="text-[var(--status-error)] mx-auto mb-6" />
+                        <h1 className="font-hand text-4xl mb-4 text-[var(--text-primary)]">Ops! Ocorreu um soluço mágico.</h1>
+                        <button onClick={() => window.location.reload()} className="w-full py-5 bg-[var(--primary)] text-[var(--text-on-primary)] rounded-2xl font-black flex items-center justify-center gap-3 shadow-lg hover:scale-105 transition-transform">
+                            <RefreshCw size={22} /> Recarregar
+                        </button>
                     </div>
                 </div>
             );
@@ -84,6 +87,7 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const isAdmin = currentProfile.role === "parent_admin";
+    const isHackerMode = theme.id === "binary-night";
 
     // Determine logo fill color based on primary contrast
     const logoFillColorClass = 'fill-[var(--text-on-primary)]';
@@ -120,7 +124,7 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
         <div
             className="fixed inset-0 flex flex-col overflow-hidden text-[var(--text-primary)] transition-all animate-fade-in font-sans"
             style={{
-                backgroundImage: 'var(--bg-app)',
+                background: 'var(--bg-app)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
@@ -136,14 +140,18 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
 
             <nav className={`h-24 shrink-0 border-b-[var(--ui-border-width)] border-[var(--border-color)] px-10 flex items-center justify-between z-50 shadow-sm backdrop-blur-3xl transition-all bg-[var(--surface)]/95`}>
                 <div className="flex items-center gap-5 cursor-pointer group" onClick={() => setSection("chat")}>
-                    <div className={`w-14 h-14 flex items-center justify-center text-white shadow-lg transition-all group-hover:scale-110 group-hover:rotate-3 animate-breathing bg-[var(--primary)]`}
+                    <div className={`w-14 h-14 flex items-center justify-center text-white shadow-lg transition-all group-hover:scale-110 group-hover:rotate-3 animate-breathing bg-[var(--primary)] mimi-logo`}
                          style={{ borderRadius: 'var(--ui-component-radius)', boxShadow: '0 0 20px var(--primary)' }}>
-                        <GatinhaLogo className="w-full h-full p-1" style={{ fill: 'var(--text-on-primary)' }} />
+                        <GatinhaLogo className="w-full h-full p-1" />
                     </div>
                     <div className="flex flex-col">
-                        <span className={`font-hand text-5xl font-black leading-none -mb-1`} style={{ color: 'var(--text-primary)' }}>Mimi</span>
+                        <span className={`font-hand text-5xl font-black leading-none -mb-1`} style={{ color: 'var(--text-primary)' }}>
+                            {isAdmin && isHackerMode ? <DecryptText text="ROOT" /> : isHackerMode ? <DecryptText text="Mimi" /> : "Mimi"}
+                        </span>
                         <span className={`text-[10px] font-black uppercase tracking-[0.25em] text-[var(--text-muted)]`}>
-                            {isAdmin ? 'Reino dos Pais' : `Mundo da ${currentProfile.nickname}`}
+                            {isHackerMode 
+                                ? <DecryptText text={isAdmin ? 'REINO_DOS_PAIS' : `MUNDO_DA_${currentProfile.nickname.toUpperCase()}`} /> 
+                                : (isAdmin ? 'Reino dos Pais' : `Mundo da ${currentProfile.nickname}`)}
                         </span>
                     </div>
                 </div>
@@ -154,23 +162,23 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
 
                 <div className="hidden lg:flex gap-3 p-2 bg-[var(--surface-elevated)] border-[var(--ui-border-width)] border-[var(--border-color)]"
                      style={{ borderRadius: 'var(--ui-radius)' }}>
-                    <NavButton icon={MessageSquare} label="Conversar" active={section === 'chat'} onClick={() => setSection('chat')} isAdmin={isAdmin} />
-                    <NavButton icon={Palette} label="Ateliê" active={section === 'studio'} onClick={() => setSection('studio')} isAdmin={isAdmin} />
-                    <NavButton icon={Book} label="Baú de Artes" active={section === 'library'} onClick={() => setSection('library')} isAdmin={isAdmin} />
-                    <NavButton icon={Calendar} label="Agenda" active={section === 'calendar'} onClick={() => setSection('calendar')} isAdmin={isAdmin} />
-                    <NavButton icon={User} label="Eu" active={section === 'profile'} onClick={() => setSection('profile')} isAdmin={isAdmin} />
+                    <NavButton icon={MessageSquare} label="Conversar" active={section === 'chat'} onClick={() => setSection('chat')} isAdmin={isAdmin} isHackerMode={isHackerMode} />
+                    <NavButton icon={Palette} label="Ateliê" active={section === 'studio'} onClick={() => setSection('studio')} isAdmin={isAdmin} isHackerMode={isHackerMode} />
+                    <NavButton icon={Book} label="Baú de Artes" active={section === 'library'} onClick={() => setSection('library')} isAdmin={isAdmin} isHackerMode={isHackerMode} />
+                    <NavButton icon={Calendar} label="Agenda" active={section === 'calendar'} onClick={() => setSection('calendar')} isAdmin={isAdmin} isHackerMode={isHackerMode} />
+                    <NavButton icon={User} label="Eu" active={section === 'profile'} onClick={() => setSection('profile')} isAdmin={isAdmin} isHackerMode={isHackerMode} />
                 </div>
 
                 <div className="flex items-center gap-5">
                     <div onClick={() => setSection('profile')} className="flex items-center gap-3 px-4 py-2 transition-all cursor-pointer group">
-                        <div className={`w-10 h-10 flex items-center justify-center font-black text-indigo-950 text-lg shadow-inner overflow-hidden relative border-2 border-[var(--border-color)] group-hover:scale-105 transition-all
-                             ${isAdmin ? 'bg-white' : 'bg-[var(--primary)] shadow-lg'}`}
+                        <div className={`w-10 h-10 flex items-center justify-center font-black text-[var(--text-on-surface)] text-lg shadow-inner overflow-hidden relative border-2 border-[var(--border-color)] group-hover:scale-105 transition-all
+                             ${isAdmin ? 'bg-[var(--surface)]' : 'bg-[var(--primary)] shadow-lg'}`}
                              style={{ borderRadius: 'var(--ui-component-radius)', boxShadow: 'var(--ui-shadow)' }}>
                             {currentProfile.profileImage?.data ? <img key={currentProfile.profileImage.updatedAt} src={currentProfile.profileImage.data} className="w-full h-full object-cover" /> : <span>{currentProfile.nickname[0]}</span>}
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest hidden xl:block opacity-60">Meu Perfil</span>
                     </div>
-                    <button onClick={onLogout} className="p-3 btn-dynamic bg-red-500 text-white border-red-600 shadow-lg active:scale-90" style={{ borderRadius: 'var(--ui-component-radius)' }} title="Sair">
+                    <button onClick={onLogout} className="p-3 btn-dynamic bg-[var(--status-error)] text-[var(--text-on-primary)] border-[var(--status-error)] shadow-lg active:scale-90" style={{ borderRadius: 'var(--ui-component-radius)' }} title="Sair">
                         <LogOut size={20} />
                     </button>
                 </div>
@@ -178,6 +186,7 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
 
             <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden z-10 p-6 md:p-8 transition-all">
                 <div className="flex-1 mimi-card overflow-hidden flex flex-col border-opacity-30 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative">
+                    {theme.id === 'binary-night' && <AmbientThemeEffect themeId={theme.id} container />}
                     {!isAdmin && <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] opacity-50"></div>}
 
                     {section === 'chat' && sessionConv && (
@@ -204,18 +213,20 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
     );
 };
 
-const NavButton = ({ icon: Icon, label, active, onClick, isAdmin }: { icon: any, label: string, active: boolean, onClick: () => void, isAdmin: boolean }) => (
+const NavButton = ({ icon: Icon, label, active, onClick, isAdmin, isHackerMode }: { icon: any, label: string, active: boolean, onClick: () => void, isAdmin: boolean, isHackerMode: boolean }) => (
     <button 
         onClick={onClick} 
         className={`flex items-center gap-3 px-6 py-3 transition-all duration-300 group
             ${active 
                 ? 'btn-dynamic text-[var(--text-on-primary)] scale-105 shadow-xl' 
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-elevated)]'
+                : (isHackerMode ? 'text-[var(--primary)]/70 hover:text-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-elevated)]')
             }`}
         style={{ borderRadius: 'var(--ui-component-radius)' }}
     >
         <Icon size={18} className={`transition-transform duration-500 ${active ? 'scale-110' : 'group-hover:rotate-12'}`} />
-        <span className="hidden xl:inline tracking-tight font-black uppercase text-[10px]">{label}</span>
+        <span className="hidden xl:inline tracking-tight font-black uppercase text-[10px]">
+            {isHackerMode ? <DecryptText text={label.toUpperCase()} /> : label}
+        </span>
     </button>
 );
 

@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { cn } from '../utils';
 
 const LOG_LINES = [
   "DECRYPTING: AES-256-GCM...",
@@ -41,11 +41,31 @@ export const HackerSimulator: React.FC = () => {
   );
 };
 
-export const StrategicHackGif: React.FC<{ url: string }> = ({ url }) => {
+export const StrategicHackGif: React.FC<{ 
+  url: string; 
+  position?: 'left' | 'right';
+  className?: string;
+  opacity?: string;
+  style?: React.CSSProperties;
+}> = ({ url, position = 'right', className = "", opacity = "opacity-40", style }) => {
+  const posClass = position === 'left' ? 'left-4' : 'right-4';
   return (
-    <div className="absolute bottom-4 right-4 w-32 h-32 opacity-20 pointer-events-none rounded-lg border border-green-500/30 overflow-hidden">
-      <img src={url} className="w-full h-full object-cover grayscale brightness-150 contrast-150" alt="Strategic Hack" />
-      <div className="absolute inset-0 bg-green-500/20 mix-blend-overlay" />
+    <div 
+      className={cn(
+        "absolute bottom-24 pointer-events-none rounded-2xl border-2 border-green-500/40 overflow-hidden z-[50] shadow-[0_0_30px_rgba(0,255,65,0.3)]",
+        posClass,
+        opacity,
+        className
+      )}
+      style={style}
+    >
+      <img 
+        src={url} 
+        className="w-full h-full object-cover brightness-150 contrast-125 transition-all" 
+        alt="Strategic Hack" 
+        onError={(e) => console.error("Erro ao carregar GIF:", url)}
+      />
+      <div className="absolute inset-0 bg-green-500/10 mix-blend-color" />
     </div>
   );
 };

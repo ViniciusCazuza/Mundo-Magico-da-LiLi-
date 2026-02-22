@@ -9,8 +9,12 @@ import { STORAGE_KEYS } from "../../core/config";
 import { safeJsonParse } from "../../core/utils";
 import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../core/events";
 import { TactileButton } from "../../core/components/ui/TactileButton";
+import { useTheme } from "../../core/theme/useTheme";
+import { DecryptText } from "../../core/components/effects/DecryptText";
 
 export const LibraryModule: React.FC = () => {
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
   const [items, setItems] = useState<LibraryItem[]>(() => safeJsonParse(STORAGE_KEYS.LIBRARY, []));
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<LibraryItem['category'] | 'all'>('all');
@@ -120,8 +124,12 @@ export const LibraryModule: React.FC = () => {
       <header className="p-6 md:p-8 shrink-0 space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="font-hand text-4xl md:text-5xl text-[var(--primary)]">Minha Biblioteca</h1>
-            <p className="text-sm text-[var(--text-muted)] font-medium">Guarde aqui suas histórias preferidas!</p>
+            <h1 className="font-hand text-4xl md:text-5xl text-[var(--primary)]">
+              {isHackerMode ? <DecryptText text="BAU_DE_DADOS_CRIPTOGRAFADOS" /> : "Minha Biblioteca"}
+            </h1>
+            <p className="text-sm text-[var(--text-muted)] font-medium">
+              {isHackerMode ? <DecryptText text="REGISTROS_DE_ATIVIDADE_E_MIDIA_SALVOS" /> : "Guarde aqui suas histórias preferidas!"}
+            </p>
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
@@ -183,7 +191,9 @@ export const LibraryModule: React.FC = () => {
                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(item.timestamp).toLocaleDateString('pt-BR')}</p>
                    <button onClick={(e) => deleteItem(item.id, e)} className="p-1.5 text-[var(--text-muted)] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                 </div>
-                <h3 className="font-hand text-xl text-[var(--text-primary)] leading-tight">{item.title}</h3>
+                <h3 className="font-hand text-xl text-[var(--text-primary)] leading-tight">
+                  {isHackerMode ? <DecryptText text={item.title.toUpperCase().replace(/\s/g, '_')} /> : item.title}
+                </h3>
                 <p className="text-xs text-[var(--text-secondary)] line-clamp-2 leading-relaxed">{item.content}</p>
                 <div className="pt-3 mt-auto border-t border-[var(--border-color)]/20 flex items-center justify-between">
                   <span className="text-[8px] font-black uppercase text-[var(--text-muted)]">{item.category}</span>

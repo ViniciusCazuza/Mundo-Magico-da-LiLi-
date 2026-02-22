@@ -53,3 +53,22 @@ Antes de escrever código, determine o runtime pela natureza do problema:
    - O modo Hacker (`binary-night`) exige o uso de `MatrixRain`, `HackerOverlay`, `HackerSimulator` e `StrategicHackGif` para imersão total nos módulos de Chat e Studio.
    - Efeitos de "glitch" e descriptografia de texto (`DecryptText`) são obrigatórios para mensagens da IA no modo Hacker.
    - Ambientes ambientais (bubbles, sparkles, neon pulses) devem ser injetados no `AppShell` baseados no ID do tema ativo para garantir coesão visual sistêmica.
+9. **APEX CHROMA SENTINEL (v15.0) — Governança Visual:**
+   - **Axioma da Visibilidade Absoluta:** 
+     - Em temas claros: Nenhum elemento (fonte, ícone, borda) pode ser mais claro que o background.
+     - Em temas escuros: Nenhum elemento pode ser mais escuro que o background.
+   - **Deep Sweep Protocol:** Alterações visuais devem ser globais e síncronas para manter a coerência sistêmica.
+   - **Result Pattern:** Falhas de estilo devem ser tratadas como erros explícitos.
+10. **Protocolo de Inicialização Automática (APEX Startup):**
+   - Ao iniciar uma nova sessão ou ao ser ativado, o Genesis deve verificar e iniciar o backend (.NET) e o frontend (Vite) em segundo plano.
+   - **Backend:** `dotnet run --project backend/LiliMagic.Api/LiliMagic.Api.csproj`
+   - **Frontend:** `npm run dev`
+   - O Genesis deve monitorar a saída inicial para garantir que ambos os serviços subiram sem erros fatais.
+11. **Inviolabilidade dos Cards de Tema (Theme Card Sovereignty):**
+   - Os componentes `ThemeCard` e as regras de CSS associadas ("ULTIMATE OVERRIDE: NEUBRUTALISM INTEGRITY" e "THEME PREVIEW SOVEREIGNTY" no `input.css`) são considerados definitivos.
+   - É terminantemente proibido alterar a lógica de preview, a especificidade dos seletores ou a estrutura visual desses cards, pois eles garantem a integridade visual dos temas de elite durante a seleção.
+   - Qualquer modificação futura nestes elementos exige autorização explícita e específica do usuário.
+12. **Inviolabilidade da Chuva de Códigos (Matrix Rain):**
+   - O motor de renderização `MatrixRain.tsx` e suas configurações de visibilidade (opacidade 100%, shadowBlur neon, rastro em preto puro) e a injeção via `AppShell` são considerados perfeitos e finais.
+   - É proibido alterar a velocidade, densidade, cor ou a lógica de camadas (transparência de 90% no modo Hacker) que garante sua nitidez absoluta.
+   - Este efeito é exclusivo do tema Noite Binária e sua integridade visual é de missão crítica.

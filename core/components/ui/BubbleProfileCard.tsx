@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { AliceProfile } from '../../../core/ecosystem/types';
 import { Lock } from 'lucide-react';
+import { MagicIcon } from './MagicIcon';
 import { Result } from '../../../core/utils/result';
 
 interface PopEvent {
@@ -94,19 +95,19 @@ export const BubbleProfileCard: React.FC<BubbleProfileCardProps> = ({ profile, o
         {profile.profileImage?.data ? (
           <img src={profile.profileImage.data} className="w-full h-full object-cover opacity-90 transition-opacity" />
         ) : (
-          <span className="text-5xl font-black text-indigo-950 drop-shadow-sm">{profile.nickname[0]}</span>
+          <span className="text-5xl font-black text-[var(--text-on-surface)] drop-shadow-sm">{profile.nickname[0]}</span>
         )}
 
         {profile.role === 'parent_admin' && (
-          <div className="absolute bottom-3 right-3 bg-black/60 p-2 rounded-full backdrop-blur-md border border-white/20">
-            <Lock size={16} className="text-white" />
+          <div className="absolute bottom-3 right-3 bg-[var(--surface-elevated)]/60 p-2 rounded-full backdrop-blur-md border border-[var(--border-color)] flex items-center justify-center">
+            <MagicIcon icon={Lock} size={16} color="var(--text-primary)" variant="duotone" />
           </div>
         ) }
       </div>
 
       <span className={`
-        block mt-4 text-center text-xl font-bold text-white drop-shadow-md uppercase tracking-wider transition-opacity
-        ${isPopping ? 'opacity-0' : 'opacity-100 group-hover:text-yellow-300'}
+        block mt-4 text-center text-xl font-bold text-[var(--text-on-surface)] drop-shadow-md uppercase tracking-wider transition-opacity
+        ${isPopping ? 'opacity-0' : 'opacity-100 group-hover:text-[var(--accent)]'}
       `}>
         {profile.nickname}
       </span>

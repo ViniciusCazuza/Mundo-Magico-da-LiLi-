@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react'; // Icons for error/success feedback
+import { MagicIcon } from './ui/MagicIcon';
 
 interface ModernInputProps {
   label: string;
@@ -78,8 +79,8 @@ export const ModernInput: React.FC<ModernInputProps> = ({
   const isErrorOrSuccess = error || success;
 
   // Determine border color based on state
-  const borderColor = error ? 'var(--red-500)' : success ? 'var(--green-500)' : (isFocused ? 'var(--primary)' : 'var(--border-color)');
-  const labelColor = error ? 'var(--red-500)' : success ? 'var(--green-500)' : (isFocused ? 'var(--primary)' : 'var(--text-muted)');
+  const borderColor = error ? 'var(--status-error)' : success ? 'var(--status-success)' : (isFocused ? 'var(--primary)' : 'var(--border-color)');
+  const labelColor = error ? 'var(--status-error)' : success ? 'var(--status-success)' : (isFocused ? 'var(--primary)' : 'var(--text-muted)');
 
   return (
     <div className="relative w-full group">
@@ -89,7 +90,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           ${showFloatingLabel
             ? '-top-3 text-xs px-2 bg-[var(--surface-elevated)] rounded-md left-3 z-10'
             : 'top-1/2 -translate-y-1/2 left-4'}
-          ${error ? 'text-red-500' : success ? 'text-green-500' : (isFocused ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]')}
+          ${error ? 'text-[var(--status-error)]' : success ? 'text-[var(--status-success)]' : (isFocused ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]')}
         `}
         style={{ color: labelColor }}
       >
@@ -109,7 +110,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           className={`w-full p-4 rounded-[var(--ui-radius)] border-[var(--ui-border-width)] outline-none transition-all duration-300 ease-out resize-y
             bg-[var(--surface-elevated)] text-[var(--text-primary)]
             focus:ring-4 focus:ring-[var(--primary)]/10
-            ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
+            ${error ? 'border-[var(--status-error)]' : success ? 'border-[var(--status-success)]' : 'border-[var(--border-color)]'}
             ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
             ${isTyping ? 'input-typing' : ''}
             shadow-[var(--ui-shadow)] focus:shadow-[var(--ui-shadow-elevated)]
@@ -130,7 +131,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           className={`w-full h-14 p-4 rounded-[var(--ui-radius)] border-[var(--ui-border-width)] outline-none transition-all duration-300 ease-out
             bg-[var(--surface-elevated)] text-[var(--text-primary)]
             focus:ring-4 focus:ring-[var(--primary)]/10
-            ${error ? 'border-red-500' : success ? 'border-green-500' : 'border-[var(--border-color)]'}
+            ${error ? 'border-[var(--status-error)]' : success ? 'border-[var(--status-success)]' : 'border-[var(--border-color)]'}
             ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
             ${isTyping ? 'input-typing' : ''}
             shadow-[var(--ui-shadow)] focus:shadow-[var(--ui-shadow-elevated)]
@@ -140,12 +141,12 @@ export const ModernInput: React.FC<ModernInputProps> = ({
       )}
       {(error || success) && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
-          {error && <AlertCircle size={18} className="text-red-500" />}
-          {success && <CheckCircle2 size={18} className="text-green-500" />}
+          {error && <MagicIcon icon={AlertCircle} size={18} color="var(--status-error)" variant="duotone" />}
+          {success && <MagicIcon icon={CheckCircle2} size={18} color="var(--status-success)" variant="duotone" />}
         </div>
       )}
       {error && errorMessage && (
-        <p className="text-red-500 text-xs mt-1 ml-4">{errorMessage}</p>
+        <p className="text-[var(--status-error)] text-xs mt-1 ml-4">{errorMessage}</p>
       )}
     </div>
   );

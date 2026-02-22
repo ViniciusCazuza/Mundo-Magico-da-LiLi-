@@ -1,5 +1,6 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
+import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 import { useTheme } from "../../../core/theme/useTheme";
 
 interface QuotaCardProps {
@@ -48,7 +49,7 @@ export const QuotaCard = React.memo(({ name, icon: Icon, used, limit, cost, stat
 
       <div className="flex justify-between items-start relative z-10">
         <div className={`p-4 rounded-[var(--ui-component-radius)] shadow-sm ${getIconContainerClass()}`}>
-          <Icon size={28} />
+          <MagicIcon icon={Icon} size={28} color="currentColor" variant="duotone" />
         </div>
         <div className="text-right">
           <span className={`

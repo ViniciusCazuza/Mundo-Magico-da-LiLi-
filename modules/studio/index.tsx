@@ -9,6 +9,7 @@ import { MagicCanvasTool } from "./tools/MagicCanvasTool";
 import { useTheme } from "../../core/theme/useTheme";
 import { HackerOverlay } from "../../core/components/MatrixRain";
 import { HackerSimulator } from "../../core/components/HackerSimulator";
+import { DecryptText } from "../../core/components/effects/DecryptText";
 
 type StudioToolId = 'laboratory' | 'canvas';
 
@@ -87,10 +88,10 @@ export const StudioModule: React.FC = () => {
                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Ateliê de Descobertas</span>
              </div>
              <h1 className="font-hand text-5xl md:text-7xl text-[var(--text-primary)] leading-none">
-               O que vamos <span className="text-[var(--primary)]">criar</span> agora?
+               {isHackerMode ? <DecryptText text="O_QUE_VAMOS_CRIAR_AGORA?" /> : <>O que vamos <span className="text-[var(--primary)]">criar</span> agora?</>}
              </h1>
              <p className="text-lg text-[var(--text-muted)] max-w-xl mx-auto font-medium">
-               Escolha uma ferramenta mágica para sua aventura artística.
+               {isHackerMode ? <DecryptText text="ESCOLHA_UMA_FERRAMENTA_MAGICA_PARA_SUA_AVENTURA_ARTISTICA" /> : "Escolha uma ferramenta mágica para sua aventura artística."}
              </p>
           </header>
 
@@ -119,14 +120,14 @@ export const StudioModule: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-hand text-3xl text-[var(--text-primary)] transition-colors group-hover:text-[var(--primary)]">
-                        {tool.name}
+                        {isHackerMode ? <DecryptText text={tool.name.toUpperCase().replace(/\s/g, '_')} /> : tool.name}
                       </h3>
                       <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">Ferramenta</p>
                     </div>
                   </div>
                   
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed font-medium line-clamp-2">
-                    {tool.description}
+                    {isHackerMode ? <DecryptText text={tool.description.toUpperCase().replace(/\s/g, '_')} /> : tool.description}
                   </p>
 
                   <div className="pt-4 flex items-center justify-between">
@@ -142,7 +143,8 @@ export const StudioModule: React.FC = () => {
 
           <footer className="text-center opacity-30">
             <div className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
-               <MousePointer2 size={14} /> Solte a sua imaginação, Alice
+               <MousePointer2 size={14} /> 
+               {isHackerMode ? <DecryptText text="IMAGINACAO_INFINITA_DETECTADA" /> : "Solte a sua imaginação, Alice"}
             </div>
           </footer>
         </div>
@@ -185,7 +187,7 @@ export const StudioModule: React.FC = () => {
             <div className="absolute bottom-4 right-4 z-50 p-2 border border-green-500/30 bg-black/80 font-mono text-[9px] text-green-500 animate-pulse">
                {`[ATELIER_OVERRIDE_ACTIVE: ${activeToolId || 'STANDBY'}]`}
             </div>
-            <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+            <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
           </div>
         )}
         {activeTool && <activeTool.component />}

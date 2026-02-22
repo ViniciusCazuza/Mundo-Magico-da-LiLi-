@@ -44,11 +44,11 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
         <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
            <HackerOverlay />
            <HackerSimulator />
-           <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
         </div>
       )}
       {/* Lado Esquerdo: Calendário Mensal */}
-      <section className={`w-full md:w-[450px] p-4 md:p-8 flex flex-col shrink-0 border-r border-[var(--border-color)] relative z-10 ${isHackerMode ? 'bg-black/80' : 'bg-[var(--surface)]'}`}>
+      <section className={`w-full md:w-[450px] p-4 md:p-8 flex flex-col shrink-0 border-r border-[var(--border-color)] relative z-10 backdrop-blur-md transition-all ${isHackerMode ? 'bg-black/80' : 'bg-[var(--surface)]/95'}`}>
         <MonthlyView 
           currentDate={currentDate}
           onPrevMonth={handlePrevMonth}
@@ -63,15 +63,15 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
         {/* Legenda semântica temática */}
         <div className="mt-8 grid grid-cols-2 gap-y-4 gap-x-2 px-4">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)] shadow-[0_0_10px_var(--status-success)]" />
             <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Patinha</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_5px_rgba(99,102,241,0.4)]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-info)] shadow-[0_0_10px_var(--status-info)]" />
             <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Miado</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.4)]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-warning)] shadow-[0_0_10px_var(--status-warning)]" />
             <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Alerta!</span>
           </div>
           <div className="flex items-center gap-2">

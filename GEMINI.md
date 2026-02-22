@@ -226,17 +226,12 @@ public sealed class OrderReadService(IDbConnectionFactory db)
 
             LEFT JOIN order_lines ol ON ol.order_id = o.id
 
-            WHERE o.id = @OrderId
-
-            GROUP BY o.id, o.status, o.created_at
-
-            """,
-
-            new { OrderId = orderId.Value });
-
-    }
-
-}
+                        WHERE o.id = @[OrderId]
+                        GROUP BY o.id, o.status, o.created_at
+                        """,
+                        new { OrderId = orderId.Value });
+                }
+            }
 
 **Result Pattern (sem exceções para fluxo de controle):**
 
@@ -640,8 +635,7 @@ class EmbeddingResponse(BaseModel):
 
 app = FastAPI()
 
-@app.post("/embed", response_model=EmbeddingResponse)
-
+[at]app.post("/embed", response_model=EmbeddingResponse)
 async def embed(request: EmbeddingRequest) -> EmbeddingResponse:
 
     result = await embedding_service.encode(request.text, request.model)

@@ -3,6 +3,8 @@ import { Plus, Clock, Sparkles, Heart } from "lucide-react";
 import { AgendaActivity, AgendaModuleProps } from "../types";
 import { ActivityCard } from "./ActivityCard";
 import { ActivityIcon } from "./ActivityIcon";
+import { useTheme } from "../../../core/theme/useTheme";
+import { DecryptText } from "../../../core/components/effects/DecryptText";
 
 interface DailyAgendaViewProps {
   date: string;
@@ -23,6 +25,8 @@ export const DailyAgendaView: React.FC<DailyAgendaViewProps> = ({
   onDelete,
   onEdit
 }) => {
+  const { themeId } = useTheme();
+  const isHackerMode = themeId === "binary-night";
   const [year, month, day] = date.split('-');
   const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   const dayName = dateObj.toLocaleDateString('pt-BR', { weekday: 'long' });
@@ -33,8 +37,12 @@ export const DailyAgendaView: React.FC<DailyAgendaViewProps> = ({
     <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden">
       <header className="p-6 md:p-8 shrink-0 flex justify-between items-center bg-[var(--surface)]/50 backdrop-blur-sm border-b border-[var(--border-color)]/20">
         <div>
-          <h3 className="font-hand text-4xl text-[var(--text-primary)] capitalize">{dayName}, {day}</h3>
-          <p className="text-[var(--text-muted)] text-sm font-medium">Sua jornada de hoje Alice!</p>
+          <h3 className="font-hand text-4xl text-[var(--text-primary)] capitalize">
+            {isHackerMode ? <DecryptText text={`${dayName.toUpperCase()}, ${day}`} /> : `${dayName}, ${day}`}
+          </h3>
+          <p className="text-[var(--text-muted)] text-sm font-medium">
+            {isHackerMode ? <DecryptText text="DAILY_MISSION_LOG_ACTIVE" /> : "Sua jornada de hoje Alice!"}
+          </p>
         </div>
         <button
           onClick={onAddClick}

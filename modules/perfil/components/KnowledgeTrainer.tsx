@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, BrainCircuit, Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 import { MimiCustomTrainingEntry } from "../types";
 
 interface KnowledgeTrainerProps {
@@ -51,7 +52,7 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
             disabled={!input.trim()}
             className="w-16 h-16 btn-dynamic text-white flex items-center justify-center shadow-lg disabled:opacity-50 disabled:scale-100"
           >
-            <Plus size={24} />
+            <MagicIcon icon={Plus} size={24} color="white" />
           </button>
         </div>
 
@@ -59,7 +60,7 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
         {showSuccess && (
           <div className="absolute -top-12 left-0 right-0 flex justify-center animate-fade-in">
              <div className="bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl">
-                <CheckCircle2 size={14} /> Treinamento Salvo! ✨
+                <MagicIcon icon={CheckCircle2} size={14} color="white" /> Treinamento Salvo! ✨
              </div>
           </div>
         )}
@@ -74,11 +75,11 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
           >
             <div className="flex-1 flex flex-col gap-1 pr-4">
               <div className="flex items-center gap-2">
-                <Sparkles size={12} className="text-[var(--primary)]" />
+                <MagicIcon icon={Sparkles} size={12} color="var(--primary)" />
                 <span className="text-sm font-bold text-[var(--text-primary)]">{item.content}</span>
               </div>
               <div className="flex items-center gap-2 text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-tighter">
-                <Clock size={10} />
+                <MagicIcon icon={Clock} size={10} color="var(--text-muted)" />
                 {new Date(item.createdAt).toLocaleDateString('pt-BR')} às {new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -87,14 +88,14 @@ export const KnowledgeTrainer: React.FC<KnowledgeTrainerProps> = ({ knowledge, o
               className="p-3 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
               title="Excluir Treinamento"
             >
-              <Trash2 size={18} />
+              <MagicIcon icon={Trash2} size={18} color="currentColor" />
             </button>
           </div>
         ))}
 
         {knowledge.length === 0 && (
           <div className="text-center py-10 opacity-30 flex flex-col items-center gap-3">
-             <BrainCircuit size={48} className="text-slate-400" />
+             <MagicIcon icon={BrainCircuit} size={48} color="var(--text-muted)" />
              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Mimi ainda não tem treinamentos personalizados.</p>
           </div>
         )}

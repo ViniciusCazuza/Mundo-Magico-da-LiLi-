@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Download, Upload, CheckCircle } from "lucide-react";
+import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 import { PerfilState } from "../types";
 
 interface ExportImportPanelProps {
@@ -48,7 +49,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ state, onI
         className="flex flex-col items-center gap-2 p-6 bg-[var(--surface-elevated)] text-[var(--primary)] border-[var(--ui-border-width)] border-[var(--border-color)] transition-all active:scale-95 shadow-sm"
         style={{ borderRadius: 'var(--ui-radius)' }}
       >
-        <Download size={24} />
+        <MagicIcon icon={Download} size={24} color="currentColor" variant="duotone" />
         <span className="text-[10px] font-black uppercase tracking-widest">Backup</span>
       </button>
 
@@ -56,7 +57,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ state, onI
         className="flex flex-col items-center gap-2 p-6 bg-[var(--surface-elevated)] text-[var(--text-secondary)] border-[var(--ui-border-width)] border-[var(--border-color)] transition-all active:scale-95 shadow-sm cursor-pointer"
         style={{ borderRadius: 'var(--ui-radius)' }}
       >
-        <Upload size={24} />
+        <MagicIcon icon={Upload} size={24} color="currentColor" variant="duotone" />
         <span className="text-[10px] font-black uppercase tracking-widest">Restaurar</span>
         <input type="file" accept=".json" onChange={importData} className="hidden" />
       </label>

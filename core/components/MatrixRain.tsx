@@ -27,11 +27,14 @@ export const MatrixRain: React.FC<{ container?: boolean }> = ({ container = fals
     const drops: number[] = new Array(columns).fill(0).map(() => Math.random() * -100);
 
     const draw = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      // Usar preto puro para o rastro, sem transparência de fundo do canvas
+      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = "#00FF41"; 
-      ctx.font = `${fontSize}px monospace`;
+      ctx.font = `bold ${fontSize}px monospace`;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "#00FF41";
 
       for (let i = 0; i < drops.length; i++) {
         const text = characters.charAt(Math.floor(Math.random() * characters.length));
@@ -42,6 +45,9 @@ export const MatrixRain: React.FC<{ container?: boolean }> = ({ container = fals
         }
         drops[i]++;
       }
+      
+      // Reset shadow for performance
+      ctx.shadowBlur = 0;
     };
 
     let animationId: number;
@@ -60,7 +66,7 @@ export const MatrixRain: React.FC<{ container?: boolean }> = ({ container = fals
   return (
     <canvas 
       ref={canvasRef} 
-      className={`${container ? 'absolute' : 'fixed'} inset-0 z-0 pointer-events-none opacity-30 bg-black mix-blend-screen`}
+      className="absolute inset-0 z-0 pointer-events-none opacity-100"
     />
   );
 };

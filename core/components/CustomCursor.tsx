@@ -44,7 +44,7 @@ const PegadasSVG_Content = `
 
 import { ThemeRegistry } from '../theme/ThemeRegistry';
 
-const CURSOR_SIZE = 64;
+const CURSOR_SIZE = 128; // Aumentado para acomodar o brilho neon sem cortes
 const PARTICLE_SIZE = 96;
 const MAX_PARTICLES = 50;
 const PARTICLE_LIFETIME_MS = 1000;
@@ -67,28 +67,31 @@ const CustomCursor: React.FC = () => {
   const mousePos = useRef({ x: -200, y: -200 });
   const previousMousePos = useRef({ x: -200, y: -200 });
   const lastSpawnPos = useRef({ x: -200, y: -200 });
-  const isPointer = useRef(false);
+  
+  // Refs de Controle (Performance APEX - Evita re-renders desnecessários)
+  const isPointerRef = useRef(false);
+  const previewThemeIdRef = useRef<string | null>(null);
+  const cursorOverrideRef = useRef<string | null>(null);
+  const currentSVGRef = useRef(PawRetractedSVG);
+
   const rafId = useRef(0);
   const particleCount = useRef(0);
   const particlePool = useRef<HTMLDivElement[]>([]);
-  const [cursorOverride, setCursorOverride] = useState<string | null>(null);
-  const [previewThemeId, setPreviewThemeId] = useState<string | null>(null);
-  const currentCursorSVG = useRef(PawRetractedSVG);
 
   useEffect(() => {
     const handleSetCursor = (event: Event) => {
       const customEvent = event as CustomEvent;
-      setCursorOverride(customEvent.detail.cursorType || null);
+      cursorOverrideRef.current = customEvent.detail.cursorType || null;
     };
-    
+
     const handleThemePreview = (event: Event) => {
       const customEvent = event as CustomEvent;
-      setPreviewThemeId(customEvent.detail.themeId || null);
+      previewThemeIdRef.current = customEvent.detail.themeId || null;
     };
 
     document.addEventListener('set-cursor', handleSetCursor);
     document.addEventListener('theme-preview', handleThemePreview);
-    
+
     return () => {
       document.removeEventListener('set-cursor', handleSetCursor);
       document.removeEventListener('theme-preview', handleThemePreview);
@@ -139,43 +142,27 @@ const CustomCursor: React.FC = () => {
   }, []);
 
   const onPointerMove = useCallback((e: PointerEvent) => {
-    const clientX = e.clientX;
-    const clientY = e.clientY;
-    const target = e.target as HTMLElement;
-    
-    // TÉCNICO: Detecção direta e semântica de elementos interativos
-    const isOverClickable = !!target?.closest('button, a, input, select, textarea, [role="button"], label, summary');
-
-    const isGarraActive = cursorOverride === 'garra';
+    const { clientX, clientY } = e;
     mousePos.current = { x: clientX, y: clientY };
-    let spawnX = clientX, spawnY = clientY;
-    if (isGarraActive) { spawnX += 10; spawnY += 32; }
-    
-    // OMNI-SKILL: Interatividade baseada em sinais reais de ação ou preview explícito
-    const isInteractive = isOverClickable || !!previewThemeId;
-    let desiredSVG = isGarraActive ? GarraCanvasSVG : (isInteractive ? PawClawsOutSVG : PawRetractedSVG);
-    isPointer.current = isInteractive && !isGarraActive;
-    
-    const cursor = cursorRef.current;
-    if (desiredSVG !== currentCursorSVG.current) {
-      if (cursor) {
-        cursor.innerHTML = desiredSVG;
-        currentCursorSVG.current = desiredSVG;
-      }
+
+    const target = e.target as HTMLElement;
+    if (!target || !target.closest) {
+      isPointerRef.current = false;
+      return;
     }
 
-    if (cursor) {
-      if (previewThemeId) {
-        const previewTheme = ThemeRegistry.getAvailableThemes().find(t => t.id === previewThemeId);
-        if (previewTheme) {
-          cursor.style.color = ThemeRegistry.getCursorColor(previewTheme);
-          cursor.style.filter = ThemeRegistry.getCursorFilter(previewTheme);
-        }
-      } else {
-        cursor.style.color = 'var(--ui-cursor-color)';
-        cursor.style.filter = 'var(--ui-cursor-filter)';
-      }
-    }
+    // TÉCNICO: Detecção cirúrgica (Inviolável ao data-theme-id global do <html>)
+    const isActionable = !!target.closest('button, a, input, select, textarea, label, summary, .interactive, .cursor-pointer');
+    
+    // Apenas cards de tema REAIS acionam as garras via classe
+    const isThemeCard = !!target.closest('.theme-card');
+    
+    // OMNI-SKILL: Ativação de garras apenas em locais de intenção de clique ou preview ativo
+    isPointerRef.current = isActionable || isThemeCard || !!previewThemeIdRef.current;
+
+    const isGarraActive = cursorOverrideRef.current === 'garra';
+    let spawnX = clientX, spawnY = clientY;
+    if (isGarraActive) { spawnX += 4; spawnY += 24; }
 
     const dx = spawnX - lastSpawnPos.current.x;
     const dy = spawnY - lastSpawnPos.current.y;
@@ -191,23 +178,49 @@ const CustomCursor: React.FC = () => {
       spawnParticle(spawnX + lagX, spawnY + lagY, angle);
     }
     previousMousePos.current = { x: spawnX, y: spawnY };
-  }, [spawnParticle, cursorOverride, previewThemeId]);
+  }, [spawnParticle]);
 
   const renderLoop = useCallback(() => {
     const cursor = cursorRef.current;
-    if (cursor) {
-      const isGarra = cursorOverride === 'garra';
-      const scale = isPointer.current && !isGarra ? 1.2 : 1;
-      
-      const offsetX = isGarra ? 10 : 0;
-      const offsetY = isGarra ? 32 : 0;
+    if (!cursor) return;
 
-      cursor.style.left = `${mousePos.current.x - (CURSOR_SIZE / 2) + offsetX}px`;
-      cursor.style.top = `${mousePos.current.y - (CURSOR_SIZE / 2) + offsetY}px`;
-      cursor.style.transform = `scale(${scale}) ${isGarra ? 'rotate(0deg)' : 'rotate(180deg)'}`;
+    const isGarraMode = cursorOverrideRef.current === 'garra';
+    const isInteractive = isPointerRef.current;
+    const previewId = previewThemeIdRef.current;
+
+    // 1. Decisão de Forma (SVG)
+    let desiredSVG = isGarraMode ? GarraCanvasSVG : (isInteractive ? PawClawsOutSVG : PawRetractedSVG);
+    
+    if (desiredSVG !== currentSVGRef.current) {
+      cursor.innerHTML = desiredSVG;
+      currentSVGRef.current = desiredSVG;
     }
+
+    // 2. Decisão de Cor e Filtro (Preview vs Global)
+    if (previewId) {
+      const previewTheme = ThemeRegistry.getAvailableThemes().find(t => t.id === previewId);
+      if (previewTheme) {
+        cursor.style.color = ThemeRegistry.getCursorColor(previewTheme);
+        cursor.style.filter = ThemeRegistry.getCursorFilter(previewTheme);
+      }
+    } else {
+      cursor.style.color = 'var(--ui-cursor-color)';
+      cursor.style.filter = 'var(--ui-cursor-filter)';
+    }
+
+    // 3. Transformação Física (APEX v2.6 - Regra de Crescimento +2px)
+    // Escala 1.1 (~2px de crescimento visual) apenas para interatividade.
+    // Garra do Canva permanece scale 1 para precisão máxima.
+    const scale = isInteractive && !isGarraMode ? 1.1 : 1;
+    const offsetX = isGarraMode ? 4 : 0;
+    const offsetY = isGarraMode ? 24 : 0;
+
+    cursor.style.left = `${mousePos.current.x - (CURSOR_SIZE / 2) + offsetX}px`;
+    cursor.style.top = `${mousePos.current.y - (CURSOR_SIZE / 2) + offsetY}px`;
+    cursor.style.transform = `scale(${scale}) ${isGarraMode ? 'rotate(0deg)' : 'rotate(180deg)'}`;
+
     rafId.current = requestAnimationFrame(renderLoop);
-  }, [cursorOverride]);
+  }, []);
 
   useEffect(() => {
     const styleEl = document.createElement('style');
@@ -230,7 +243,24 @@ const CustomCursor: React.FC = () => {
 
   return (
     <>
-      <div ref={cursorRef} style={{ position: 'fixed', left: -200, top: -200, width: CURSOR_SIZE, height: CURSOR_SIZE, pointerEvents: 'none', zIndex: 99999, willChange: 'left, top, transform', transition: 'transform 0.12s ease-out, filter 0.3s ease, color 0.3s ease' }} />
+      <div
+        ref={cursorRef}
+        className="mimi-custom-cursor"
+        style={{
+          position: 'fixed',
+          left: -200,
+          top: -200,
+          width: CURSOR_SIZE,
+          height: CURSOR_SIZE,
+          pointerEvents: 'none',
+          zIndex: 99999,
+          display: 'flex',           // Centralização APEX
+          alignItems: 'center',      // Centralização APEX
+          justifyContent: 'center',   // Centralização APEX
+          willChange: 'left, top, transform',
+          transition: 'transform 0.12s ease-out, filter 0.3s ease, color 0.3s ease'
+        }}
+      />
       <div ref={particleContainerRef} style={{ position: 'fixed', left: 0, top: 0, width: 0, height: 0, overflow: 'visible', pointerEvents: 'none', zIndex: 99998 }} />
     </>
   );

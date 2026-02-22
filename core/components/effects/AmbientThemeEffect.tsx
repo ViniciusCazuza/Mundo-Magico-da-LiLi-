@@ -26,14 +26,22 @@ const renderEffect = (themeId: string, container: boolean) => {
     case 'binary-night':
       return (
         <>
-          <div className="absolute inset-0 bg-black" />
           <MatrixRain container={container} />
           <HackerOverlay container={container} />
           {container && (
             <div className="absolute bottom-4 right-4 scale-50 origin-bottom-right">
-               <StrategicHackGif url="./Gifs_Loading_Cat/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+               <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
             </div>
           )}
+        </>
+      );
+
+    case 'siamese':
+      return (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-[#1E1B4B]" />
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-screen" />
+          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_var(--primary)_0%,_transparent_50%)] opacity-20 animate-pulse" />
         </>
       );
 
