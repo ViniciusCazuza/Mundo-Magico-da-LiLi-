@@ -45,6 +45,7 @@ export const MagicCanvasTool: React.FC = () => {
     toggleLayerVisibility,
     toggleLayerLock,
     duplicateLayer,
+    mergeLayers,
     undo,
     redo,
     canUndo,
@@ -284,6 +285,15 @@ export const MagicCanvasTool: React.FC = () => {
     reorderLayer(id, direction);
   }, [reorderLayer]);
 
+  const handleMerge = useCallback((id: string) => {
+    // Mescla com a camada abaixo
+    const index = layers.findIndex(l => l.id === id);
+    if (index > 0) {
+      const targetId = layers[index - 1].id;
+      mergeLayers(id, targetId);
+    }
+  }, [layers, mergeLayers]);
+
   const handleUpdateSettings = useCallback((id: string, settings: any) => {
     updateLayer(id, { settings });
   }, [updateLayer]);
@@ -436,7 +446,7 @@ export const MagicCanvasTool: React.FC = () => {
             onDelete={handleDelete}
             onUpdateSettings={handleUpdateSettings}
             onReorder={handleReorder}
-            onMerge={() => {}} // TODO: Implementar merge
+            onMerge={handleMerge}
             setLayers={() => {}} // Gerenciado pelo hook
           />
         </div>

@@ -25,6 +25,9 @@ export class BrushEngine {
   private scratchCtx: CanvasRenderingContext2D;
   private lastX: number | null = null;
   private lastY: number | null = null;
+  private stabilizedX: number = 0;
+  private stabilizedY: number = 0;
+  private stabilizedPressure: number = 0.5;
   private lastPressure: number = 0.5;
   private activeColor: string = "#000000";
   private dpr: number = 1;
@@ -118,18 +121,31 @@ export class BrushEngine {
     this.prepareStamp(config);
     this.lastX = x;
     this.lastY = y;
+    this.stabilizedX = x;
+    this.stabilizedY = y;
+    this.stabilizedPressure = pressure;
     this.lastPressure = pressure;
     this.paintStamp(x, y, pressure, config);
   }
 
+  /**
+   * Desenha o traço com estabilização EMA (Exponential Moving Average)
+   * para reduzir o jitter e suavizar a pressão.
+   */
   public drawStroke(x: number, y: number, pressure: number, config: BrushConfig) {
     if (this.lastX === null || this.lastY === null) {
       this.startStroke(x, y, pressure, config);
       return;
     }
 
-    const dx = x - this.lastX;
-    const dy = y - this.lastY;
+    // Fator de suavização (0.3 = 30% da nova amostra, 70% da anterior)
+    const weight = 0.3;
+    this.stabilizedX = this.stabilizedX * (1 - weight) + x * weight;
+    this.stabilizedY = this.stabilizedY * (1 - weight) + y * weight;
+    this.stabilizedPressure = this.stabilizedPressure * (1 - weight) + pressure * weight;
+
+    const dx = this.stabilizedX - this.lastX;
+    const dy = this.stabilizedY - this.lastY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
     const stepSize = Math.max(0.5, config.size * config.spacing);
@@ -140,12 +156,12 @@ export class BrushEngine {
         const t = i / steps;
         const ix = this.lastX + dx * t;
         const iy = this.lastY + dy * t;
-        const ip = this.lastPressure + (pressure - this.lastPressure) * t;
+        const ip = this.lastPressure + (this.stabilizedPressure - this.lastPressure) * t;
         this.paintStamp(ix, iy, ip, config);
       }
-      this.lastX = x;
-      this.lastY = y;
-      this.lastPressure = pressure;
+      this.lastX = this.stabilizedX;
+      this.lastY = this.stabilizedY;
+      this.lastPressure = this.stabilizedPressure;
     }
   }
 

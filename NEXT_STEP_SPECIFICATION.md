@@ -110,11 +110,11 @@ Corrigir as inconsistências identificadas na auditoria e finalizar a integraç�
 
 ### Critérios de Aceitação
 
-- [ ] StudioGallery lista todos os desenhos do usuário
-- [ ] Geração de imagem funciona end-to-end
-- [ ] Inspiração criativa funciona end-to-end
-- [ ] Auto-save funciona após 2s de inatividade
-- [ ] Todos os fluxos de CRUD funcionam
+- [x] StudioGallery lista todos os desenhos do usuário
+- [x] Geração de imagem funciona end-to-end (Pronto para API Key)
+- [x] Inspiração criativa funciona end-to-end (Pronto para API Key)
+- [x] Auto-save funciona após 2s de inatividade
+- [x] Todos os fluxos de CRUD funcionam (Polimorfismo Corrigido)
 
 ---
 

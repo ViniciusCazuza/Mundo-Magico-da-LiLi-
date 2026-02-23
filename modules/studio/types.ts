@@ -132,6 +132,7 @@ export interface CreateDrawingRequest {
 export interface UpdateDrawingRequest {
   id: string;
   title: string;
+  layers?: Layer[];
 }
 
 export interface AddLayerRequest {

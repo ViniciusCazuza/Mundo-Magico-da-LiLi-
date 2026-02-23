@@ -125,11 +125,12 @@ function handleError<T>(error: unknown): Result<T> {
       };
     }
 
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+    const errorMessage = error.message;
+    if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
       return {
         success: false,
-        error: 'A Mimi está descansando (Servidor Offline). Tente novamente em alguns instantes.',
-        errorCode: 'BACKEND_OFFLINE',
+        error: 'Não foi possível conectar ao servidor. Verifique se o backend está rodando (porta 5180) ou se há bloqueios de CORS/DNS.',
+        errorCode: 'CONNECTION_FAILED',
       };
     }
 

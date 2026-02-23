@@ -129,17 +129,21 @@ export function useStudio(authorId?: string) {
         const request: UpdateDrawingRequest = {
           id: state.currentDrawing.id,
           title: state.currentDrawing.title,
+          layers: state.currentDrawing.layers, // Persistência global das camadas
         };
         
-        // Sincroniza o título e metadados
-        await updateDrawing(state.currentDrawing.id, request);
+        // Sincroniza o título e todas as camadas
+        const result = await updateDrawing(state.currentDrawing.id, request);
+        if (result.success) {
+          setState(prev => ({ ...prev, lastSavedAt: new Date() }));
+        }
       }, 2000);
     }
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [state.currentDrawing?.title]);
+  }, [state.currentDrawing?.title, state.currentDrawing?.layers]);
 
   // Cleanup e Sincronização de Timestamp
 
@@ -153,7 +157,11 @@ export function useStudio(authorId?: string) {
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
     }
     
-    historyRef.current.push({ layers: JSON.parse(JSON.stringify(layers)), selectedLayerId });
+    // Otimização: structuredClone é mais rápido que JSON.parse(JSON.stringify)
+    historyRef.current.push({
+      layers: typeof structuredClone !== 'undefined' ? structuredClone(layers) : JSON.parse(JSON.stringify(layers)),
+      selectedLayerId
+    });
     historyIndexRef.current = historyRef.current.length - 1;
     
     // Limita histórico a 50 estados
@@ -543,6 +551,74 @@ export function useStudio(authorId?: string) {
     await updateLayerById(layerId, { dataUrl } as Partial<Layer>);
   }, [state.currentDrawing, updateLayerById]);
 
+  const mergeLayers = useCallback(async (sourceId: string, targetId: string) => {
+    if (!state.currentDrawing) return;
+
+    const sourceLayer = state.currentDrawing.layers.find(l => l.id === sourceId);
+    const targetLayer = state.currentDrawing.layers.find(l => l.id === targetId);
+
+    if (!sourceLayer || !targetLayer ||
+        sourceLayer.type !== DrawingLayerType.Raster ||
+        targetLayer.type !== DrawingLayerType.Raster) {
+      setError('MERGE_ERROR', 'Apenas camadas raster podem ser mescladas');
+      return;
+    }
+
+    const sourceRaster = sourceLayer as RasterLayer;
+    const targetRaster = targetLayer as RasterLayer;
+
+    // Criar um canvas temporário para mesclar as imagens
+    const canvas = document.createElement('canvas');
+    canvas.width = state.currentDrawing.canvasSize.width;
+    canvas.height = state.currentDrawing.canvasSize.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const loadImage = (url: string): Promise<HTMLImageElement> => new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+
+    try {
+      setStatus('saving');
+
+      // Carrega ambas as imagens
+      const targetImg = targetRaster.dataUrl ? await loadImage(targetRaster.dataUrl) : null;
+      const sourceImg = sourceRaster.dataUrl ? await loadImage(sourceRaster.dataUrl) : null;
+
+      // Desenha na ordem correta (target é a de baixo)
+      if (targetImg) {
+        ctx.globalAlpha = targetRaster.opacity / 100;
+        ctx.drawImage(targetImg, 0, 0);
+      }
+
+      if (sourceImg) {
+        ctx.globalAlpha = sourceRaster.opacity / 100;
+        ctx.drawImage(sourceImg, 0, 0);
+      }
+
+      const mergedDataUrl = canvas.toDataURL('image/png');
+
+      // Atualiza a camada de destino com a imagem mesclada
+      const updateResult = await updateLayer(state.currentDrawing.id, targetId, {
+        ...targetRaster,
+        dataUrl: mergedDataUrl,
+        name: `${targetRaster.name} + ${sourceRaster.name}`
+      });
+
+      if (updateResult.success) {
+        // Remove a camada de origem
+        await removeLayer(sourceId);
+        setStatus('success');
+      }
+    } catch (err) {
+      setError('MERGE_ERROR', 'Erro ao mesclar camadas');
+      console.error(err);
+    }
+  }, [state.currentDrawing, updateLayer, removeLayer, setStatus, setError]);
+
   // ============================================================================
   // Operações de Geração de Imagem
   // ============================================================================
@@ -638,6 +714,7 @@ export function useStudio(authorId?: string) {
     toggleLayerLock,
     duplicateLayer,
     saveLayer,
+    mergeLayers,
     
     // Undo/Redo
     undo,
