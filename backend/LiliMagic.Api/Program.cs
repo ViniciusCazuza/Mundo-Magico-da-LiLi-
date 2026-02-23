@@ -21,20 +21,20 @@ builder.Services.AddScoped<IGeminiService, GeminiService>();
 // Registrar o repositório de desenhos (in-memory)
 builder.Services.AddSingleton<IDrawingRepository, InMemoryDrawingRepository>();
 
-// Configurar CORS para permitir chamadas do frontend React
+// Configurar CORS com Isolamento de Fronteira (Boundary Analysis)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173", 
-                "http://127.0.0.1:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-              )
+        var allowedOrigins = builder.Environment.IsDevelopment()
+            ? new[] { "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "http://127.0.0.1:3000" }
+            : new[] { builder.Configuration["ALLOWED_ORIGINS"] ?? "" };
+
+        policy.WithOrigins(allowedOrigins.Where(o => !string.IsNullOrEmpty(o)).ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10)); // Otimização de rede
     });
 });
 

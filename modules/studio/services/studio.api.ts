@@ -126,10 +126,15 @@ function handleError<T>(error: unknown): Result<T> {
     }
 
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      // Deteção determinística de estado de rede (Axioma 4)
+      const isOffline = !window.navigator.onLine;
+
       return {
         success: false,
-        error: 'A Mimi está descansando (Servidor Offline). Tente novamente em alguns instantes.',
-        errorCode: 'BACKEND_OFFLINE',
+        error: isOffline
+          ? 'Miau! Parece que você está sem internet. Verifique sua conexão!'
+          : 'A Mimi não conseguiu alcançar o servidor. Pode ser um erro de CORS ou o servidor está offline.',
+        errorCode: isOffline ? 'NETWORK_OFFLINE' : 'BACKEND_UNREACHABLE',
       };
     }
 

@@ -141,7 +141,7 @@ public class StudioController : ControllerBase
         var layerId = Guid.NewGuid();
 
         // Determina o tipo de camada e cria o DTO correspondente
-        if (request.LayerType.ToLower() == "raster")
+        if (request.LayerType == DrawingLayerType.Raster)
         {
             layer = new RasterLayerDto(
                 layerId,
@@ -153,7 +153,7 @@ public class StudioController : ControllerBase
                 request.Content
             );
         }
-        else if (request.LayerType.ToLower() == "vector")
+        else if (request.LayerType == DrawingLayerType.Vector)
         {
             layer = new VectorLayerDto(
                 layerId,
@@ -167,6 +167,19 @@ public class StudioController : ControllerBase
                 2.0,
                 "transparent",
                 false
+            );
+        }
+        else if (request.LayerType == DrawingLayerType.Skeletal)
+        {
+            layer = new SkeletalLayerDto(
+                layerId,
+                request.Name,
+                0,
+                1.0,
+                true,
+                "normal",
+                new List<BoneDto>(),
+                new List<Guid>()
             );
         }
         else
@@ -199,9 +212,39 @@ public class StudioController : ControllerBase
         {
             newLayer = raster with { Name = request.Name, DataUrl = request.Content };
         }
+        else if (oldLayer is VectorLayerDto vector)
+        {
+            // Desserializa o conteúdo JSON para a lista de pontos vetoriais
+            try
+            {
+                var path = System.Text.Json.JsonSerializer.Deserialize<List<BezierControlPointDto>>(
+                    request.Content,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+                );
+                newLayer = vector with { Name = request.Name, Path = path ?? new List<BezierControlPointDto>() };
+            }
+            catch
+            {
+                newLayer = vector with { Name = request.Name };
+            }
+        }
+        else if (oldLayer is SkeletalLayerDto skeletal)
+        {
+            try
+            {
+                var bones = System.Text.Json.JsonSerializer.Deserialize<List<BoneDto>>(
+                    request.Content,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+                );
+                newLayer = skeletal with { Name = request.Name, Bones = bones ?? new List<BoneDto>() };
+            }
+            catch
+            {
+                newLayer = skeletal with { Name = request.Name };
+            }
+        }
         else
         {
-            // Para outros tipos, apenas atualiza o nome por enquanto
             newLayer = oldLayer with { Name = request.Name };
         }
 

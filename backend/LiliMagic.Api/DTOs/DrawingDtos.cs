@@ -13,6 +13,9 @@ public enum DrawingLayerType
 
 // 2. Base Abstrata para Todas as Camadas de Desenho
 // Implementa propriedades comuns a todas as camadas
+[JsonDerivedType(typeof(RasterLayerDto), "raster")]
+[JsonDerivedType(typeof(VectorLayerDto), "vector")]
+[JsonDerivedType(typeof(SkeletalLayerDto), "skeletal")]
 public abstract record LayerBaseDto(
     Guid Id,
     string Name,
@@ -169,7 +172,7 @@ public record UpdateDrawingRequestDto
 public record AddLayerRequestDto
 {
     [JsonPropertyName("layerType")]
-    public string LayerType { get; set; } = "raster";
+    public DrawingLayerType LayerType { get; set; } = DrawingLayerType.Raster;
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

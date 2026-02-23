@@ -111,35 +111,43 @@ export function useStudio(authorId?: string) {
   // Ref para auto-save debounce
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-save logic
+  // Auto-save logic (Debounced 2s) - Previne "zombie data" (Axioma 4)
   useEffect(() => {
     if (!state.currentDrawing) return;
     
-    // Cancela o timeout anterior
+    // Cancela o timeout anterior para evitar disparos múltiplos desnecessários
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Só salva se houver mudanças reais e não estiver carregando
+    // Só agenda o salvamento se estiver em estado estável
     if (state.status === 'idle' || state.status === 'success') {
       saveTimeoutRef.current = setTimeout(async () => {
         if (!state.currentDrawing) return;
         
-        console.log('[useStudio] Auto-saving drawing:', state.currentDrawing.id);
+        console.log('[useStudio] Persisting drawing state:', state.currentDrawing.id);
         const request: UpdateDrawingRequest = {
           id: state.currentDrawing.id,
           title: state.currentDrawing.title,
         };
         
-        // Sincroniza o título e metadados
+        // Sincroniza o título e metadados estruturais
+        // Nota: O conteúdo das camadas (dataUrl) é persistido via saveLayer/updateLayerById
         await updateDrawing(state.currentDrawing.id, request);
+
+        setState(prev => ({ ...prev, lastSavedAt: new Date() }));
       }, 2000);
     }
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [state.currentDrawing?.title]);
+    // Monitora título e estado das camadas (incluindo zIndex e visibilidade)
+    // Usamos o stringify apenas das propriedades estruturais para performance
+  }, [
+    state.currentDrawing?.title,
+    state.currentDrawing?.layers.map(l => `${l.id}-${l.isVisible}-${l.zIndex}`).join('|')
+  ]);
 
   // Cleanup e Sincronização de Timestamp
 
@@ -153,11 +161,15 @@ export function useStudio(authorId?: string) {
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
     }
     
-    historyRef.current.push({ layers: JSON.parse(JSON.stringify(layers)), selectedLayerId });
+    // Otimização: StructuredClone é mais rápido que JSON.stringify para objetos complexos
+    // E evita o bloqueio da main thread com serialização pesada de strings Base64
+    const clonedLayers = structuredClone(layers);
+
+    historyRef.current.push({ layers: clonedLayers, selectedLayerId });
     historyIndexRef.current = historyRef.current.length - 1;
     
-    // Limita histórico a 50 estados
-    if (historyRef.current.length > 50) {
+    // Limita histórico a 50 estados (Ajustado para 30 para economizar memória em dispositivos móveis)
+    if (historyRef.current.length > 30) {
       historyRef.current.shift();
       historyIndexRef.current--;
     }

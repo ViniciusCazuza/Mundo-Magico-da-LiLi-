@@ -26,6 +26,12 @@ export class BrushEngine {
   private lastX: number | null = null;
   private lastY: number | null = null;
   private lastPressure: number = 0.5;
+
+  // Estabilização Preditiva (EMA)
+  private smoothX: number | null = null;
+  private smoothY: number | null = null;
+  private smoothingFactor: number = 0.35; // Equilíbrio Jitter vs Latência
+
   private activeColor: string = "#000000";
   private dpr: number = 1;
 
@@ -118,18 +124,24 @@ export class BrushEngine {
     this.prepareStamp(config);
     this.lastX = x;
     this.lastY = y;
+    this.smoothX = x;
+    this.smoothY = y;
     this.lastPressure = pressure;
     this.paintStamp(x, y, pressure, config);
   }
 
   public drawStroke(x: number, y: number, pressure: number, config: BrushConfig) {
-    if (this.lastX === null || this.lastY === null) {
+    if (this.lastX === null || this.lastY === null || this.smoothX === null || this.smoothY === null) {
       this.startStroke(x, y, pressure, config);
       return;
     }
 
-    const dx = x - this.lastX;
-    const dy = y - this.lastY;
+    // Aplica Estabilização Preditiva (Exponential Moving Average)
+    this.smoothX = this.smoothX + (x - this.smoothX) * this.smoothingFactor;
+    this.smoothY = this.smoothY + (y - this.smoothY) * this.smoothingFactor;
+
+    const dx = this.smoothX - this.lastX;
+    const dy = this.smoothY - this.lastY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
     const stepSize = Math.max(0.5, config.size * config.spacing);
@@ -143,8 +155,8 @@ export class BrushEngine {
         const ip = this.lastPressure + (pressure - this.lastPressure) * t;
         this.paintStamp(ix, iy, ip, config);
       }
-      this.lastX = x;
-      this.lastY = y;
+      this.lastX = this.smoothX;
+      this.lastY = this.smoothY;
       this.lastPressure = pressure;
     }
   }
@@ -152,5 +164,7 @@ export class BrushEngine {
   public endStroke() {
     this.lastX = null;
     this.lastY = null;
+    this.smoothX = null;
+    this.smoothY = null;
   }
 }
