@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using LiliMagic.Api.DTOs;
 using LiliMagic.Api.Services;
 using LiliMagic.Api.Core;
+using System.Text.Json;
 
 namespace LiliMagic.Api.Controllers;
 
@@ -108,6 +109,7 @@ public class StudioController : ControllerBase
         var updatedDrawing = existingResult.Data with
         {
             Title = request.Title,
+            Layers = request.Layers ?? existingResult.Data.Layers,
             UpdatedAt = DateTime.UtcNow
         };
 
@@ -137,41 +139,40 @@ public class StudioController : ControllerBase
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<DrawingDto>> AddLayer(Guid id, [FromBody] AddLayerRequestDto request)
     {
-        LayerBaseDto layer;
+        LayerBaseDto? layer = null;
         var layerId = Guid.NewGuid();
 
-        // Determina o tipo de camada e cria o DTO correspondente
-        if (request.LayerType.ToLower() == "raster")
+        try
         {
-            layer = new RasterLayerDto(
-                layerId,
-                request.Name,
-                0, // ZIndex será calculado pelo repositório
-                1.0,
-                true,
-                "normal",
-                request.Content
-            );
+            if (!string.IsNullOrEmpty(request.Content))
+            {
+                layer = JsonSerializer.Deserialize<LayerBaseDto>(request.Content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
         }
-        else if (request.LayerType.ToLower() == "vector")
+        catch (Exception ex)
         {
-            layer = new VectorLayerDto(
-                layerId,
-                request.Name,
-                0,
-                1.0,
-                true,
-                "normal",
-                new List<BezierControlPointDto>(),
-                "#000000",
-                2.0,
-                "transparent",
-                false
-            );
+            _logger.LogWarning(ex, "Falha ao deserializar conteúdo da nova camada.");
         }
-        else
+
+        if (layer == null)
         {
-            return BadRequest(new ProblemDetails { Title = "Tipo de camada inválido" });
+            // Fallback para criação manual se a deserialização falhar ou não houver conteúdo
+            if (request.LayerType == DrawingLayerType.Raster)
+            {
+                layer = new RasterLayerDto(layerId, request.Name, 0, 1.0, true, "normal", "");
+            }
+            else if (request.LayerType == DrawingLayerType.Vector)
+            {
+                layer = new VectorLayerDto(layerId, request.Name, 0, 1.0, true, "normal", new List<BezierControlPointDto>(), "#000000", 2.0, "transparent", false);
+            }
+            else if (request.LayerType == DrawingLayerType.Skeletal)
+            {
+                layer = new SkeletalLayerDto(layerId, request.Name, 0, 1.0, true, "normal", new List<BoneDto>(), new List<Guid>());
+            }
+            else
+            {
+                return BadRequest(new ProblemDetails { Title = "Tipo de camada inválido" });
+            }
         }
 
         var result = await _repository.AddLayerAsync(id, layer);
@@ -195,13 +196,26 @@ public class StudioController : ControllerBase
         var oldLayer = layers[layerIndex];
         LayerBaseDto newLayer;
 
-        if (oldLayer is RasterLayerDto raster)
+        try
         {
-            newLayer = raster with { Name = request.Name, DataUrl = request.Content };
+            // Tenta deserializar o conteúdo completo da camada
+            var deserializedLayer = JsonSerializer.Deserialize<LayerBaseDto>(request.Content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (deserializedLayer != null)
+            {
+                newLayer = deserializedLayer with { Id = layerId, ZIndex = oldLayer.ZIndex };
+            }
+            else
+            {
+                newLayer = oldLayer with { Name = request.Name };
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // Para outros tipos, apenas atualiza o nome por enquanto
+            _logger.LogWarning(ex, "Falha ao deserializar conteúdo da camada. Usando fallback.");
             newLayer = oldLayer with { Name = request.Name };
         }
 
