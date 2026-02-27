@@ -24,6 +24,27 @@ public class ChatRequestDto
     /// </summary>
     [JsonPropertyName("familyContext")]
     public FamilyContextDto? FamilyContext { get; set; }
+
+    /// <summary>
+    /// Contexto do Studio de Arte (opcional).
+    /// </summary>
+    [JsonPropertyName("studioContext")]
+    public StudioContextDto? StudioContext { get; set; }
+}
+
+/// <summary>
+/// DTO para contexto do Ateliê de Arte.
+/// </summary>
+public class StudioContextDto
+{
+    [JsonPropertyName("colorMood")]
+    public string? ColorMood { get; set; }
+
+    [JsonPropertyName("activeLayerType")]
+    public string? ActiveLayerType { get; set; }
+
+    [JsonPropertyName("drawingTitle")]
+    public string? DrawingTitle { get; set; }
 }
 
 /// <summary>

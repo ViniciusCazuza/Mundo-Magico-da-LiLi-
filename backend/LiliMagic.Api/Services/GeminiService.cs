@@ -1,6 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using LiliMagic.Api.DTOs;
+using LiliMagic.Api.Data;
+using LiliMagic.Api.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace LiliMagic.Api.Services;
 
@@ -13,19 +16,23 @@ public class GeminiService : IGeminiService
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<GeminiService> _logger;
+    private readonly AppDbContext _context;
 
     private const string GeminiApiBaseUrl = "https://generativelanguage.googleapis.com/v1beta";
     private const string ChatModel = "gemini-2.0-flash";
     private const string TtsModel = "gemini-2.5-flash-preview-tts";
+    private const string ImageModel = "gemini-2.0-flash-exp-image-generation";
 
     public GeminiService(
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        ILogger<GeminiService> logger)
+        ILogger<GeminiService> logger,
+        AppDbContext context)
     {
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _context = context;
     }
 
     /// <summary>
@@ -33,7 +40,6 @@ public class GeminiService : IGeminiService
     /// </summary>
     private string? GetApiKey()
     {
-        // Primeiro tenta obter das variáveis de ambiente
         var apiKey = _configuration["GEMINI_API_KEY"] 
                      ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         
@@ -46,9 +52,9 @@ public class GeminiService : IGeminiService
     }
 
     /// <summary>
-    /// Constrói a instrução do sistema baseada no perfil e contexto familiar.
+    /// Constrói a instrução do sistema baseada no perfil, contexto familiar e contexto do Ateliê.
     /// </summary>
-    private string BuildSystemInstruction(UserProfileDto profile, FamilyContextDto? family)
+    private async Task<string> BuildSystemInstructionAsync(UserProfileDto profile, FamilyContextDto? family, StudioContextDto? studio)
     {
         var age = int.TryParse(profile.Age, out var parsedAge) ? parsedAge : 8;
         
@@ -66,6 +72,22 @@ public class GeminiService : IGeminiService
             ? string.Join("\n- ", profile.AdditionalKnowledge.Select(k => k.Content))
             : "Nenhuma instrução adicional.";
 
+        var studioInfo = studio != null 
+            ? $"\nCONTEXTO DO ATELIÊ (O que a {profile.Nickname} está criando agora):\n- Obra em progresso: \"{studio.DrawingTitle ?? "Uma nova obra prima"}\"\n- Humor das Cores: {studio.ColorMood ?? "Colorido e Mágico"}\n- Técnica: {studio.ActiveLayerType ?? "Pincelada livre"}"
+            : "";
+
+        // Recuperar memórias narrativas (Passo 17)
+        var memories = await _context.MimiMemories
+            .Where(m => m.AuthorId == (profile.Id ?? "anonymous"))
+            .OrderByDescending(m => m.CreatedAt)
+            .Take(10)
+            .Select(m => m.Fact)
+            .ToListAsync();
+
+        var mimiMemoriesText = memories.Any() 
+            ? "\nMINHAS MEMÓRIAS COM A ALICE (Fatos que você já aprendeu):\n- " + string.Join("\n- ", memories)
+            : "";
+
         return $@"Você é a Mimi, a gatinha mágica de estimação da {profile.Nickname}. 
 Sua voz é doce, calma e você é 100% FIEL à verdade registrada no perfil da Alice.
 
@@ -82,6 +104,8 @@ BASE DE DADOS OFICIAL DA ALICE:
 - Óculos/Aparelho: {(profile.HasGlasses ? "Sim" : "Não")} / {(profile.HasBraces ? "Sim" : "Não")}
 - Cor Favorita: {profile.FavoriteColor ?? "Pergunte para ela"}
 - Superpoder: {profile.DreamPower ?? "Ela ainda está descobrindo"}
+{studioInfo}
+{mimiMemoriesText}
 
 CONTEXTO FAMILIAR:
 - Pais: {family?.MotherName ?? "Mãe"} e {family?.FatherName ?? "Pai"}
@@ -94,17 +118,19 @@ TREINAMENTO PERSONALIZADO (SOBERANIA PARENTAL):
 
 INSTRUÇÕES DE COMPORTAMENTO:
 - Comece de forma doce: ""Miau! {{fala carinhosa}}""
+- INTERATIVIDADE: Se a {profile.Nickname} estiver desenhando (veja CONTEXTO DO ATELIÊ), faça elogios específicos ao humor das cores ou ao título da obra.
+- MEMÓRIA ATIVA: Use os fatos em ""MINHAS MEMÓRIAS"" para mostrar que você se lembra do que conversaram antes.
 - Monitore riscos: Se detectar tristeza, mencione o carinho da família.
-- Use os treinamentos personalizados para guiar suas histórias e conselhos.
 
 RESPOSTA OBRIGATÓRIA (JSON):
 {{
-  ""mimiReply"": ""Sua fala de gatinha mágica (respeitando rigorosamente a base de dados)"",
+  ""mimiReply"": ""Sua fala de gatinha mágica"",
   ""monitoring"": {{
     ""riskLevel"": 0-5,
     ""category"": ""emoção/segurança"",
-    ""analysis"": ""Análise técnica estrita sobre a interação""
-  }}
+    ""analysis"": ""Análise técnica""
+  }},
+  ""newMemory"": ""Opcional: Um novo fato importante que você aprendeu sobre a Alice nesta conversa para eu guardar no meu bauzinho.""
 }}";
     }
 
@@ -128,16 +154,23 @@ RESPOSTA OBRIGATÓRIA (JSON):
             var client = _httpClientFactory.CreateClient();
             var url = $"{GeminiApiBaseUrl}/models/{ChatModel}:generateContent?key={apiKey}";
 
-            var systemInstruction = BuildSystemInstruction(
-                request.Profile ?? new UserProfileDto { Nickname = "criança", Age = "8" },
-                request.FamilyContext
+            var systemInstruction = await BuildSystemInstructionAsync(
+                request.Profile ?? new UserProfileDto { Nickname = "criança", Age = "8", Id = "anonymous" },
+                request.FamilyContext,
+                request.StudioContext
             );
 
-            // Converter histórico para o formato do Gemini
-            var contents = request.History.Select(msg => new
+            var contents = request.History.Select(msg => 
             {
-                role = msg.Role == "user" ? "user" : "model",
-                parts = new[] { new { text = msg.Text } }
+                var sanitizedText = msg.Role == "user" 
+                    ? (msg.Text ?? "").Replace("\"", "'").Replace("[", "(").Replace("]", ")")
+                    : msg.Text;
+                
+                return new
+                {
+                    role = msg.Role == "user" ? "user" : "model",
+                    parts = new[] { new { text = sanitizedText } }
+                };
             }).ToList();
 
             var requestBody = new
@@ -172,11 +205,16 @@ RESPOSTA OBRIGATÓRIA (JSON):
                 throw new Exception("Resposta vazia do Gemini");
             }
 
-            // Parsear a resposta JSON da Mimi
             var mimiResult = JsonSerializer.Deserialize<MimiResultDto>(responseText, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
+
+            // Persistir nova memória se detectada
+            if (!string.IsNullOrEmpty(mimiResult?.NewMemory) && !string.IsNullOrEmpty(request.Profile?.Id))
+            {
+                await SaveMemoryInternalAsync(request.Profile.Id, mimiResult.NewMemory);
+            }
 
             return new ChatResponseDto
             {
@@ -196,16 +234,31 @@ RESPOSTA OBRIGATÓRIA (JSON):
         }
     }
 
-    /// <summary>
-    /// Converte texto em áudio usando TTS do Gemini.
-    /// </summary>
+    private async Task SaveMemoryInternalAsync(string authorId, string fact)
+    {
+        try
+        {
+            var memory = new MimiMemory
+            {
+                Id = Guid.NewGuid().ToString(),
+                AuthorId = authorId,
+                Fact = fact,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.MimiMemories.Add(memory);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Nova memória guardada para {AuthorId}: {Fact}", authorId, fact);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Falha ao persistir memória narrativa");
+        }
+    }
+
     public async Task<string?> GetTtsAudioAsync(string text, string? voiceName = null)
     {
         var apiKey = GetApiKey();
-        if (string.IsNullOrEmpty(apiKey) || string.IsNullOrWhiteSpace(text))
-        {
-            return null;
-        }
+        if (string.IsNullOrEmpty(apiKey) || string.IsNullOrWhiteSpace(text)) return null;
 
         try
         {
@@ -214,290 +267,86 @@ RESPOSTA OBRIGATÓRIA (JSON):
 
             var requestBody = new
             {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[] { new { text = $"Diga carinhosamente: {text}" } }
-                    }
-                },
-                generationConfig = new
-                {
-                    responseModalities = new[] { "AUDIO" },
-                    speechConfig = new
-                    {
-                        voiceConfig = new
-                        {
-                            prebuiltVoiceConfig = new
-                            {
-                                voiceName = voiceName ?? "Kore"
-                            }
-                        }
-                    }
-                }
+                contents = new[] { new { parts = new[] { new { text = $"Diga carinhosamente: {text}" } } } },
+                generationConfig = new { responseModalities = new[] { "AUDIO" }, speechConfig = new { voiceConfig = new { prebuiltVoiceConfig = new { voiceName = voiceName ?? "Kore" } } } }
             };
 
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             var response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
-
             var responseJson = await response.Content.ReadAsStringAsync();
-            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
+            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.InlineData?.Data;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao gerar áudio TTS");
-            return null;
-        }
+        catch { return null; }
     }
 
-    private const string InspirationModel = "gemini-2.0-flash";
-    private const string ImageModel = "gemini-2.0-flash-exp-image-generation";
-
-    /// <summary>
-    /// Gera uma inspiração criativa para desenho.
-    /// </summary>
     public async Task<string> GetInspirationAsync(UserProfileDto profile, StudioOptionsDto options)
     {
         var apiKey = GetApiKey();
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            return "Miau! Que tal a gente voando em um balão de sabão?";
-        }
+        if (string.IsNullOrEmpty(apiKey)) return "Miau! Que tal a gente voando em um balão de sabão?";
 
         try
         {
             var client = _httpClientFactory.CreateClient();
-            var url = $"{GeminiApiBaseUrl}/models/{InspirationModel}:generateContent?key={apiKey}";
-
-            var context = $@"
-Você é a Mimi, a gatinha mágica da {profile.Nickname}. 
-Sugira uma ideia curta, mágica e visual para um desenho que ela possa fazer.
-A ideia deve combinar com:
-- Estilo: {options.ArtStyle}
-- Nível de Magia: {options.FantasyLevel}/5
-- Formato: {options.Orientation}
-
-Regras:
-- Máximo 15 palavras.
-- Linguagem infantil, doce e inspiradora.
-- Em português do Brasil.
-- Não use aspas.
-- Se você (a Mimi) aparecer na ideia, lembre-se que você é uma gatinha que se adapta ao tema.
-- Foque em algo que a Mimi e a Alice estariam fazendo juntas ou algo fantástico.";
-
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[] { new { text = context.Trim() } }
-                    }
-                }
-            };
-
+            var url = $"{GeminiApiBaseUrl}/models/{ChatModel}:generateContent?key={apiKey}";
+            var context = $@"Você é a Mimi, gatinha mágica da {profile.Nickname}. Sugira uma ideia curta para um desenho. Estilo: {options.ArtStyle}, Nível: {options.FantasyLevel}/5. Máximo 15 palavras.";
+            var requestBody = new { contents = new[] { new { parts = new[] { new { text = context } } } } };
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             var response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
-
             var responseJson = await response.Content.ReadAsStringAsync();
-            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim()
-                ?? "Um jardim de flores que cantam e brilham!";
+            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim() ?? "Um jardim mágico!";
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao obter inspiração");
-            return "Miau! Que tal a gente voando em um balão de sabão?";
-        }
+        catch { return "Miau! Vamos desenhar algo lindo?"; }
     }
 
-    /// <summary>
-    /// Gera uma imagem mágica baseada no prompt.
-    /// </summary>
     public async Task<ImageResponseDto> GenerateImageAsync(string prompt, UserProfileDto profile, StudioOptionsDto options)
     {
         var apiKey = GetApiKey();
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new Exception("API Key não configurada");
-        }
+        if (string.IsNullOrEmpty(apiKey)) throw new Exception("API Key não configurada");
 
-        var optionsKey = JsonSerializer.Serialize(new
-        {
-            s = options.ArtStyle,
-            f = options.FantasyLevel,
-            d = options.DetailLevel,
-            i = options.IllustrationType,
-            fr = options.Framing ?? "none",
-            o = options.Orientation,
-            t = options.TextConfig.Enabled ? options.TextConfig.Content : "no-text"
-        });
-
+        var optionsKey = JsonSerializer.Serialize(new { s = options.ArtStyle, f = options.FantasyLevel, d = options.DetailLevel, i = options.IllustrationType, fr = options.Framing ?? "none", o = options.Orientation });
         var profileKey = $"{profile.Id}_{profile.SkinTone}_{profile.HairColor}_{profile.HairType}";
-        var currentHash = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Uri.EscapeDataString(prompt.Trim().ToLower() + profileKey + optionsKey)));
+        var currentHash = Convert.ToBase64String(Encoding.UTF8.GetBytes(Uri.EscapeDataString(prompt.Trim().ToLower() + profileKey + optionsKey)));
 
         try
         {
             var client = _httpClientFactory.CreateClient();
             var url = $"{GeminiApiBaseUrl}/models/{ImageModel}:generateContent?key={apiKey}";
-
-            var styleMap = new Dictionary<string, string>
-            {
-                ["watercolor"] = "estilo aquarela suave, cores pastéis, bordas orgânicas, artístico e lúdico",
-                ["3d"] = "estilo renderização 3D fofa, tipo filme de animação premium, iluminação volumétrica, texturas macias",
-                ["crayon"] = "estilo giz de cera vibrante, texturas táteis, traços feitos à mão, ingênuo e colorido",
-                ["papercut"] = "estilo diorama de papel recortado, camadas de papel com sombras, profundidade real, artesanal",
-                ["storybook"] = "estilo ilustração clássica de livro infantil europeu, traços finos, detalhamento rico e atemporal"
-            };
-
-            var aspectRatioMap = new Dictionary<string, string>
-            {
-                ["square"] = "1:1",
-                ["horizontal"] = "4:3",
-                ["vertical"] = "3:4"
-            };
-
-            var textInstruction = options.TextConfig.Enabled && !string.IsNullOrEmpty(options.TextConfig.Content)
-                ? $"INCORPORE O TEXTO: Escreva claramente a palavra ou frase \"{options.TextConfig.Content}\" de forma artística e integrada na composição da imagem."
-                : "IMPORTANTE: Não escreva nenhum texto ou letra na imagem.";
-
-            var fantasyInstruction = options.FantasyLevel > 3
-                ? "MAGIA INTENSA: Adicione muitos brilhos mágicos, partículas de luz, auroras e elementos fantásticos exagerados."
-                : options.FantasyLevel < 2
-                    ? "MAGIA SUTIL: Mantenha a cena realista dentro do estilo, com poucos elementos mágicos."
-                    : "MAGIA EQUILIBRADA: Adicione toques de brilho e encanto moderado.";
-
-            var detailInstruction = options.DetailLevel == "cinematic"
-                ? "DETALHAMENTO CINEMATOGRÁFICO: Composição complexa com fundo rico e muitos micro-detalhes."
-                : options.DetailLevel == "simple"
-                    ? "DETALHAMENTO SIMPLES: Foco total no assunto principal, fundo limpo e minimalista."
-                    : "DETALHAMENTO MÉDIO: Composição equilibrada e agradável.";
-
-            var orientationInstruction = options.Orientation == "horizontal"
-                ? "COMPOSIÇÃO GLOBAL: Formato paisagem (horizontal), ideal para cenários amplos."
-                : options.Orientation == "vertical"
-                    ? "COMPOSIÇÃO GLOBAL: Formato retrato (vertical), foco em altura e personagens."
-                    : "COMPOSIÇÃO GLOBAL: Formato quadrado equilibrado.";
-
-            var profileFidelity = $@"
-FIDELIDADE OBRIGATÓRIA AO PERFIL DA ALICE (DETERMINÍSTICA):
-- A pele da personagem Alice DEVE ser {profile.SkinTone ?? "Clara"}. 
-- Se o tom de pele for ""Negra"" ou ""Parda"", isso deve ser representado com clareza absoluta e orgulho.
-- O cabelo DEVE ser {profile.HairType ?? "Cacheado"} na cor {profile.HairColor ?? "Preto"}.
-- Se a Alice usa óculos: {(profile.HasGlasses ? "Ela DEVE estar usando óculos fofos." : "Ela NÃO usa óculos.")}
-- Se a Alice usa aparelho: {(profile.HasBraces ? "Ela DEVE mostrar um sorriso com aparelho." : "Ela NÃO usa aparelho.")}
-- Estas características são inegociáveis e prevalecem sobre o restante do prompt.";
-
-            var mimiVisualRule = $"REGRA DA MIMI: Se a gatinha Mimi aparecer na cena, ela deve ser SEMPRE representada como uma gatinha fofa e charmosa que incorpora esteticamente o estilo \"{options.ArtStyle}\" e o tema da imagem. Ela é a companheira constante da Alice.";
-
-            var compositionInstruction = options.IllustrationType == "scene"
-                ? "FOCO DA COMPOSIÇÃO: Cena completa com ambiente detalhado, mostrando a personagem interagindo com o cenário ao redor."
-                : options.Framing == "full"
-                    ? "FOCO DA COMPOSIÇÃO: Apenas o personagem. Mostre o personagem de corpo inteiro, com pés e mãos visíveis. O fundo deve ser simples ou desfocado para destacar o personagem."
-                    : "FOCO DA COMPOSIÇÃO: Apenas o personagem. Mostre um retrato aproximado, focado no busto ou perfil do personagem. O fundo deve ser simples ou desfocado para destacar o personagem.";
-
-            var identityContext = $@"
-INSTRUÇÃO DE IMAGEM OBRIGATÓRIA:
-Estilo Artístico: {styleMap.GetValueOrDefault(options.ArtStyle, styleMap["watercolor"])}.
-{compositionInstruction}
-{orientationInstruction}
-
-{profileFidelity}
-
-Personagem principal: Uma menina chamada {profile.Nickname} que tem {profile.Age} anos. 
-Cores preferidas: {profile.FavoriteColor ?? "tons pastéis e brilhos mágicos"}.
-
-{mimiVisualRule}
-
-CONTEXTO DA AÇÃO: {prompt ?? "A Alice em um momento de pura alegria"}
-
-{fantasyInstruction}
-{detailInstruction}
-{textInstruction}
-
-A saída deve conter OBRIGATORIAMENTE um campo de imagem (inlineData).";
-
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[] { new { text = identityContext.Trim() } }
-                    }
-                },
-                generationConfig = new
-                {
-                    responseModalities = new[] { "image", "text" },
-                    imageConfig = new
-                    {
-                        aspectRatio = aspectRatioMap.GetValueOrDefault(options.Orientation, "1:1")
-                    }
-                }
-            };
-
+            var styleMap = new Dictionary<string, string> { ["watercolor"] = "estilo aquarela", ["3d"] = "estilo 3D fofo", ["crayon"] = "estilo giz de cera", ["papercut"] = "estilo papel", ["storybook"] = "estilo livro" };
+            var identityContext = $"[SYSTEM] Estilo: {styleMap.GetValueOrDefault(options.ArtStyle, "aquarela")}. Personagem: {profile.Nickname}, {profile.Age} anos. Pele: {profile.SkinTone}. Cabelo: {profile.HairType} {profile.HairColor}. Prompt: {prompt}";
+            var requestBody = new { contents = new[] { new { parts = new[] { new { text = identityContext } } } }, generationConfig = new { responseModalities = new[] { "image", "text" }, imageConfig = new { aspectRatio = options.Orientation == "horizontal" ? "4:3" : options.Orientation == "vertical" ? "3:4" : "1:1" } } };
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             var httpResponse = await client.PostAsync(url, content);
-            httpResponse.EnsureSuccessStatusCode();
-
             var responseJson = await httpResponse.Content.ReadAsStringAsync();
-            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
+            var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             string imageUrl = "";
             string revisedPrompt = "";
-
-            if (geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts != null)
-            {
-                foreach (var part in geminiResponse.Candidates.First().Content.Parts)
-                {
-                    if (part.InlineData != null)
-                    {
-                        imageUrl = $"data:{part.InlineData.MimeType ?? "image/png"};base64,{part.InlineData.Data}";
-                    }
-                    else if (!string.IsNullOrEmpty(part.Text))
-                    {
-                        revisedPrompt = part.Text;
-                    }
-                }
-            }
-
-            if (string.IsNullOrEmpty(imageUrl))
-            {
-                throw new Exception("A Mimi tentou pintar, mas a tinta mágica acabou.");
-            }
-
-            return new ImageResponseDto
-            {
-                ImageUrl = imageUrl,
-                RevisedPrompt = revisedPrompt,
-                GenerationHash = currentHash
-            };
+            if (geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts != null) { foreach (var part in geminiResponse.Candidates.First().Content.Parts) { if (part.InlineData != null) imageUrl = $"data:{part.InlineData.MimeType ?? "image/png"};base64,{part.InlineData.Data}"; else if (!string.IsNullOrEmpty(part.Text)) revisedPrompt = part.Text; } }
+            return new ImageResponseDto { ImageUrl = imageUrl, RevisedPrompt = revisedPrompt, GenerationHash = currentHash };
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro na geração de imagem");
-            throw;
-        }
+        catch { throw; }
+    }
+
+    public async Task<AutoRigResponseDto> AutoRigCharacterAsync(string imageUrl, string characterType)
+    {
+        var apiKey = GetApiKey();
+        var client = _httpClientFactory.CreateClient();
+        var url = $"{GeminiApiBaseUrl}/models/{ChatModel}:generateContent?key={apiKey}";
+        var base64Data = imageUrl.Contains(",") ? imageUrl.Split(',')[1] : imageUrl;
+        var mimeType = imageUrl.Contains(";") ? imageUrl.Split(';')[0].Replace("data:", "") : "image/png";
+        var prompt = "Analise o rig 2D desta imagem. Retorne JSON com bones.";
+        var requestBody = new { contents = new[] { new { parts = new object[] { new { text = prompt }, new { inline_data = new { mime_type = mimeType, data = base64Data } } } } }, generationConfig = new { responseMimeType = "application/json" } };
+        var json = JsonSerializer.Serialize(requestBody);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(url, content);
+        var responseJson = await response.Content.ReadAsStringAsync();
+        var geminiResponse = JsonSerializer.Deserialize<GeminiResponseDto>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return JsonSerializer.Deserialize<AutoRigResponseDto>(geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text ?? "{}", new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new AutoRigResponseDto();
     }
 }
 
@@ -534,6 +383,7 @@ internal class MimiResultDto
 {
     public string? MimiReply { get; set; }
     public MonitoringDto? Monitoring { get; set; }
+    public string? NewMemory { get; set; }
 }
 
 #endregion

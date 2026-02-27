@@ -13,22 +13,62 @@ const LOG_LINES = [
   "ALERT: INTRUSION_DETECTION_SYSTEM_OFFLINE",
   "STATUS: PAYLOAD_EXECUTED_SUCCESSFULLY",
   "CONNECTION: ENCRYPTED_TUNNEL_ESTABLISHED",
-  "OVERRIDE: MANUAL_CONTROL_GRANTED"
+  "OVERRIDE: MANUAL_CONTROL_GRANTED",
+  "MIMI_OS: KERNEL_PANIC_RECOVERED",
+  "REPLICATING: NEURAL_MAPPING_V9",
+  "BYPASSING: PARENTAL_GATE_ALPHA",
+  "INTERCEPTING: MIMI_HEARTBEAT_SIGNAL"
 ];
 
-export const HackerSimulator: React.FC = () => {
+const SECTION_LOGS: Record<string, string[]> = {
+  chat: [
+    "INTERCEPTING: PACKET_STREAM_AES_GCM",
+    "DECRYPTING: MIMI_CORE_PROTOCOLS",
+    "SECURE_TUNNEL: ALICE_MIMI_CHANNEL_V1",
+    "MONITORING: EMOTIONAL_SIGNAL_INTERCEPT",
+    "DUMPING: CONVERSATION_HISTORY_ENCRYPTED"
+  ],
+  studio: [
+    "BUFFER_OVERFLOW: RASTER_MIXING_ENGINE",
+    "UPLOADING: VECTOR_SHAPES_PERSISTENCE",
+    "DUMPING: IMAGE_METADATA_EXTRACTOR",
+    "OVERRIDE: ATELIER_CANVAS_RENDERER_V2",
+    "INJECTING: ARTIFICIAL_IMAGINATION_V15"
+  ],
+  agenda: [
+    "BYPASSING: CALENDAR_ACL_V3",
+    "DUMPING: SCHEDULE_DB_SQLITE",
+    "STATUS: MISSION_SCHEDULE_SYNCED",
+    "ALERT: EVENT_COLLISION_DETECTED",
+    "OVERRIDE: TEMPORAL_SEQUENCE_V4"
+  ],
+  profile: [
+    "READING: IDENTITY_SCHEMA_V7",
+    "ALTERING: BIOMETRIC_DATA_STUB",
+    "STATUS: DREAM_POWER_OVERCLOCK",
+    "DUMPING: FAVORITE_COLOR_BYTE_STREAM"
+  ]
+};
+
+interface HackerSimulatorProps {
+  section?: string;
+}
+
+export const HackerSimulator: React.FC<HackerSimulatorProps> = ({ section }) => {
   const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLogs(prev => {
-        const next = [...prev, LOG_LINES[Math.floor(Math.random() * LOG_LINES.length)]];
-        if (next.length > 15) return next.slice(1);
+        const currentSectionLogs = section && SECTION_LOGS[section] ? SECTION_LOGS[section] : [];
+        const combinedPool = [...LOG_LINES, ...currentSectionLogs];
+        const next = [...prev, combinedPool[Math.floor(Math.random() * combinedPool.length)]];
+        if (next.length > 20) return next.slice(1);
         return next;
       });
-    }, 2000);
+    }, 1500);
     return () => clearInterval(interval);
-  }, []);
+  }, [section]);
 
   return (
     <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden font-mono text-[10px] p-4 flex flex-col gap-1 select-none">

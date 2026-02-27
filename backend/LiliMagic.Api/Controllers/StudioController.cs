@@ -37,7 +37,7 @@ public class StudioController : ControllerBase
     [HttpGet("drawings")]
     [ProducesResponseType(typeof(PagedList<DrawingDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedList<DrawingDto>>> GetDrawings(
-        [FromQuery] Guid authorId,
+        [FromQuery] string authorId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -55,7 +55,7 @@ public class StudioController : ControllerBase
     [HttpGet("drawings/{id}")]
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<DrawingDto>> GetDrawing(Guid id)
+    public async Task<ActionResult<DrawingDto>> GetDrawing(string id)
     {
         var result = await _repository.GetByIdAsync(id);
         if (!result.Success)
@@ -74,7 +74,7 @@ public class StudioController : ControllerBase
     {
         var drawing = new DrawingDto
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.NewGuid().ToString(),
             AuthorId = request.AuthorId,
             Title = request.Title,
             CanvasSize = request.CanvasSize,
@@ -97,7 +97,7 @@ public class StudioController : ControllerBase
     /// </summary>
     [HttpPut("drawings/{id}")]
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<DrawingDto>> UpdateDrawing(Guid id, [FromBody] UpdateDrawingRequestDto request)
+    public async Task<ActionResult<DrawingDto>> UpdateDrawing(string id, [FromBody] UpdateDrawingRequestDto request)
     {
         var existingResult = await _repository.GetByIdAsync(id);
         if (!existingResult.Success)
@@ -120,7 +120,7 @@ public class StudioController : ControllerBase
     /// </summary>
     [HttpDelete("drawings/{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteDrawing(Guid id)
+    public async Task<IActionResult> DeleteDrawing(string id)
     {
         var result = await _repository.DeleteAsync(id);
         return result.Success ? NoContent() : NotFound();
@@ -135,13 +135,13 @@ public class StudioController : ControllerBase
     /// </summary>
     [HttpPost("drawings/{id}/layers")]
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<DrawingDto>> AddLayer(Guid id, [FromBody] AddLayerRequestDto request)
+    public async Task<ActionResult<DrawingDto>> AddLayer(string id, [FromBody] AddLayerRequestDto request)
     {
         LayerBaseDto layer;
-        var layerId = Guid.NewGuid();
+        var layerId = Guid.NewGuid().ToString();
 
         // Determina o tipo de camada e cria o DTO correspondente
-        if (request.LayerType.ToLower() == "raster")
+        if (request.LayerType == DrawingLayerType.Raster)
         {
             layer = new RasterLayerDto(
                 layerId,
@@ -150,11 +150,18 @@ public class StudioController : ControllerBase
                 1.0,
                 true,
                 "normal",
-                request.Content
+                request.Content,
+                null
             );
         }
-        else if (request.LayerType.ToLower() == "vector")
+        else if (request.LayerType == DrawingLayerType.Vector)
         {
+            var paths = new List<List<BezierControlPointDto>>();
+            if (!string.IsNullOrEmpty(request.Content))
+            {
+                try { paths = System.Text.Json.JsonSerializer.Deserialize<List<List<BezierControlPointDto>>>(request.Content, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }) ?? paths; } catch { /* ignore */ }
+            }
+
             layer = new VectorLayerDto(
                 layerId,
                 request.Name,
@@ -162,11 +169,33 @@ public class StudioController : ControllerBase
                 1.0,
                 true,
                 "normal",
-                new List<BezierControlPointDto>(),
+                paths,
                 "#000000",
                 2.0,
                 "transparent",
-                false
+                false,
+                null
+            );
+        }
+        else if (request.LayerType == DrawingLayerType.Skeletal)
+        {
+            var bones = new List<BoneDto>();
+            if (!string.IsNullOrEmpty(request.Content))
+            {
+                try { bones = System.Text.Json.JsonSerializer.Deserialize<List<BoneDto>>(request.Content, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }) ?? bones; } catch { /* ignore */ }
+            }
+
+            layer = new SkeletalLayerDto(
+                layerId,
+                request.Name,
+                0,
+                1.0,
+                true,
+                "normal",
+                bones,
+                new List<string>(),
+                new List<SmartActionDto>(),
+                null
             );
         }
         else
@@ -183,7 +212,7 @@ public class StudioController : ControllerBase
     /// </summary>
     [HttpPut("drawings/{id}/layers/{layerId}")]
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<DrawingDto>> UpdateLayer(Guid id, Guid layerId, [FromBody] UpdateLayerRequestDto request)
+    public async Task<ActionResult<DrawingDto>> UpdateLayer(string id, string layerId, [FromBody] UpdateLayerRequestDto request)
     {
         var drawingResult = await _repository.GetByIdAsync(id);
         if (!drawingResult.Success) return NotFound();
@@ -199,9 +228,60 @@ public class StudioController : ControllerBase
         {
             newLayer = raster with { Name = request.Name, DataUrl = request.Content };
         }
+        else if (oldLayer is VectorLayerDto vector)
+        {
+            var paths = vector.Paths;
+            if (!string.IsNullOrEmpty(request.Content))
+            {
+                try
+                {
+                    paths = System.Text.Json.JsonSerializer.Deserialize<List<List<BezierControlPointDto>>>(
+                        request.Content, 
+                        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+                    ) ?? paths;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao desserializar conteúdo vetorial para a camada {LayerId}", layerId);
+                }
+            }
+            newLayer = vector with { Name = request.Name, Paths = paths };
+        }
+        else if (oldLayer is SkeletalLayerDto skeletal)
+        {
+            var bones = skeletal.Bones;
+            var smartActions = skeletal.SmartActions;
+            
+            if (!string.IsNullOrEmpty(request.Content))
+            {
+                try
+                {
+                    var data = System.Text.Json.JsonDocument.Parse(request.Content);
+                    if (data.RootElement.TryGetProperty("bones", out var bonesEl))
+                    {
+                        bones = System.Text.Json.JsonSerializer.Deserialize<List<BoneDto>>(
+                            bonesEl.GetRawText(),
+                            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+                        ) ?? bones;
+                    }
+                    
+                    if (data.RootElement.TryGetProperty("smartActions", out var actionsEl))
+                    {
+                        smartActions = System.Text.Json.JsonSerializer.Deserialize<List<SmartActionDto>>(
+                            actionsEl.GetRawText(),
+                            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }
+                        ) ?? smartActions;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao desserializar conteúdo esquelético para a camada {LayerId}", layerId);
+                }
+            }
+            newLayer = skeletal with { Name = request.Name, Bones = bones, SmartActions = smartActions };
+        }
         else
         {
-            // Para outros tipos, apenas atualiza o nome por enquanto
             newLayer = oldLayer with { Name = request.Name };
         }
 
@@ -216,7 +296,7 @@ public class StudioController : ControllerBase
     /// </summary>
     [HttpDelete("drawings/{id}/layers/{layerId}")]
     [ProducesResponseType(typeof(DrawingDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<DrawingDto>> RemoveLayer(Guid id, Guid layerId)
+    public async Task<ActionResult<DrawingDto>> RemoveLayer(string id, string layerId)
     {
         var drawingResult = await _repository.GetByIdAsync(id);
         if (!drawingResult.Success) return NotFound();
@@ -268,6 +348,26 @@ public class StudioController : ControllerBase
         {
             _logger.LogError(ex, "Erro ao gerar imagem");
             return StatusCode(500, "A Mimi tentou pintar, mas a tinta mágica acabou. Tente novamente!");
+        }
+    }
+
+    /// <summary>
+    /// Detecta automaticamente o esqueleto de um personagem em uma imagem.
+    /// </summary>
+    [HttpPost("auto-rig")]
+    [ProducesResponseType(typeof(AutoRigResponseDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AutoRigResponseDto>> AutoRig([FromBody] AutoRigRequestDto request)
+    {
+        try
+        {
+            _logger.LogInformation("Iniciando Auto-Rigging para o tipo: {CharacterType}", request.CharacterType);
+            var result = await _geminiService.AutoRigCharacterAsync(request.ImageUrl, request.CharacterType);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro no Auto-Rigging");
+            return StatusCode(500, "A Mimi tentou sentir os ossinhos do desenho, mas se atrapalhou. Tente novamente!");
         }
     }
 }

@@ -190,9 +190,9 @@ input, textarea {
 }
 
 [data-theme-id="binary-night"] .mimi-card {
-  background: rgba(0, 0, 0, 0.85) !important;
+  background: rgba(0, 0, 0, 0.95) !important;
   border: 1px solid var(--primary) !important;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3) !important;
   position: relative;
   overflow: hidden;
 }

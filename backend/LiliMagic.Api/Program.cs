@@ -1,4 +1,7 @@
 using LiliMagic.Api.Services;
+using LiliMagic.Api.Data;
+using LiliMagic.Api.Hubs;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,29 +15,61 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Adicionar SignalR (Axioma 5 - Real-time Interactivity)
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.MaximumReceiveMessageSize = 1024 * 1024 * 5; // 5MB
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+}).AddJsonProtocol(options => {
+    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
+
+// Configurar Banco de Dados SQLite (Axioma 3 - Simplicidade em Dev)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=lili_magic.db"));
+
 // Configurar HttpClient para chamadas à API do Gemini
 builder.Services.AddHttpClient();
 
 // Registrar o serviço do Gemini
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 
-// Registrar o repositório de desenhos (in-memory)
-builder.Services.AddSingleton<IDrawingRepository, InMemoryDrawingRepository>();
+// Registrar o repositório de desenhos (SQLite)
+builder.Services.AddScoped<IDrawingRepository, SqliteDrawingRepository>();
 
-// Configurar CORS para permitir chamadas do frontend React
+// Configurar CORS com Isolamento de Fronteira (Boundary Analysis)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173", 
-                "http://127.0.0.1:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:3000"
-              )
-              .AllowAnyHeader()
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"
+        };
+
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.SetIsOriginAllowed(_ => true)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            var configOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') ?? Array.Empty<string>();
+            allowedOrigins.AddRange(configOrigins);
+            policy.WithOrigins(allowedOrigins.ToArray());
+        }
+
+        policy.AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
     });
 });
 
@@ -50,10 +85,16 @@ if (app.Environment.IsDevelopment())
 // Usar CORS
 app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Mapear Hubs do SignalR
+app.MapHub<DrawingHub>("/hubs/drawing");
 
 app.Run();

@@ -40,13 +40,8 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
 
   return (
     <div className={`flex-1 flex flex-col md:flex-row min-h-0 bg-transparent overflow-hidden animate-fade-in relative`}>
-      {isHackerMode && (
-        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
-           <HackerOverlay />
-           <HackerSimulator />
-           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
-        </div>
-      )}
+      {/* Background Effects are handled globally in App.tsx via AmbientThemeEffect */}
+
       {/* Lado Esquerdo: Calendário Mensal */}
       <section className={`w-full md:w-[450px] p-4 md:p-8 flex flex-col shrink-0 border-r border-[var(--border-color)] relative z-10 backdrop-blur-md transition-all ${isHackerMode ? 'bg-black/80' : 'bg-[var(--surface)]/95'}`}>
         <MonthlyView 

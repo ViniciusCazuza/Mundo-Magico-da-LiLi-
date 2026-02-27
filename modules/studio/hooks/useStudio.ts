@@ -32,10 +32,12 @@ import {
   createSkeletalLayer,
   generateMagicImage,
   generateInspirationPrompt,
+  autoRig,
   StudioOptions,
   StudioImageResponse,
 } from '../services/studio.api';
 import { BrushEngine } from '../engine/BrushEngine';
+import { appContext } from '../../../core/ecosystem/AppContext';
 
 // ============================================================================
 // Tipos de Estado
@@ -111,35 +113,50 @@ export function useStudio(authorId?: string) {
   // Ref para auto-save debounce
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-save logic
+  // Auto-save logic (Debounced 2s) - Previne "zombie data" (Axioma 4)
   useEffect(() => {
     if (!state.currentDrawing) return;
     
-    // Cancela o timeout anterior
+    // Cancela o timeout anterior para evitar disparos múltiplos desnecessários
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Só salva se houver mudanças reais e não estiver carregando
+    // Só agenda o salvamento se estiver em estado estável
     if (state.status === 'idle' || state.status === 'success') {
       saveTimeoutRef.current = setTimeout(async () => {
         if (!state.currentDrawing) return;
         
-        console.log('[useStudio] Auto-saving drawing:', state.currentDrawing.id);
+        console.log('[useStudio] Persisting drawing state:', state.currentDrawing.id);
         const request: UpdateDrawingRequest = {
           id: state.currentDrawing.id,
           title: state.currentDrawing.title,
         };
         
-        // Sincroniza o título e metadados
+        // Sincroniza o título e metadados estruturais
+        // Nota: O conteúdo das camadas (dataUrl) é persistido via saveLayer/updateLayerById
         await updateDrawing(state.currentDrawing.id, request);
+        
+        // Atualiza Contexto Global (Interoperabilidade v1.0)
+        appContext.setStudioContext({
+          drawingTitle: state.currentDrawing.title,
+          colorMood: brushEngineRef.current.getColorMood(),
+          activeLayerType: state.currentDrawing.layers.find(l => l.id === state.selectedLayerId)?.type || 'Raster'
+        });
+
+        setState(prev => ({ ...prev, lastSavedAt: new Date() }));
       }, 2000);
     }
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [state.currentDrawing?.title]);
+    // Monitora título e estado das camadas (incluindo zIndex e visibilidade)
+    // Usamos o stringify apenas das propriedades estruturais para performance
+  }, [
+    state.currentDrawing?.title, 
+    state.currentDrawing?.layers.map(l => `${l.id}-${l.isVisible}-${l.zIndex}`).join('|')
+  ]);
 
   // Cleanup e Sincronização de Timestamp
 
@@ -153,11 +170,16 @@ export function useStudio(authorId?: string) {
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
     }
     
-    historyRef.current.push({ layers: JSON.parse(JSON.stringify(layers)), selectedLayerId });
+    // Otimização APEX: Imutabilidade Baseada em Referência.
+    // Como os dados vêm do backend (getDrawingById/addLayer/updateLayer), 
+    // eles já são novos objetos de array. O structuredClone era redundante e lento.
+    // Apenas armazenamos a referência do array de camadas.
+    
+    historyRef.current.push({ layers, selectedLayerId });
     historyIndexRef.current = historyRef.current.length - 1;
     
-    // Limita histórico a 50 estados
-    if (historyRef.current.length > 50) {
+    // Limita histórico a 20 estados para equilíbrio entre UX e Performance (RAM)
+    if (historyRef.current.length > 20) {
       historyRef.current.shift();
       historyIndexRef.current--;
     }
@@ -265,18 +287,32 @@ export function useStudio(authorId?: string) {
     const result = await createDrawing(request);
     
     if (result.success && result.data) {
+      // Determina a cor de fundo com base no tema ativo
+      const currentThemeId = localStorage.getItem('mimi_theme_v7') || 'siamese';
+      const bgColor = currentThemeId === 'binary-night' ? '#000000' : '#FFFFFF';
+
+      // Adiciona Camada de Fundo Fixa por padrão (Passo 19)
+      const bgLayer = createRasterLayer(crypto.randomUUID(), 'Fundo Mágico', 0, '');
+      bgLayer.backgroundColor = bgColor;
+      await addLayerToDrawing(result.data.id, bgLayer);
+
+      const refreshedResult = await getDrawingById(result.data.id);
+      const finalDrawing = refreshedResult.success ? refreshedResult.data! : result.data;
+
       setState((prev) => ({
         ...prev,
-        currentDrawing: result.data!,
-        drawings: [result.data!, ...prev.drawings],
+        currentDrawing: finalDrawing,
+        drawings: [finalDrawing, ...prev.drawings.filter(d => d.id !== finalDrawing.id)],
+        selectedLayerId: finalDrawing.layers[0]?.id || null,
         status: 'success',
       }));
+      return refreshedResult.success ? { success: true, data: finalDrawing } : result;
     } else {
       setError(result.errorCode || 'CREATE_ERROR', result.error || 'Erro ao criar desenho');
     }
     
     return result;
-  }, [authorId, setStatus, setError]);
+  }, [currentAuthorId, setStatus, setError]);
 
   const saveDrawing = useCallback(async (drawingId: string, updates: Partial<UpdateDrawingRequest>): Promise<Result<Drawing>> => {
     setStatus('saving');
@@ -599,6 +635,35 @@ export function useStudio(authorId?: string) {
     }
   }, []);
 
+  const autoRigCharacter = useCallback(async (
+    layerId: string,
+    characterType: string = 'humanoid'
+  ): Promise<Result<any>> => {
+    if (!state.currentDrawing) return { success: false, error: 'Nenhum desenho ativo' };
+    
+    const layer = state.currentDrawing.layers.find(l => l.id === layerId);
+    if (!layer || layer.type !== DrawingLayerType.Raster) {
+      return { success: false, error: 'Camada inválida para Rigging' };
+    }
+
+    setStatus('loading');
+    const result = await autoRig((layer as RasterLayer).dataUrl, characterType);
+    
+    if (result.success && result.data) {
+      // Cria a camada esquelética com os ossos detectados
+      await addLayer(
+        DrawingLayerType.Skeletal,
+        `Esqueleto: ${layer.name}`,
+        JSON.stringify(result.data.bones)
+      );
+      setStatus('success');
+    } else {
+      setError(result.errorCode || 'RIG_ERROR', result.error || 'Erro no Auto-Rigging');
+    }
+    
+    return result;
+  }, [state.currentDrawing, addLayer, setStatus, setError]);
+
   // ============================================================================
   // Retorno do Hook
   // ============================================================================
@@ -648,6 +713,7 @@ export function useStudio(authorId?: string) {
     // Ações de IA
     generateImage,
     getInspiration,
+    autoRigCharacter,
     
     // Utilitários
     clearError,

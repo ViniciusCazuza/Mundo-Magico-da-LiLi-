@@ -54,6 +54,33 @@ public class ImageResponseDto
 }
 
 /// <summary>
+/// Requisição para detecção automática de esqueleto (Rigging).
+/// </summary>
+public record AutoRigRequestDto
+{
+    [JsonPropertyName("imageUrl")]
+    public string ImageUrl { get; set; } = string.Empty; // Base64 ou URL da camada
+
+    [JsonPropertyName("characterType")]
+    public string CharacterType { get; set; } = "humanoid"; // humanoid, animal, mythical
+}
+
+/// <summary>
+/// Resposta com os pontos de articulação detectados pela IA.
+/// </summary>
+public record AutoRigResponseDto
+{
+    [JsonPropertyName("bones")]
+    public List<BoneDto> Bones { get; set; } = new();
+
+    [JsonPropertyName("ikChains")]
+    public List<string> IkChains { get; set; } = new();
+
+    [JsonPropertyName("analysis")]
+    public string Analysis { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Opções do Studio de arte.
 /// </summary>
 public class StudioOptionsDto

@@ -9,7 +9,6 @@ import { MagicCanvasTool } from "./tools/MagicCanvasTool";
 import { StudioGallery } from "./ui/StudioGallery";
 import { useTheme } from "../../core/theme/useTheme";
 import { HackerOverlay } from "../../core/components/MatrixRain";
-import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 import { DecryptText } from "../../core/components/effects/DecryptText";
 
 type StudioToolId = 'laboratory' | 'canvas' | 'gallery';
@@ -88,8 +87,12 @@ export const StudioModule: React.FC = () => {
   if (!activeToolId) {
     return (
       <div className="flex-1 flex flex-col bg-transparent overflow-y-auto no-scrollbar animate-fade-in font-sans p-8 md:p-16 lg:p-24 relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--accent)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none" style={{ animationDelay: '2s' }}></div>
+        {!isHackerMode && (
+          <>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--primary)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--accent)]/10 blur-[100px] rounded-full animate-aurora pointer-events-none" style={{ animationDelay: '2s' }}></div>
+          </>
+        )}
 
         <div className="max-w-6xl mx-auto w-full space-y-20 relative z-10">
           <header className="text-center space-y-4">
@@ -165,6 +168,12 @@ export const StudioModule: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-transparent overflow-hidden relative">
+      {isHackerMode && (
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
+           <HackerSimulator section="studio" />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+        </div>
+      )}
       <header className="shrink-0 h-16 sm:h-20 bg-[var(--surface)]/80 backdrop-blur-xl border-b-[var(--ui-border-width)] border-dashed border-[var(--border-color)] px-8 flex items-center justify-between z-[100] animate-fade-in shadow-sm">
         <button 
           onClick={() => setActiveToolId(null)}
@@ -190,17 +199,6 @@ export const StudioModule: React.FC = () => {
       </header>
 
       <div className="flex-1 flex flex-col min-h-0 relative">
-        {isHackerMode && (
-          <div className="absolute inset-0 z-50 pointer-events-none opacity-60 bg-black/40">
-            <HackerOverlay />
-            <HackerSimulator />
-            <div className="absolute top-0 left-0 w-full h-1 bg-green-500/20 animate-pulse"></div>
-            <div className="absolute bottom-4 right-4 z-50 p-2 border border-green-500/30 bg-black/80 font-mono text-[9px] text-green-500 animate-pulse">
-               {`[ATELIER_OVERRIDE_ACTIVE: ${activeToolId || 'STANDBY'}]`}
-            </div>
-            <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
-          </div>
-        )}
         {activeTool && <activeTool.component onToolSwitch={(id) => setActiveToolId(id)} />}
       </div>
     </div>

@@ -5,31 +5,37 @@ import { HackerSimulator, StrategicHackGif } from '../HackerSimulator';
 interface AmbientThemeEffectProps {
   themeId: string;
   container?: boolean;
+  section?: string;
 }
 
 /**
  * Componente Omni-Skill para gerenciar efeitos de ambiente.
  * Pode ser usado globalmente (App.tsx) ou localmente (ThemeCards).
  */
-export const AmbientThemeEffect: React.FC<AmbientThemeEffectProps> = ({ themeId, container = false }) => {
+export const AmbientThemeEffect: React.FC<AmbientThemeEffectProps> = ({ themeId, container = false, section }) => {
   const positioning = container ? 'absolute' : 'fixed';
 
   return (
     <div className={`${positioning} inset-0 pointer-events-none z-0 overflow-hidden`}>
-      {renderEffect(themeId, container)}
+      {renderEffect(themeId, container, section)}
     </div>
   );
 };
 
-const renderEffect = (themeId: string, container: boolean) => {
+const renderEffect = (themeId: string, container: boolean, section?: string) => {
   switch (themeId) {
     case 'binary-night':
       return (
         <>
           <MatrixRain container={container} />
           <HackerOverlay container={container} />
-          {container && (
+          {!container && <HackerSimulator section={section} />}
+          {container ? (
             <div className="absolute bottom-4 right-4 scale-50 origin-bottom-right">
+               <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+            </div>
+          ) : (
+            <div className="fixed bottom-24 right-4 scale-75 origin-bottom opacity-20 z-[-1] hidden md:block">
                <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
             </div>
           )}

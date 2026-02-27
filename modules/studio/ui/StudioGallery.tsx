@@ -28,6 +28,8 @@ export const StudioGallery: React.FC<{ onToolSwitch?: (id: string) => void }> = 
     viewMode: 'grid',
   });
 
+  const { isSaving, lastSavedAt } = studio;
+
   // Carregar desenhos no mount
   React.useEffect(() => {
     studio.loadDrawings();
@@ -249,6 +251,28 @@ export const StudioGallery: React.FC<{ onToolSwitch?: (id: string) => void }> = 
                 />
               </svg>
             </button>
+          </div>
+
+          <div className="w-px h-6 bg-neutral-200 mx-1" />
+
+          {/* Sync Status */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-50 border border-neutral-200/50 text-[10px] font-bold text-neutral-500 whitespace-nowrap">
+            {isSaving ? (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                GUARDANDO...
+              </>
+            ) : lastSavedAt ? (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                SALVO {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </>
+            ) : (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                OFFLINE
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -121,6 +121,7 @@ export const LayerItem: React.FC<LayerItemProps> = ({
             <div className="shrink-0">
               <LayerThumbnail 
                   sourceCanvas={layer.canvas} 
+                  thumbnail={layer.thumbnail}
                   isBackground={layer.isBackground}
                   backgroundColor={layer.backgroundColor}
                   isTransparent={layer.isTransparent}

@@ -72,3 +72,29 @@ Antes de escrever código, determine o runtime pela natureza do problema:
    - O motor de renderização `MatrixRain.tsx` e suas configurações de visibilidade (opacidade 100%, shadowBlur neon, rastro em preto puro) e a injeção via `AppShell` são considerados perfeitos e finais.
    - É proibido alterar a velocidade, densidade, cor ou a lógica de camadas (transparência de 90% no modo Hacker) que garante sua nitidez absoluta.
    - Este efeito é exclusivo do tema Noite Binária e sua integridade visual é de missão crítica.
+
+13. **Acesso Universal aos Temas (APEX v3.2):**
+   - Todos os temas do ecossistema estão disponíveis para todos os usuários, independentemente do papel (child ou parent_admin).
+   - O `ThemeRegistry` e o `ThemeEngine` devem prover a lista completa de temas para garantir a liberdade de personalização em todos os perfis.
+
+14. **Integridade Esquelética (Skeletal State Machine):**
+   - O sistema de rigging do Ateliê (`SkeletalEngine.ts`) deve garantir que toda estrutura de ossos seja um Grafo Acíclico Dirigido (DAG).
+   - É proibido persistir ou renderizar ossos órfãos ou com dependências circulares.
+   - A manipulação no canvas via `BoneOverlay` deve respeitar as restrições da cinemática inversa (IK) para manter a naturalidade do movimento.
+15. **Persistência de Dados (Relacional + Documental):**
+   - O backend utiliza SQLite via EF Core como padrão para desenvolvimento local.
+   - Geometrias complexas (traços vetoriais e esqueletos) são armazenadas como campos JSON no banco para manter a flexibilidade de dados documental dentro de um esquema relacional robusto.
+   - Toda alteração estrutural no banco de dados deve ser acompanhada de uma migração EF Core (`dotnet ef migrations add`).
+
+16. **Isolamento de Domínio e Modularidade (Princípio da Não-Interferência):**
+    - Quando o desenvolvimento estiver focado em um módulo específico (ex: Ateliê de Desenho), as alterações NÃO devem afetar outros módulos de forma colateral, a menos que haja uma conexão funcional explícita e necessária (ex: Temas Globais, Identidade da Mimi, ou Persistência de Perfil).
+    - Módulos devem ser tratados como Bounded Contexts isolados para garantir que bugs em uma funcionalidade não se propaguem para o restante do ecossistema.
+
+17. **Workflow Mandatório de Governança (Protocolo SKILLS):**
+    - O Genesis e qualquer outra IA devem, OBRIGATORIAMENTE, seguir este fluxo antes de qualquer execução:
+        1. **Refinamento:** Consultar a pasta `SKILLS` na raiz e utilizar a `SKILL_PROMPT_ARCHICT_APEX` (junto com outras skills da pasta) para elevar o comando do usuário ao Nível 10+ de profundidade técnica.
+        2. **Seleção de Contexto:** Identificar no `core/skills/` qual skill específica do core é mais adequada para a tarefa (ex: `ThemeSentinel` para UI, `SkeletalEngine` para animação).
+        3. **Validação:** Somente após esse refinamento cognitivo a tarefa deve ser iniciada.
+    - Este workflow garante a manutenção dos padrões APEX e a integridade arquitetural do projeto.
+
+

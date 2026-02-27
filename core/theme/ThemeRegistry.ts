@@ -10,10 +10,10 @@ import { Result } from "../utils/result";
 export class ThemeRegistry {
   
   /**
-   * Obtém a lista de temas completa para todos os perfis.
-   * A restrição foi removida para permitir personalização total em todas as contas.
+   * Obtém a lista de temas disponível para o usuário.
+   * Retorna todos os temas do ecossistema (Acesso Universal APEX v3.2).
    */
-  static getAvailableThemes(): AppTheme[] {
+  static getAvailableThemes(_role: UserRole = 'child'): AppTheme[] {
     return THEMES;
   }
 

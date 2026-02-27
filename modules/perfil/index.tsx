@@ -105,10 +105,10 @@ export const PerfilModule: React.FC<{ onOpenParentZone: () => void }> = ({ onOpe
 
   return (
     <div className={`flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden animate-fade-in ${isAdmin ? (isHackerMode ? 'bg-transparent text-green-500' : 'bg-slate-50') : 'bg-transparent'}`}>
-      {isAdmin && isHackerMode && (
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <HackerSimulator />
-          <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+      {isHackerMode && (
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
+           <HackerSimulator />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
         </div>
       )}
       <nav className={`w-full md:w-28 py-6 px-4 flex md:flex-col items-center gap-6 shrink-0 md:border-r overflow-x-auto no-scrollbar ${isAdmin ? (isHackerMode ? 'bg-black/20 border-green-500/30' : 'bg-white border-slate-200') : 'border-[var(--border-color)]'}`}>
@@ -467,7 +467,7 @@ const MagicSection = ({ icon: Icon, title, color, children }: any) => {
             backgroundColor: activeColor,
             boxShadow: isHackerMode ? '0 0 20px rgba(0, 255, 65, 0.4)' : (cardStyle === 'neubrutalist' || cardStyle === 'outlined' ? '4px 4px 0px black' : 'var(--ui-shadow)'),
             border: cardStyle === 'neubrutalist' || cardStyle === 'outlined' ? '3px solid black' : 'none',
-            borderRadius: cardStyle === 'neubrutalist' || cardStyle === 'outlined' ? '0px' : (cardStyle === 'pill' ? '9999px' : 'var(--ui-component-radius)')
+            borderRadius: cardStyle === 'neubrutalist' || cardStyle === 'outlined' ? '0px' : (theme?.tokens.layout.componentShape === 'pill' ? '9999px' : 'var(--ui-component-radius)')
           }}
         >
           <MagicIcon 

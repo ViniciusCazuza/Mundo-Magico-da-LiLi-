@@ -1,28 +1,37 @@
 import React from 'react';
 import { HybridCard } from '../ui/HybridCard';
 import { MotionWrapper } from '../motion/MotionWrapper';
-
-import React from 'react';
-import { HybridCard } from '../ui/HybridCard';
-import { MotionWrapper } from '../motion/MotionWrapper';
 import { useTheme } from '../theme/useTheme';
 import { DecryptText } from '../components/effects/DecryptText';
+import { JITRenderer } from './jit/JITRenderer';
+import { CanvasOptimized } from './performance/CanvasOptimized';
+import { HackerOverlay, DecryptionText } from './hacker/HackerOverlay';
+import { PedagogicalErrorBoundary } from './diagnostics/PedagogicalErrorBoundary';
 
+/**
+ * AI_SKILLS_SHOWCASE (APEX v1.0)
+ * Showcase dinâmico das competências cognitivas do Genesis.
+ */
 export const AI_SKILLS_SHOWCASE = () => {
     const { themeId } = useTheme();
     const isHackerMode = themeId === "binary-night";
 
     return (
         <div className="p-10 space-y-10 bg-[var(--bg-app)] min-h-screen text-[var(--text-primary)]">
-            <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-8">
-                {isHackerMode ? <DecryptText text="GENESIS_APEX_COGNITIVE_MODULES" /> : "AI Skills Showcase - Genesis APEX"}
-            </h1>
+            <header>
+                <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tighter mb-4">
+                    {isHackerMode ? <DecryptText text="GENESIS_APEX_COGNITIVE_MODULES" /> : "Genesis APEX Showcase"}
+                </h1>
+                <p className="text-[var(--text-muted)] max-w-2xl font-medium">
+                    Demonstração técnica de sistemas de morfismo, física de partículas e governança visual.
+                </p>
+            </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Skill 1 Showcase */}
+                {/* Skill 1: Hybrid Morphism */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--primary)]">
-                        {isHackerMode ? <DecryptText text="HYBRID_MORPHISM_ARCHITECT" /> : "Skill 1: Hybrid Morphism Architect"}
+                    <h2 className="text-xl font-bold text-[var(--primary)]">
+                        {isHackerMode ? <DecryptText text="HYBRID_MORPHISM_ARCHITECT" /> : "Morfismo Híbrido"}
                     </h2>
                     <div className="flex flex-wrap gap-4">
                         <HybridCard variant="glass" className="w-64 h-40 flex items-center justify-center">
@@ -43,10 +52,10 @@ export const AI_SKILLS_SHOWCASE = () => {
                     </div>
                 </section>
 
-                {/* Skill 2 Showcase */}
+                {/* Skill 2: Spring Physics */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--accent)]">
-                        {isHackerMode ? <DecryptText text="SPRING_PHYSICS_MAESTRO" /> : "Skill 2: Spring Physics Maestro"}
+                    <h2 className="text-xl font-bold text-[var(--accent)]">
+                        {isHackerMode ? <DecryptText text="SPRING_PHYSICS_MAESTRO" /> : "Física de Molas"}
                     </h2>
                     <div className="flex flex-wrap gap-4">
                         <MotionWrapper preset="bounce">
@@ -64,8 +73,8 @@ export const AI_SKILLS_SHOWCASE = () => {
 
                 {/* Skill 3: JIT Renderer */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--status-warning)]">
-                        {isHackerMode ? <DecryptText text="JIT_COMPONENT_COMPILER" /> : "Skill 3: JIT Component Compiler"}
+                    <h2 className="text-xl font-bold text-[var(--status-warning)]">
+                        {isHackerMode ? <DecryptText text="JIT_COMPONENT_COMPILER" /> : "Compilador JIT"}
                     </h2>
                     <JITRenderer schema={{
                         type: 'card',
@@ -79,18 +88,18 @@ export const AI_SKILLS_SHOWCASE = () => {
 
                 {/* Skill 6: GPU Canvas */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--status-success)]">
-                        {isHackerMode ? <DecryptText text="CRITICAL_PERFORMANCE_ENGINEER" /> : "Skill 6: Critical Performance Engineer"}
+                    <h2 className="text-xl font-bold text-[var(--status-success)]">
+                        {isHackerMode ? <DecryptText text="CRITICAL_PERFORMANCE_ENGINEER" /> : "Performance Crítica (GPU)"}
                     </h2>
-                    <div className="w-full h-40">
+                    <div className="w-full h-40 border border-[var(--border-color)] rounded-xl overflow-hidden">
                         <CanvasOptimized effect="starfield" />
                     </div>
                 </section>
 
                 {/* Skill 9: Hacker Aesthetics */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--primary)]">
-                        {isHackerMode ? <DecryptText text="CYBER_SURVEILLANCE_STYLIST" /> : "Skill 9: Cyber-Surveillance Stylist"}
+                    <h2 className="text-xl font-bold text-[var(--primary)]">
+                        {isHackerMode ? <DecryptText text="CYBER_SURVEILLANCE_STYLIST" /> : "Estética Hacker"}
                     </h2>
                     <HackerOverlay>
                         <div className="space-y-2">
@@ -104,8 +113,8 @@ export const AI_SKILLS_SHOWCASE = () => {
 
                 {/* Skill 7: Error Boundary */}
                 <section className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[var(--secondary)]">
-                        {isHackerMode ? <DecryptText text="PEDAGOGICAL_DIAGNOSTIC" /> : "Skill 7: Pedagogical Diagnostic"}
+                    <h2 className="text-xl font-bold text-[var(--secondary)]">
+                        {isHackerMode ? <DecryptText text="PEDAGOGICAL_DIAGNOSTIC" /> : "Diagnóstico Pedagógico"}
                     </h2>
                     <PedagogicalErrorBoundary>
                         <BuggyComponent />
@@ -122,15 +131,9 @@ const BuggyComponent = () => {
     return (
         <button
             onClick={() => setCrash(true)}
-            className="bg-[var(--status-error)] text-[var(--text-on-primary)] px-4 py-2 rounded-lg"
+            className="btn-dynamic px-6 py-2 text-[var(--text-on-primary)]"
         >
             Simular Erro Crítico
         </button>
     );
 };
-
-import { JITRenderer } from './jit/JITRenderer';
-import { CanvasOptimized } from './performance/CanvasOptimized';
-import { HackerOverlay, DecryptionText } from './hacker/HackerOverlay';
-import { PedagogicalErrorBoundary } from './diagnostics/PedagogicalErrorBoundary';
-

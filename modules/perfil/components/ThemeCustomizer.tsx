@@ -5,6 +5,7 @@ import { AppTheme } from "../../../core/types";
 import { THEMES } from "../../../core/config";
 import { ThemeRegistry } from "../../../core/theme/ThemeRegistry";
 import { ThemeCard } from "../../../core/components/ui/ThemeCard";
+import { IdentityManager } from "../../../core/ecosystem/IdentityManager";
 
 interface ThemeCustomizerProps {
   currentTheme: AppTheme;
@@ -12,7 +13,8 @@ interface ThemeCustomizerProps {
 }
 
 export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ currentTheme, onUpdateTheme }) => {
-  const availableThemes = ThemeRegistry.getAvailableThemes();
+  const profile = IdentityManager.getActiveProfile();
+  const availableThemes = ThemeRegistry.getAvailableThemes(profile?.role);
 
   return (
     <div className="space-y-12 animate-fade-in">

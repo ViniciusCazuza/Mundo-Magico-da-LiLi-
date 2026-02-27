@@ -97,7 +97,7 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
             if (updated.id === currentProfile.id) setCurrentProfile(updated);
         });
         const unsubLegacy = mimiEvents.on("PROFILE_UPDATED", (newState) => {
-            if (newState.app?.theme && !isAdmin) setTheme(newState.app.theme);
+            if (newState.app?.theme) setTheme(newState.app.theme);
             setPerfilState(newState); 
         });
         const unsubReports = mimiEvents.on(MIMI_EVENT_TYPES.REPORT_CREATED, (updated) => setReports(updated));
@@ -132,13 +132,13 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
         >
             <LoadingEngine themeId={theme.id} />
 
-            {!isAdmin && (
+            {!isAdmin && !isHackerMode && (
                 <div className="fixed inset-0 pointer-events-none opacity-40 z-0 animate-aurora" style={{ backgroundImage: 'var(--pattern-bg)', backgroundSize: '400% 400%' }}></div>
             )}
 
-            <AmbientThemeEffect themeId={theme.id} />
+            <AmbientThemeEffect themeId={theme.id} section={section} />
 
-            <nav className={`h-24 shrink-0 border-b-[var(--ui-border-width)] border-[var(--border-color)] px-10 flex items-center justify-between z-50 shadow-sm backdrop-blur-3xl transition-all bg-[var(--surface)]/95`}>
+            <nav className={`h-24 shrink-0 border-b-[var(--ui-border-width)] border-[var(--border-color)] px-10 flex items-center justify-between z-50 shadow-sm backdrop-blur-3xl transition-all ${isHackerMode ? 'bg-black/90' : 'bg-[var(--surface)]/95'}`}>
                 <div className="flex items-center gap-5 cursor-pointer group" onClick={() => setSection("chat")}>
                     <div className={`w-14 h-14 flex items-center justify-center text-white shadow-lg transition-all group-hover:scale-110 group-hover:rotate-3 animate-breathing bg-[var(--primary)] mimi-logo`}
                          style={{ borderRadius: 'var(--ui-component-radius)', boxShadow: '0 0 20px var(--primary)' }}>
@@ -186,8 +186,8 @@ const AppShell = ({ profile, onLogout, sessionConv, onUpdateConversation }: AppS
 
             <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden z-10 p-6 md:p-8 transition-all">
                 <div className="flex-1 mimi-card overflow-hidden flex flex-col border-opacity-30 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative">
-                    {theme.id === 'binary-night' && <AmbientThemeEffect themeId={theme.id} container />}
-                    {!isAdmin && <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] opacity-50"></div>}
+                    {theme.id === 'binary-night' && <AmbientThemeEffect themeId={theme.id} container section={section} />}
+                    {!isAdmin && !isHackerMode && <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[var(--primary)] via-[var(--accent)] to-[var(--primary)] opacity-50"></div>}
 
                     {section === 'chat' && sessionConv && (
                         <ChatModule

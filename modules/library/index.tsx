@@ -11,11 +11,12 @@ import { mimiEvents, MIMI_EVENT_TYPES, ObservabilityEvent } from "../../core/eve
 import { TactileButton } from "../../core/components/ui/TactileButton";
 import { useTheme } from "../../core/theme/useTheme";
 import { DecryptText } from "../../core/components/effects/DecryptText";
+import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 
 export const LibraryModule: React.FC = () => {
   const { themeId } = useTheme();
   const isHackerMode = themeId === "binary-night";
-  const [items, setItems] = useState<LibraryItem[]>(() => safeJsonParse(STORAGE_KEYS.LIBRARY, []));
+  // ... rest of the component state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<LibraryItem['category'] | 'all'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -120,8 +121,41 @@ export const LibraryModule: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden animate-fade-in">
-      <header className="p-6 md:p-8 shrink-0 space-y-6">
+    <div className="flex-1 flex flex-col min-h-0 bg-transparent overflow-hidden animate-fade-in relative">
+      {isHackerMode && (
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
+           <HackerSimulator section="library" />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+        </div>
+      )}
+      
+      {/* MAINTENANCE OVERLAY (APEX v3.2) */}
+      <div className="absolute inset-0 z-[100] flex items-center justify-center p-8 bg-black/60 backdrop-blur-xl">
+        <div className={`max-w-xl w-full p-12 mimi-card text-center space-y-8 border-2 ${isHackerMode ? 'border-green-500 bg-black' : 'border-[var(--primary)] bg-white'}`}>
+           <div className="flex justify-center">
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center animate-pulse ${isHackerMode ? 'bg-green-500/10 text-green-500' : 'bg-[var(--primary)]/10 text-[var(--primary)]'}`}>
+                 <History size={48} />
+              </div>
+           </div>
+           <div className="space-y-4">
+              <h2 className={`font-hand text-5xl ${isHackerMode ? 'text-green-500' : 'text-[var(--text-primary)]'}`}>
+                {isHackerMode ? <DecryptText text="SISTEMA_EM_MANUTENCAO" /> : "Baú em Manutenção"}
+              </h2>
+              <p className={`font-medium text-lg leading-relaxed ${isHackerMode ? 'text-green-600' : 'text-[var(--text-secondary)]'}`}>
+                {isHackerMode 
+                  ? <DecryptText text="UPGRADING_CORE_INFRASTRUCTURE. NEW_TACTICAL_TOOL_PENDING_INSTALLATION_V3.5" /> 
+                  : "Mimi está organizando suas memórias para liberar espaço para uma nova surpresa mágica!"}
+              </p>
+           </div>
+           <div className="flex justify-center gap-4">
+              <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${isHackerMode ? 'bg-green-500/20 text-green-400' : 'bg-slate-100 text-slate-400'}`}>
+                 Progresso: 88%
+              </div>
+           </div>
+        </div>
+      </div>
+
+      <header className="p-6 md:p-8 shrink-0 space-y-6 opacity-20 pointer-events-none">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="font-hand text-4xl md:text-5xl text-[var(--primary)]">

@@ -3,6 +3,7 @@ import { useTheme } from '../../../core/theme/useTheme';
 import { ThemeRegistry } from '../../../core/theme/ThemeRegistry';
 import { ThemeCard } from '../../../core/components/ui/ThemeCard';
 import { DecryptText } from '../../../core/components/effects/DecryptText';
+import { IdentityManager } from '../../../core/ecosystem/IdentityManager';
 
 /**
  * EliteThemeSelector (APEX v3.1)
@@ -11,7 +12,8 @@ import { DecryptText } from '../../../core/components/effects/DecryptText';
  */
 export const EliteThemeSelector: React.FC = () => {
   const { themeId, changeTheme } = useTheme();
-  const availableThemes = ThemeRegistry.getAvailableThemes();
+  const profile = IdentityManager.getActiveProfile();
+  const availableThemes = ThemeRegistry.getAvailableThemes(profile?.role);
   const isHackerMode = themeId === 'binary-night';
 
   return (

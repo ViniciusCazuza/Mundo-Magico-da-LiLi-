@@ -21,7 +21,7 @@ public interface IDrawingRepository
     /// </summary>
     /// <param name="id">ID do desenho</param>
     /// <returns>Resultado da operação com o desenho encontrado</returns>
-    Task<Result<DrawingDto>> GetByIdAsync(Guid id);
+    Task<Result<DrawingDto>> GetByIdAsync(string id);
     
     /// <summary>
     /// Atualiza um desenho existente.
@@ -35,7 +35,7 @@ public interface IDrawingRepository
     /// </summary>
     /// <param name="id">ID do desenho</param>
     /// <returns>Resultado da operação</returns>
-    Task<Result<bool>> DeleteAsync(Guid id);
+    Task<Result<bool>> DeleteAsync(string id);
     
     /// <summary>
     /// Lista desenhos de um autor com paginação.
@@ -44,7 +44,7 @@ public interface IDrawingRepository
     /// <param name="page">Número da página</param>
     /// <param name="pageSize">Tamanho da página</param>
     /// <returns>Resultado da operação com lista paginada de desenhos</returns>
-    Task<Result<PagedList<DrawingDto>>> GetByAuthorAsync(Guid authorId, int page, int pageSize);
+    Task<Result<PagedList<DrawingDto>>> GetByAuthorAsync(string authorId, int page, int pageSize);
     
     /// <summary>
     /// Adiciona uma camada a um desenho existente.
@@ -52,5 +52,5 @@ public interface IDrawingRepository
     /// <param name="drawingId">ID do desenho</param>
     /// <param name="layer">Camada a ser adicionada</param>
     /// <returns>Resultado da operação com o desenho atualizado</returns>
-    Task<Result<DrawingDto>> AddLayerAsync(Guid drawingId, LayerBaseDto layer);
+    Task<Result<DrawingDto>> AddLayerAsync(string drawingId, LayerBaseDto layer);
 }

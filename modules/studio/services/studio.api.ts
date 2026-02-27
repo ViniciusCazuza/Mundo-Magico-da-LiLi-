@@ -126,10 +126,15 @@ function handleError<T>(error: unknown): Result<T> {
     }
 
     if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      // Deteção determinística de estado de rede (Axioma 4)
+      const isOffline = !window.navigator.onLine;
+      
       return {
         success: false,
-        error: 'A Mimi está descansando (Servidor Offline). Tente novamente em alguns instantes.',
-        errorCode: 'BACKEND_OFFLINE',
+        error: isOffline 
+          ? 'Miau! Parece que você está sem internet. Verifique sua conexão!'
+          : 'A Mimi não conseguiu alcançar o servidor. Pode ser um erro de CORS ou o servidor está offline.',
+        errorCode: isOffline ? 'NETWORK_OFFLINE' : 'BACKEND_UNREACHABLE',
       };
     }
 
@@ -265,7 +270,7 @@ export async function getDrawingsByAuthor(
     });
 
     const response = await fetchWithTimeout(
-      `${API_BASE_URL}/api/studio/drawings?${queryParams}`,
+      `${API_BASE_URL}/api/studio/drawings?${queryParams.toString()}`,
       {
         method: 'GET',
         headers: {
@@ -512,6 +517,33 @@ export const generateMagicImage = async (
   }
 };
 
+/**
+ * Detecta automaticamente o esqueleto de um personagem em uma imagem.
+ */
+export async function autoRig(
+  imageUrl: string,
+  characterType: string = 'humanoid'
+): Promise<Result<{ bones: any[], ikChains: string[], analysis: string }>> {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/studio/auto-rig`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageUrl, characterType }),
+    });
+
+    if (!response.ok) {
+      return handleResponse(response, { bones: [], ikChains: [], analysis: '' });
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
 // ============================================================================
 // Factory Functions para Criar Camadas
 // ============================================================================
@@ -544,7 +576,7 @@ export function createVectorLayer(
   id: string,
   name: string,
   zIndex: number,
-  path: VectorLayer['path'] = []
+  paths: VectorLayer['paths'] = []
 ): VectorLayer {
   return {
     id,
@@ -554,7 +586,7 @@ export function createVectorLayer(
     opacity: 1.0,
     isVisible: true,
     blendMode: 'normal',
-    path,
+    paths,
     strokeColor: '#000000',
     strokeWidth: 2,
     fillColor: 'transparent',

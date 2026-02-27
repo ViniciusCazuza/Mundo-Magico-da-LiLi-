@@ -11,9 +11,10 @@
 import { UserProfile } from "../../../core/types";
 import { IdentityManager } from "../../../core/ecosystem/IdentityManager";
 import { perfilStorage } from "../../perfil/services/perfilStorage";
+import { appContext } from "../../../core/ecosystem/AppContext";
 
 // URL base do backend .NET
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5180';
 
 export interface AtomicMimiResponse {
   text: string;
@@ -43,6 +44,11 @@ interface ChatRequestDto {
     siblings?: string[];
     pets?: string[];
     familyValues?: string;
+  };
+  studioContext?: {
+    colorMood?: string;
+    activeLayerType?: string;
+    drawingTitle?: string;
   };
 }
 
@@ -101,6 +107,7 @@ export const getAtomicMimiResponse = async (history: any[], profile: UserProfile
     const enhancedProfile = prepareEnhancedProfile(profile);
     const familyContext = prepareFamilyContext();
     const formattedHistory = prepareHistory(history);
+    const studioContext = appContext.getStudioContext();
 
     const requestBody: ChatRequestDto = {
       history: formattedHistory,
@@ -111,6 +118,11 @@ export const getAtomicMimiResponse = async (history: any[], profile: UserProfile
         siblings: familyContext.siblings,
         pets: familyContext.pets,
         familyValues: familyContext.familyValues
+      } : undefined,
+      studioContext: studioContext ? {
+        colorMood: studioContext.colorMood,
+        activeLayerType: studioContext.activeLayerType,
+        drawingTitle: studioContext.drawingTitle
       } : undefined
     };
 

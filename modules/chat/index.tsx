@@ -6,7 +6,6 @@ import { getAtomicMimiResponse } from "./services/mimi.api";
 import { mimiAudio } from "./audio/audio.manager";
 import { executeAlertProtocol } from "./protocols/alert.protocol";
 import { useTheme } from "../../core/theme/useTheme";
-import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 
 // APEX v2.0 Components
 import { TactileButton } from "../../core/components/ui/TactileButton";
@@ -111,10 +110,15 @@ export const ChatModule = ({
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 relative bg-transparent overflow-hidden isolate ${isHackerMode ? 'font-mono text-green-500' : ''}`}>
+      {isHackerMode && (
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
+           <HackerSimulator section="chat" />
+           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
+        </div>
+      )}
       {/* Elementos de Interface Hacker (Top Overlay) */}
       {isHackerMode && (
         <>
-          <HackerSimulator />
           <div className="absolute top-4 right-4 z-[100] animate-pulse text-green-500/30 flex items-center gap-2 pointer-events-none">
             <div className="bg-black border border-green-500/30 p-2 font-mono text-[9px] text-green-500">
                 [PACKET_INTERCEPT: ON] [SECURE_TUNNEL: ACTIVE]
@@ -219,16 +223,6 @@ export const ChatModule = ({
           </div>
         )}
       </div>
-
-      {/* Gatinho Hacker Mascot - POSIÇÃO E TAMANHO CORRIGIDOS */}
-      {isHackerMode && (
-        <StrategicHackGif 
-          url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" 
-          position="left"
-          className="w-[350px] h-[350px] md:w-[500px] md:h-[500px] bottom-20"
-          opacity="opacity-80"
-        />
-      )}
 
       {/* Barra de Entrada */}
       {!isReadOnly && (

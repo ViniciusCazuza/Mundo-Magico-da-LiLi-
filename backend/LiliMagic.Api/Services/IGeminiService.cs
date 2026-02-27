@@ -38,4 +38,9 @@ public interface IGeminiService
     /// <param name="options">Opções do studio</param>
     /// <returns>Imagem gerada com URL e metadados</returns>
     Task<ImageResponseDto> GenerateImageAsync(string prompt, UserProfileDto profile, StudioOptionsDto options);
+    
+    /// <summary>
+    /// Analisa uma imagem de personagem e gera um esqueleto (rig) sugerido.
+    /// </summary>
+    Task<AutoRigResponseDto> AutoRigCharacterAsync(string imageUrl, string characterType);
 }
