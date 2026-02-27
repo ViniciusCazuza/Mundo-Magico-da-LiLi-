@@ -5,13 +5,8 @@ import { useAgendaState } from "./hooks/useAgendaState";
 import { MonthlyView } from "./components/MonthlyView";
 import { DailyAgendaView } from "./components/DailyAgendaView";
 import { AddActivityModal } from "./components/AddActivityModal";
-import { useTheme } from "../../core/theme/useTheme";
-import { HackerOverlay } from "../../core/components/MatrixRain";
-import { HackerSimulator, StrategicHackGif } from "../../core/components/HackerSimulator";
 
 export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
-  const { themeId } = useTheme();
-  const isHackerMode = themeId === "binary-night";
   const [currentDate, setCurrentDate] = useState(new Date());
   const todayStr = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -39,16 +34,9 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
   };
 
   return (
-    <div className={`flex-1 flex flex-col md:flex-row min-h-0 bg-transparent overflow-hidden animate-fade-in relative`}>
-      {isHackerMode && (
-        <div className="absolute inset-0 pointer-events-none z-0 opacity-40">
-           <HackerOverlay />
-           <HackerSimulator />
-           <StrategicHackGif url="/assets/loading/siames_gif/fundo_preto(exclusivo tema hacker).gif" />
-        </div>
-      )}
+    <div className="flex-1 flex flex-col md:flex-row min-h-0 bg-transparent overflow-hidden animate-fade-in">
       {/* Lado Esquerdo: Calendário Mensal */}
-      <section className={`w-full md:w-[450px] p-4 md:p-8 flex flex-col shrink-0 border-r border-[var(--border-color)] relative z-10 backdrop-blur-md transition-all ${isHackerMode ? 'bg-black/80' : 'bg-[var(--surface)]/95'}`}>
+      <section className="w-full md:w-[450px] p-4 md:p-8 flex flex-col shrink-0 border-r border-[var(--border-color)] bg-[var(--surface)]">
         <MonthlyView 
           currentDate={currentDate}
           onPrevMonth={handlePrevMonth}
@@ -63,20 +51,20 @@ export const AgendaModule: React.FC<AgendaModuleProps> = (props) => {
         {/* Legenda semântica temática */}
         <div className="mt-8 grid grid-cols-2 gap-y-4 gap-x-2 px-4">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)] shadow-[0_0_10px_var(--status-success)]" />
-            <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Patinha</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patinha Tranquila</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-info)] shadow-[0_0_10px_var(--status-info)]" />
-            <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Miado</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Miado Importante</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[var(--status-warning)] shadow-[0_0_10px_var(--status-warning)]" />
-            <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Alerta!</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_red]" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Alerta Bigodinho!</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[var(--text-muted)] opacity-40" />
-            <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest">Momentos</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400" />
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Momentos</span>
           </div>
         </div>
       </section>

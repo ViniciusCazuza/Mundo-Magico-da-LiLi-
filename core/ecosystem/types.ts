@@ -18,7 +18,10 @@ export interface AliceProfile extends UserProfile {
   role: UserRole;
   createdAt: number;
   updatedAt: number;
-  // Campos específicos de admin
+  // Segurança & Gestão
+  pinHash?: string;
+  failedAttempts?: number;
+  lockUntil?: number | null;
   parentRelationship?: string;
   parentContact?: string;
 }
@@ -36,7 +39,7 @@ export interface EcosystemData {
   profiles: AliceProfile[];
   ecosystemId: string;
   familyContext: FamilyContext;
-  parentPinHash: string; // PIN armazenado de forma segura
+  // parentPinHash removido da raiz para migrar para dentro do AliceProfile (Segurança v2.9)
 }
 
 export const ECOSYSTEM_EVENTS = {

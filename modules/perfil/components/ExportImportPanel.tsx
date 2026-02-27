@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Download, Upload, CheckCircle } from "lucide-react";
-import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 import { PerfilState } from "../types";
 
 interface ExportImportPanelProps {
@@ -46,18 +45,14 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ state, onI
     <div className="grid grid-cols-2 gap-4">
       <button 
         onClick={exportData}
-        className="flex flex-col items-center gap-2 p-6 bg-[var(--surface-elevated)] text-[var(--primary)] border-[var(--ui-border-width)] border-[var(--border-color)] transition-all active:scale-95 shadow-sm"
-        style={{ borderRadius: 'var(--ui-radius)' }}
+        className="flex flex-col items-center gap-2 p-6 bg-indigo-50 text-indigo-600 rounded-3xl hover:bg-indigo-100 transition-all border border-indigo-100"
       >
-        <MagicIcon icon={Download} size={24} color="currentColor" variant="duotone" />
+        <Download size={24} />
         <span className="text-[10px] font-black uppercase tracking-widest">Backup</span>
       </button>
 
-      <label 
-        className="flex flex-col items-center gap-2 p-6 bg-[var(--surface-elevated)] text-[var(--text-secondary)] border-[var(--ui-border-width)] border-[var(--border-color)] transition-all active:scale-95 shadow-sm cursor-pointer"
-        style={{ borderRadius: 'var(--ui-radius)' }}
-      >
-        <MagicIcon icon={Upload} size={24} color="currentColor" variant="duotone" />
+      <label className="flex flex-col items-center gap-2 p-6 bg-slate-50 text-slate-600 rounded-3xl hover:bg-slate-100 transition-all border border-slate-200 cursor-pointer">
+        <Upload size={24} />
         <span className="text-[10px] font-black uppercase tracking-widest">Restaurar</span>
         <input type="file" accept=".json" onChange={importData} className="hidden" />
       </label>
