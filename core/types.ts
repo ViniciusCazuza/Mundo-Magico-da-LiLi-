@@ -146,6 +146,7 @@ export interface AppTheme {
   name: string;
   breed: string;
   description: string;
+  isAdminOnly?: boolean;
   
   tokens: {
     colors: {

@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 
 interface LayerThumbnailProps {
   sourceCanvas?: HTMLCanvasElement;
+  thumbnail?: string; // Base64 dataUrl
   isBackground?: boolean;
   backgroundColor?: string;
   isTransparent?: boolean;
@@ -10,7 +11,7 @@ interface LayerThumbnailProps {
 }
 
 export const LayerThumbnail: React.FC<LayerThumbnailProps> = ({ 
-  sourceCanvas, isBackground, backgroundColor, isTransparent 
+  sourceCanvas, thumbnail, isBackground, backgroundColor, isTransparent 
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -41,6 +42,12 @@ export const LayerThumbnail: React.FC<LayerThumbnailProps> = ({
             ctx.fillStyle = backgroundColor || '#fff';
             ctx.fillRect(0, 0, dest.width, dest.height);
         }
+    } else if (thumbnail) {
+        const img = new Image();
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0, dest.width, dest.height);
+        };
+        img.src = thumbnail;
     } else if (sourceCanvas) {
         ctx.drawImage(sourceCanvas, 0, 0, dest.width, dest.height);
     }
