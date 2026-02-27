@@ -1,7 +1,4 @@
 
-export type BreakpointKey = 'base' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-export type ResponsiveValue<T> = T | Partial<Record<BreakpointKey, T>>;
-
 export interface UserProfile {
   id?: string;
   name: string;
@@ -145,7 +142,7 @@ export interface LibraryItem {
 export type AppSection = "chat" | "studio" | "library" | "profile" | "parent-zone" | "calendar";
 
 export interface AppTheme {
-  id: 'siamese' | 'persian' | 'bengal' | 'british' | 'ragdoll' | 'binary-night' | 'glass-elite' | 'neubrutalist-raw' | 'fluid-vision' | 'luminous-interface' | 'skeuomorph-command' | 'neumorphic-tactile' | 'maternal-sweetness' | 'maternal-strength' | 'neuro-gentle-embrace';
+  id: 'siamese' | 'persian' | 'bengal' | 'british' | 'ragdoll';
   name: string;
   breed: string;
   description: string;
@@ -167,22 +164,25 @@ export interface AppTheme {
       border: string;
       shadow: string;
       shadowElevated: string;
+      // Cores Semânticas (v2.9)
+      success: string;
+      warning: string;
+      danger: string;
+      info: string;
     };
     layout: {
-      cardStyle: 'glass' | 'pillow' | 'flat' | 'outlined' | 'minimal' | 'neubrutalist' | 'neumorphic' | 'fluid';
-      spacingScale: ResponsiveValue<'compact' | 'comfortable' | 'spacious'>;
+      cardStyle: 'glass' | 'pillow' | 'flat' | 'outlined' | 'minimal';
+      spacingScale: 'compact' | 'comfortable' | 'spacious';
       borderRadius: string;
       borderWidth: string;
       shadowIntensity: 'none' | 'soft' | 'medium' | 'strong';
       blurIntensity: string;
-      componentShape: 'rounded' | 'square' | 'pill';
-      edgeStyle: 'smooth' | 'sharp' | 'brutal';
     };
     typography: {
       fontFamily: string;
       headingStyle: 'playful' | 'elegant' | 'bold' | 'clean';
-      baseSize: ResponsiveValue<string>;
-      lineHeight: ResponsiveValue<string>;
+      baseSize: string;
+      lineHeight: string;
       letterSpacingHeading: string;
     };
     motion: {
@@ -190,7 +190,6 @@ export interface AppTheme {
       transitionSpeed: string;
       hoverScale: string;
       ease: string;
-      glitchEnabled?: boolean;
     };
     decorative: {
       backgroundPattern: string;

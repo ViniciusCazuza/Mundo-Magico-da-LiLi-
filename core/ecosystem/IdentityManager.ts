@@ -1,9 +1,7 @@
 
 import { AliceProfile, EcosystemData, ECOSYSTEM_EVENTS, FamilyContext, EcosystemSession } from "./types";
 import { mimiEvents } from "../events";
-import { STORAGE_KEYS } from "../config";
 import { safeLocalStorageSetItem } from "../utils";
-import { Result } from "../utils/result";
 
 const ECOSYSTEM_STORAGE_KEY = "alice_ecosystem_v2";
 const SESSION_STORAGE_KEY = "alice_session_v1";
@@ -22,6 +20,11 @@ export class IdentityManager {
     return this.instance;
   }
 
+  // Hash determinístico seguro para browser
+  private static hashPin(pin: string): string {
+    return btoa(unescape(encodeURIComponent(`alice_salt_v2_${pin}`)));
+  }
+
   static init(): EcosystemData {
     if (this.instance) return this.instance;
 
@@ -30,8 +33,28 @@ export class IdentityManager {
       try {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.profiles) {
+          // MIGRAÇÃO v2.9.0: Move PIN global para perfis administrativos
+          parsed.profiles = parsed.profiles.map((p: any) => {
+            if (p.role === "parent_admin") {
+              if (!p.pinHash && parsed.parentPinHash) {
+                p.pinHash = parsed.parentPinHash;
+              }
+              if (!p.pinHash) {
+                p.pinHash = this.hashPin("0000");
+              }
+              p.failedAttempts = p.failedAttempts ?? 0;
+              p.lockUntil = p.lockUntil ?? null;
+            }
+            return p;
+          });
+
+          // Remove campo legado da raiz
+          delete parsed.parentPinHash;
+          
           this.instance = parsed;
+          this.instance.version = "2.9.0";
           this.restoreSession();
+          this.save();
           return this.instance;
         }
       } catch (e) {
@@ -39,18 +62,15 @@ export class IdentityManager {
       }
     }
 
+    // Estrutura Inicial se for a primeira vez
     const parentId = `p_admin_${Date.now()}`;
     const childId = `p_child_${Date.now()}`;
-
+    
     this.instance = {
-      version: "2.8.0",
+      version: "2.9.0",
       activeProfileId: childId,
       ecosystemId: `eco_${Math.random().toString(36).substr(2, 9)}`,
-      parentPinHash: null,
-      familyContext: {
-        pets: [],
-        familyValues: ""
-      },
+      familyContext: { pets: [], familyValues: "" },
       profiles: [
         {
           id: parentId,
@@ -61,6 +81,9 @@ export class IdentityManager {
           preferences: "Gerenciar o ambiente da Alice",
           emotionalSensitivity: 3,
           autoAudio: true,
+          pinHash: this.hashPin("0000"),
+          failedAttempts: 0,
+          lockUntil: null,
           parentRelationship: "Responsável",
           createdAt: Date.now(),
           updatedAt: Date.now()
@@ -76,8 +99,6 @@ export class IdentityManager {
           autoAudio: true,
           hairType: "Cacheado",
           hairColor: "Preto",
-          hasGlasses: false,
-          hasBraces: false,
           createdAt: Date.now(),
           updatedAt: Date.now()
         }
@@ -92,11 +113,8 @@ export class IdentityManager {
     if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
-        // Permite a restauração de qualquer papel autenticado (Axioma 2)
-        if (parsed.isAuthenticated && (parsed.role === 'child' || parsed.role === 'parent_admin')) {
+        if (parsed.isAuthenticated) {
           this.session = parsed;
-        } else {
-          this.logout();
         }
       } catch (e) {
         this.logout();
@@ -122,21 +140,14 @@ export class IdentityManager {
     return this.ensureInstance().familyContext;
   }
 
-  static login(id: string, pin?: string): Result<boolean> {
-    if (this.session.isAuthenticated) {
-      return Result.fail(new Error("Já existe uma sessão ativa."));
-    }
-
+  static login(id: string, pin?: string): boolean {
     const inst = this.ensureInstance();
     const target = inst.profiles.find(p => p.id === id);
-    if (!target) return Result.fail(new Error("Perfil não encontrado."));
+    if (!target) return false;
 
+    // Se for admin, exige e verifica PIN vinculado ao perfil
     if (target.role === "parent_admin") {
-      if (inst.parentPinHash) {
-        if (!pin || !this.verifyPin(pin)) {
-          return Result.fail(new Error("Senha PIN incorreta."));
-        }
-      }
+      if (!pin || !this.verifyPin(id, pin)) return false;
     }
 
     this.session = {
@@ -146,45 +157,50 @@ export class IdentityManager {
       sessionStartedAt: Date.now()
     };
 
-    // Sincroniza a instância principal (Evita retorno automático para criança)
-    inst.activeProfileId = id;
-    this.save();
-
     safeLocalStorageSetItem(SESSION_STORAGE_KEY, JSON.stringify(this.session));
     mimiEvents.dispatch(ECOSYSTEM_EVENTS.PROFILE_SWITCHED, target);
-    return Result.ok(true);
+    return true;
   }
 
   static logout() {
-    this.session = {
-      activeProfileId: null,
-      isAuthenticated: false,
-      role: null,
-      sessionStartedAt: null
-    };
+    this.session = { activeProfileId: null, isAuthenticated: false, role: null, sessionStartedAt: null };
     localStorage.removeItem(SESSION_STORAGE_KEY);
-    this.instance = null; // Clear the in-memory instance to force reload from localStorage on next init
     mimiEvents.dispatch(ECOSYSTEM_EVENTS.SESSION_ENDED, null);
-    console.debug("[IdentityManager] Sessão encerrada e estado limpo.");
   }
 
-  static verifyPin(pin: string): boolean {
-    const hashedInputPin = this.hashPin(pin);
-    const storedPinHash = this.ensureInstance().parentPinHash;
-    console.log("[IdentityManager] Verifying PIN:");
-    console.log("[IdentityManager]   Hashed Input PIN:", hashedInputPin);
-    console.log("[IdentityManager]   Stored PIN Hash:", storedPinHash);
-    console.log("[IdentityManager]   Match:", hashedInputPin === storedPinHash);
-    return hashedInputPin === storedPinHash;
-  }
+  static verifyPin(profileId: string, pin: string): boolean {
+    const inst = this.ensureInstance();
+    const profile = inst.profiles.find(p => p.id === profileId);
+    if (!profile || profile.role !== "parent_admin" || !profile.pinHash) return false;
 
-  private static hashPin(pin: string): string {
-    return btoa(`alice_salt_${pin}_secure_v2`);
+    // Bloqueio Progressivo
+    if (profile.lockUntil && Date.now() < profile.lockUntil) {
+      console.warn("Acesso bloqueado temporariamente.");
+      return false;
+    }
+
+    const isValid = this.hashPin(pin) === profile.pinHash;
+
+    if (!isValid) {
+      profile.failedAttempts = (profile.failedAttempts || 0) + 1;
+      if (profile.failedAttempts >= 5) {
+        profile.lockUntil = Date.now() + 5 * 60 * 1000; // 5 min
+        profile.failedAttempts = 0;
+      }
+      this.save();
+      return false;
+    }
+
+    profile.failedAttempts = 0;
+    profile.lockUntil = null;
+    this.save();
+    return true;
   }
 
   static setPin(newPin: string) {
-    const inst = this.ensureInstance();
-    inst.parentPinHash = this.hashPin(newPin);
+    const active = this.getActiveProfile();
+    if (!active || active.role !== "parent_admin") return;
+    active.pinHash = this.hashPin(newPin);
     this.save();
   }
 
@@ -210,6 +226,7 @@ export class IdentityManager {
       preferences: "",
       emotionalSensitivity: 3,
       autoAudio: true,
+      pinHash: role === "parent_admin" ? this.hashPin("0000") : undefined,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -232,24 +249,10 @@ export class IdentityManager {
     const inst = this.ensureInstance();
     inst.familyContext = { ...inst.familyContext, ...ctx };
     this.save();
-    mimiEvents.dispatch(ECOSYSTEM_EVENTS.PROFILE_UPDATED, this.getActiveProfile());
-  }
-
-  /**
-   * Verifica se existe um PIN parental configurado
-   * (Método público seguro para UI)
-   */
-  public static hasStoredPin(): boolean {
-    const instance = this.ensureInstance();
-    return !!instance.parentPinHash;
   }
 
   private static save() {
-    if (!this.instance) {
-      console.warn("[IdentityManager] save() called but instance is null. Nothing to save.");
-      return;
-    }
-    const dataToSave = JSON.stringify(this.instance);
-    safeLocalStorageSetItem(ECOSYSTEM_STORAGE_KEY, dataToSave);
+    if (!this.instance) return;
+    safeLocalStorageSetItem(ECOSYSTEM_STORAGE_KEY, JSON.stringify(this.instance));
   }
 }

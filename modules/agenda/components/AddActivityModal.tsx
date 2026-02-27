@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { X, Check, Bell, Sparkles, ChevronLeft, PawPrint, Cat, AlertCircle } from "lucide-react";
+
+import React, { useState, useMemo } from "react";
+import { X, Check, Bell, Sparkles, ChevronLeft, ChevronRight, Search, PawPrint, Cat, AlertCircle } from "lucide-react";
 import { PredefinedActivity, ActivityPriority, AgendaActivity } from "../types";
+import { ActivityIcon } from "./ActivityIcon";
 
 interface AddActivityModalProps {
   date: string;
@@ -99,32 +101,28 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
   const getPriorityStyle = (p: ActivityPriority) => {
     const isActive = priority === p;
     switch(p) {
-      case 'HIGH': return isActive ? 'bg-amber-500 text-white shadow-[0_5px_15px_-5px_#F59E0B] scale-105' : 'text-amber-600 bg-amber-50 opacity-60 hover:opacity-100';
-      case 'MEDIUM': return isActive ? 'bg-indigo-500 text-white shadow-[0_5px_15px_-5px_#6366F1] scale-105' : 'text-indigo-600 bg-indigo-50 opacity-60 hover:opacity-100';
+      case 'HIGH': return isActive ? 'bg-red-500 text-white shadow-[0_5px_15px_-5px_#EF4444] scale-105' : 'text-red-500 bg-red-50 opacity-60 hover:opacity-100';
+      case 'MEDIUM': return isActive ? 'bg-[var(--primary)] text-[var(--text-on-primary)] shadow-[0_5px_15px_-5px_var(--primary)] scale-105' : 'text-[var(--primary)] bg-[var(--primary)]/5 opacity-60 hover:opacity-100';
       case 'LOW': return isActive ? 'bg-emerald-500 text-white shadow-[0_5px_15px_-5px_#10B981] scale-105' : 'text-emerald-500 bg-emerald-50 opacity-60 hover:opacity-100';
       default: return '';
     }
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-[2000] flex items-center justify-center p-6 bg-black/40 animate-fade-in"
-      style={{ backdropFilter: 'blur(var(--ui-blur))', WebkitBackdropFilter: 'blur(var(--ui-blur))' }}
-    >
-      <div className="bg-[var(--surface)] w-full max-w-lg mimi-card p-8 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border-[var(--ui-border-width)] border-[var(--border-color)] text-[var(--text-primary)]"
-           style={{ borderRadius: 'var(--ui-radius)' }}>
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-fade-in">
+      <div className="bg-[var(--surface)] w-full max-w-lg rounded-[3.5rem] p-8 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-[var(--border-color)] text-[var(--text-primary)]">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             {step !== 'TYPE' && !isEditMode && (
-               <button onClick={() => setStep(step === 'ICON' ? 'DETAILS' : 'TYPE')} className="p-2 text-[var(--text-muted)] hover:text-indigo-500 transition-all">
+               <button onClick={() => setStep(step === 'ICON' ? 'DETAILS' : 'TYPE')} className="p-2 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all">
                   <ChevronLeft size={24} />
                </button>
             )}
-            <h3 className="font-hand text-3xl text-[var(--text-primary)]">
+            <h3 className="font-hand text-3xl text-[var(--primary)]">
               {step === 'TYPE' ? 'Nova Atividade' : step === 'ICON' ? 'Escolha o Ícone' : (isEditMode ? 'Editar Atividade' : 'Ajustes Mágicos')}
             </h3>
           </div>
-          <button onClick={onClose} aria-label="Fechar" className="p-2 text-[var(--text-muted)] hover:text-red-500 transition-colors">
+          <button onClick={onClose} aria-label="Fechar" className="p-2 text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
             <X size={24} />
           </button>
         </header>
@@ -139,7 +137,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                     <button 
                       key={p.name}
                       onClick={() => handleSelectPredefined(p)}
-                      className="flex flex-col items-center gap-2 p-4 bg-[var(--surface-elevated)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-transparent hover:border-indigo-500 transition-all hover:bg-[var(--surface)] hover:shadow-md group"
+                      className="flex flex-col items-center gap-2 p-4 bg-[var(--surface-elevated)] rounded-2xl border-2 border-transparent hover:border-[var(--primary)] transition-all hover:bg-[var(--surface)] hover:shadow-md group"
                     >
                       <div className="text-3xl group-hover:scale-125 transition-transform">{p.icon}</div>
                       <span className="text-[10px] font-bold text-[var(--text-primary)] text-center">{p.name}</span>
@@ -147,12 +145,12 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                   ))}
                   <button 
                     onClick={handleCustomStart}
-                    className="flex flex-col items-center justify-center gap-2 p-4 bg-[var(--surface)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-dashed border-[var(--border-color)] hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+                    className="flex flex-col items-center justify-center gap-2 p-4 bg-[var(--surface)] rounded-2xl border-2 border-dashed border-[var(--border-color)] hover:border-[var(--primary)] hover:bg-[var(--bg-app)]/30 transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                       <Sparkles size={20} />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Personalizada</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">Personalizada</span>
                   </button>
                 </div>
               </section>
@@ -170,7 +168,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                              setIcon(e);
                              setStep('DETAILS');
                            }}
-                           className={`aspect-square text-3xl flex items-center justify-center rounded-[var(--ui-radius)] border-[var(--ui-border-width)] transition-all hover:scale-110 ${icon === e ? 'border-indigo-500 bg-indigo-50 shadow-inner' : 'border-transparent bg-[var(--surface-elevated)] hover:bg-[var(--surface)]'}`}
+                           className={`aspect-square text-3xl flex items-center justify-center rounded-2xl border-2 transition-all hover:scale-110 ${icon === e ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-inner' : 'border-transparent bg-[var(--surface-elevated)] hover:bg-[var(--surface)]'}`}
                          >
                            {e}
                          </button>
@@ -185,7 +183,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                 <div className="flex items-center gap-4">
                    <button 
                      onClick={() => setStep('ICON')}
-                     className="p-4 bg-[var(--surface-elevated)] rounded-[var(--ui-radius)] text-4xl border-[var(--ui-border-width)] border-transparent hover:border-indigo-500 min-w-[80px] h-20 flex items-center justify-center transition-all hover:scale-105 shadow-sm group"
+                     className="p-4 bg-[var(--surface-elevated)] rounded-2xl text-4xl border-2 border-transparent hover:border-[var(--primary)] min-w-[80px] h-20 flex items-center justify-center transition-all hover:scale-105 shadow-sm group"
                    >
                      <span className="group-hover:animate-mimi-float">{icon}</span>
                    </button>
@@ -195,7 +193,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                         onChange={e => setName(e.target.value)}
                         placeholder="Nome da atividade..."
                         disabled={!!selectedPredefined && !isEditMode}
-                        className="w-full bg-transparent p-0 text-xl font-bold text-[var(--text-primary)] outline-none border-b-[var(--ui-border-width)] border-transparent focus:border-indigo-500 transition-all"
+                        className="w-full bg-transparent p-0 text-xl font-bold text-[var(--text-primary)] outline-none border-b-2 border-transparent focus:border-[var(--primary)] transition-all"
                       />
                       <p className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mt-1">
                         {isEditMode ? 'Editando' : 'Sua Atividade'}
@@ -211,18 +209,18 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                     type="time"
                     value={time}
                     onChange={e => setTime(e.target.value)}
-                    className="w-full p-4 bg-[var(--surface-elevated)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-[var(--border-color)] focus:border-indigo-500 outline-none font-bold text-[var(--text-primary)] transition-all shadow-sm"
+                    className="w-full p-4 bg-[var(--surface-elevated)] rounded-2xl border-2 border-[var(--border-color)] focus:border-[var(--primary)] outline-none font-bold text-[var(--text-primary)] transition-all shadow-sm"
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-2">O quão importante é?</label>
-                  <div className="flex bg-[var(--bg-app)] p-1.5 rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-[var(--border-color)]">
+                  <div className="flex bg-[var(--bg-app)]/50 p-1.5 rounded-[1.5rem] border border-[var(--border-color)]">
                     {(['LOW', 'MEDIUM', 'HIGH'] as ActivityPriority[]).map(p => (
                       <button 
                         key={p}
                         onClick={() => setPriority(p)}
-                        className={`flex-1 py-3 rounded-[var(--ui-radius)] text-[8px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1 ${getPriorityStyle(p)}`}
+                        className={`flex-1 py-3 rounded-xl text-[8px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1 ${getPriorityStyle(p)}`}
                       >
                         {p === 'LOW' && <><PawPrint size={14} /> Patinha</>}
                         {p === 'MEDIUM' && <><Cat size={14} /> Miado</>}
@@ -233,10 +231,10 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                 </div>
               </div>
 
-              <div className="p-6 bg-[var(--surface-elevated)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-[var(--border-color)] space-y-6 shadow-inner">
+              <div className="p-6 bg-[var(--surface-elevated)] rounded-3xl border border-[var(--border-color)] space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-[var(--ui-radius)] transition-colors ${alertEnabled ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-200 text-slate-600'}`}>
+                    <div className={`p-2 rounded-lg transition-colors ${alertEnabled ? 'bg-orange-500 text-white shadow-md' : 'bg-[var(--border-color)] text-[var(--text-muted)]'}`}>
                       <Bell size={18} />
                     </div>
                     <div>
@@ -246,7 +244,7 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                   </div>
                   <button 
                     onClick={() => setAlertEnabled(!alertEnabled)}
-                    className={`w-12 h-7 rounded-full relative transition-colors ${alertEnabled ? 'bg-orange-500 shadow-inner' : 'bg-slate-300'}`}
+                    className={`w-12 h-7 rounded-full relative transition-colors ${alertEnabled ? 'bg-orange-500 shadow-inner' : 'bg-[var(--border-color)]'}`}
                   >
                     <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow-sm ${alertEnabled ? 'left-6' : 'left-1'}`} />
                   </button>
@@ -255,12 +253,12 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
                 {alertEnabled && (
                   <div className="flex items-center justify-between gap-4 animate-fade-in pt-2">
                     <span className="text-xs font-medium text-[var(--text-muted)] shrink-0">Quanto tempo antes?</span>
-                    <div className="flex bg-[var(--surface)] rounded-[var(--ui-radius)] border-[var(--ui-border-width)] border-[var(--border-color)] p-1 shadow-sm">
+                    <div className="flex bg-[var(--surface)] rounded-xl border border-[var(--border-color)] p-1 shadow-sm">
                       {[5, 15, 30].map(m => (
                         <button 
                           key={m}
                           onClick={() => setAlertOffset(m)}
-                          className={`px-4 py-1.5 rounded-[var(--ui-radius)] text-[10px] font-black transition-all ${alertOffset === m ? 'bg-orange-500 text-white shadow-sm' : 'text-[var(--text-muted)] opacity-50'}`}
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${alertOffset === m ? 'bg-orange-500 text-white shadow-sm' : 'text-[var(--text-muted)] opacity-50'}`}
                         >
                           {m}m
                         </button>
@@ -273,16 +271,16 @@ export const AddActivityModal: React.FC<AddActivityModalProps> = ({ date, onClos
               <div className="flex gap-4 pt-4 pb-2">
                  <button 
                    onClick={() => isEditMode ? onClose() : setStep('TYPE')}
-                   className="flex-1 py-5 border-[var(--ui-border-width)] border-[var(--border-color)] text-[var(--text-primary)] rounded-[var(--ui-radius)] font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95"
+                   className="flex-1 py-5 border-2 border-[var(--border-color)] text-[var(--text-muted)] rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-[var(--surface-elevated)] transition-all active:scale-95"
                  >
                    {isEditMode ? 'Cancelar' : 'Voltar'}
                  </button>
                  <button 
                    onClick={handleFinalSave}
                    disabled={!name || !time || !icon}
-                   className="flex-[2] btn-dynamic py-5 shadow-2xl disabled:opacity-50 text-[var(--text-on-primary)] flex items-center justify-center gap-3"
+                   className="flex-[2] mimi-button py-5 shadow-2xl disabled:opacity-50"
                  >
-                   <Check size={20} strokeWidth={3} /> <span>{isEditMode ? 'Salvar Alterações' : 'Tudo Pronto! ✨'}</span>
+                   <Check size={18} /> {isEditMode ? 'Salvar Alterações' : 'Tudo Pronto! ✨'}
                  </button>
               </div>
             </div>

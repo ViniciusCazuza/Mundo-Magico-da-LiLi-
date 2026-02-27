@@ -14,7 +14,6 @@ import {
   Frown,
   Users
 } from "lucide-react";
-import { MagicIcon } from "../../../core/components/ui/MagicIcon";
 
 interface ActivityIconProps {
   name: string;
@@ -55,13 +54,5 @@ export const ActivityIcon: React.FC<ActivityIconProps> = ({ name, size = 20, cla
 
   const IconComponent = iconMap[name] || Star;
 
-  return (
-    <MagicIcon 
-      icon={IconComponent} 
-      size={size} 
-      className={className} 
-      variant="duotone"
-      glow={name === 'other' || name === 'happy'}
-    />
-  );
+  return <IconComponent size={size} className={className} />;
 };
